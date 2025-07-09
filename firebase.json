@@ -1,0 +1,44 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "royal-advance-services",
+          "appId": "1:57697834839:android:0ba1bc1fed42861fb89012",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "royal-advance-services",
+          "configurations": {
+            "android": "1:57697834839:android:0ba1bc1fed42861fb89012",
+            "web": "1:57697834839:web:10a2b652eb8f054cb89012",
+            "windows": "1:57697834839:web:c06a221cb76634c1b89012"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
+}

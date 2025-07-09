@@ -1,0 +1,79 @@
+{
+  
+  "indexes": [
+    {
+      "collectionGroup": "Produits",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "categorie", "order": "ASCENDING" },
+        { "fieldPath": "prix", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "Produits",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "categorie", "order": "ASCENDING" },
+        { "fieldPath": "prix", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "Produits",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "marque", "order": "ASCENDING" },
+        { "fieldPath": "modele", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "Produits",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "type", "order": "ASCENDING" },
+        { "fieldPath": "vues", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "Commandes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "utilisateur.idUtilisateur", "order": "ASCENDING" },
+        { "fieldPath": "dateCommande", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "Commandes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "methodePaiment", "order": "ASCENDING" },
+        { "fieldPath": "prixCommande", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "Factures",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "utilisateur.idUtilisateur", "order": "ASCENDING" },
+        { "fieldPath": "dateFacture", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "Factures",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "prixFacture", "order": "DESCENDING" },
+        { "fieldPath": "dateFacture", "order": "ASCENDING" }
+      ]
+    },
+
+    {
+      "collectionGroup": "Utilisateurs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "villeUtilisateur", "order": "ASCENDING" },
+        { "fieldPath": "nomUtilisateur", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

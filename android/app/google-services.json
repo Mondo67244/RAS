@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "57697834839",
+    "project_id": "royal-advance-services",
+    "storage_bucket": "royal-advance-services.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:57697834839:android:0ba1bc1fed42861fb89012",
+        "android_client_info": {
+          "package_name": "com.example.ras_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDkgCZ-VqQ-fVDiI9s6fMf7ZZGw7sbcAJo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
