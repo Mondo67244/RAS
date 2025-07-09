@@ -11,20 +11,17 @@ class EcranDemarrage extends StatefulWidget {
 }
 
 class _EcranDemarrageState extends State<EcranDemarrage> {
-
   @override
   void initState() {
     super.initState();
-    Future.delayed(Duration(seconds: 3)
-    ,
-    (){
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const Accueilu()));
-    }
-    );
+    Future.delayed(Duration(seconds: 3), () {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const Accueilu()),
+      );
+    });
     _getInitialRoute();
   }
-
-  
 
   Future<String> _getInitialRoute() async {
     final user = FirebaseAuth.instance.currentUser;
@@ -46,21 +43,20 @@ class _EcranDemarrageState extends State<EcranDemarrage> {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 163, 14, 3),
       body: Center(
-          child: Column(
-            children: [
-              const SizedBox(height: 350,),
-              Container(
-                width: 180,
-                height: 100,
-                child: Image.asset('assets/images/kanjad.png'),
-              ),
-              Text('Un instant...',style: TextStyle(color: Colors.white),),
-              const SizedBox(height: 10,),
-              CircularProgressIndicator(color: Colors.white,),
-            ],
-          ),
+        child: Column(
+          children: [
+            const SizedBox(height: 350),
+            SizedBox(
+              width: 180,
+              height: 100,
+              child: Image.asset('assets/images/kanjad.png'),
+            ),
+            Text('Un instant...', style: TextStyle(color: Colors.white)),
+            const SizedBox(height: 10),
+            CircularProgressIndicator(color: Colors.white),
+          ],
         ),
-      
+      ),
     );
   }
 }

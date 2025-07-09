@@ -1,7 +1,10 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:ras_app/basicdata/produit.dart';
+import 'package:ras_app/basicdata/style.dart';
 import 'package:ras_app/services/lienbd.dart';
 
 class Recents extends StatefulWidget {
@@ -60,10 +63,12 @@ class _RecentsState extends State<Recents> {
           if (nouvelEtat == true){
             ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
+                            duration: Duration(seconds: 1),
+
                             backgroundColor: Colors.green,
                             content: Column(
                             children: [
-                              Text('Vous avez ajouté ${produit.nomProduit} à vos souhaits',
+                              Text('${produit.nomProduit} ajouté à vos souhaits',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold
@@ -75,10 +80,12 @@ class _RecentsState extends State<Recents> {
           } else if (nouvelEtat == false){
             ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
+                            duration: Duration(seconds: 1),
+
                             backgroundColor: const Color.fromARGB(255, 175, 76, 76),
                             content: Column(
                             children: [
-                              Text('Vous avez retiré ${produit.nomProduit} à vos souhaits',
+                              Text('${produit.nomProduit} retiré de vos souhaits',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold
@@ -118,6 +125,50 @@ class _RecentsState extends State<Recents> {
           ) // Vérifiez que le nom de la collection est correct
           .doc(produit.idProduit)
           .update({'auPanier': nouvelEtat, 'jeVeut': false});
+          if (nouvelEtat == true){
+            ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            duration: Duration(seconds: 1),
+                            backgroundColor: Colors.green,
+                            content: Column(
+                            children: [
+                              Column(
+                                children: [
+                                  Icon(Icons.add_shopping_cart_outlined,color: style.blanc,),
+                                  Text('${produit.nomProduit} ajouté au panier',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold
+                                  ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ))
+                        );
+          } else if (nouvelEtat == false){
+            ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            duration: Duration(seconds: 1),
+
+                            backgroundColor: const Color.fromARGB(255, 175, 76, 76),
+                            content: Column(
+                            children: [
+                              Column(
+                                children: [
+                                  Icon(Icons.remove_shopping_cart_outlined,color: style.blanc,),
+                                  Text('${produit.nomProduit} retiré du panier ',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold
+                                  ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ))
+                        );
+          }
 
       setState(() {
         if (nouvelEtat) {
@@ -271,130 +322,137 @@ class _RecentsState extends State<Recents> {
     final bool isSouhait = _souhaits.contains(produit.idProduit);
     final bool isPanier = _paniers.contains(produit.idProduit);
 
-    return Card(
-      margin: const EdgeInsets.all(10),
-      elevation: 2,
-      child: Container(
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(25)),
-        width: 260,
-        child: Column(
-          children: [
-            const SizedBox(height: 3),
-            Container(
-              height: 180,
-              width: 255,
-              decoration: BoxDecoration(
-                image: const DecorationImage(
-                  image: AssetImage('assets/images/05.jpg'),
-                  fit: BoxFit.cover,
+    return InkWell(
+      onTap: () {
+        Navigator.pushNamed(context, 
+        '/details',
+        arguments: produit);
+      },
+      child: Card(
+        margin: const EdgeInsets.all(10),
+        elevation: 2,
+        child: Container(
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(25)),
+          width: 260,
+          child: Column(
+            children: [
+              const SizedBox(height: 3),
+              Container(
+                height: 180,
+                width: 255,
+                decoration: BoxDecoration(
+                  image: const DecorationImage(
+                    image: AssetImage('assets/images/05.jpg'),
+                    fit: BoxFit.cover,
+                  ),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                borderRadius: BorderRadius.circular(10),
               ),
-            ),
-            const SizedBox(height: 10),
-            Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    SizedBox(
-                      width: 130,
-                      height: 40,
-                      child: Column(
-                        children: [
-                          Text(
-                            produit.nomProduit,
-                            maxLines: 3,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ],
+              const SizedBox(height: 10),
+              Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      SizedBox(
+                        width: 130,
+                        height: 40,
+                        child: Column(
+                          children: [
+                            Text(
+                              produit.nomProduit,
+                              maxLines: 3,
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    Text(
-                      '${produit.prix} CFA',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Color.fromARGB(255, 141, 13, 4),
+                      Text(
+                        '${produit.prix} CFA',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Color.fromARGB(255, 141, 13, 4),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 5),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    const SizedBox(width: 5),
-                    //Bouton souhait
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            isSouhait
-                                ? Colors.white
-                                : const Color.fromARGB(255, 141, 13, 4),
-                        foregroundColor:
-                            isSouhait
-                                ? const Color.fromARGB(255, 141, 13, 4)
-                                : Colors.white,
+                    ],
+                  ),
+                  const SizedBox(height: 5),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      const SizedBox(width: 5),
+                      //Bouton souhait
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              isSouhait
+                                  ? Colors.white
+                                  : const Color.fromARGB(255, 141, 13, 4),
+                          foregroundColor:
+                              isSouhait
+                                  ? const Color.fromARGB(255, 141, 13, 4)
+                                  : Colors.white,
+                        ),
+                        onPressed: () async{
+                          await _toggleJeVeut(produit);
+                          
+                        },
+                        child: Row(
+                          children: [
+                            Icon(
+                              isSouhait
+                                  ? FluentIcons.book_star_24_filled
+                                  : FluentIcons.book_star_24_regular,
+                            ),
+                            const SizedBox(width: 3),
+                            Text(
+                              isSouhait ? 'Souhaité' : 'Souhait',
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
                       ),
-                      onPressed: () async{
-                        await _toggleJeVeut(produit);
-                        
-                      },
-                      child: Row(
-                        children: [
-                          Icon(
-                            isSouhait
-                                ? FluentIcons.book_star_24_filled
-                                : FluentIcons.book_star_24_regular,
-                          ),
-                          const SizedBox(width: 3),
-                          Text(
-                            isSouhait ? 'Souhaité' : 'Souhait',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ],
+                      const SizedBox(width: 5),
+                      //Bouton Panier
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              isPanier
+                                  ? const Color.fromARGB(255, 1, 7, 71)
+                                  : Colors.white,
+                          foregroundColor:
+                              isPanier
+                                  ? Colors.white
+                                  : const Color.fromARGB(255, 1, 7, 71),
+                        ),
+                        onPressed:
+                            () => _toggleAuPanier(
+                              produit,
+                            ), // Appel à la nouvelle fonction
+                        child: Row(
+                          children: [
+                            Icon(
+                              isPanier
+                                  ? FluentIcons
+                                      .shopping_bag_tag_24_filled // Icône pour "ajouté au panier"
+                                  : FluentIcons
+                                      .shopping_bag_tag_24_regular, // Icône pour "non ajouté au panier"
+                            ),
+                            const SizedBox(width: 3),
+                            Text(
+                              isPanier ? 'Ajouté' : 'Panier',
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 5),
-                    //Bouton Panier
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            isPanier
-                                ? const Color.fromARGB(255, 1, 7, 71)
-                                : Colors.white,
-                        foregroundColor:
-                            isPanier
-                                ? Colors.white
-                                : const Color.fromARGB(255, 1, 7, 71),
-                      ),
-                      onPressed:
-                          () => _toggleAuPanier(
-                            produit,
-                          ), // Appel à la nouvelle fonction
-                      child: Row(
-                        children: [
-                          Icon(
-                            isPanier
-                                ? FluentIcons
-                                    .shopping_bag_tag_24_filled // Icône pour "ajouté au panier"
-                                : FluentIcons
-                                    .shopping_bag_tag_24_regular, // Icône pour "non ajouté au panier"
-                          ),
-                          const SizedBox(width: 3),
-                          Text(
-                            isPanier ? 'Ajouté' : 'Panier',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 5),
-                  ],
-                ),
-              ],
-            ),
-          ],
+                      const SizedBox(width: 5),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
