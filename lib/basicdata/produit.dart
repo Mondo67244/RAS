@@ -14,10 +14,18 @@ String type;
 //l'utilisateur pourra ensuite voir tous les Produits qu'il a ajouté a la liste des souhaits
 bool jeVeut;
 bool auPanier;
+String img1;
+String img2;
+String img3;
+bool enStock;
 
 
 Produit({
-  required this.auPanier,
+required this.enStock,
+required this.img1,
+required this.img2,
+required this.img3,
+required this.auPanier,
 required this.jeVeut,
 required this.idProduit,
 required this.nomProduit,

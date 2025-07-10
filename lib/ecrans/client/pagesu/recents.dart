@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
@@ -60,42 +58,46 @@ class _RecentsState extends State<Recents> {
           .collection('Produits')
           .doc(produit.idProduit)
           .update({'jeVeut': nouvelEtat, 'auPanier': false});
-          if (nouvelEtat == true){
-            ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            duration: Duration(seconds: 1),
+      if (nouvelEtat == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            duration: Duration(seconds: 1),
 
-                            backgroundColor: Colors.green,
-                            content: Column(
-                            children: [
-                              Text('${produit.nomProduit} ajouté à vos souhaits',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold
-                              ),
-                              ),
-                            ],
-                          ))
-                        );
-          } else if (nouvelEtat == false){
-            ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            duration: Duration(seconds: 1),
+            backgroundColor: Colors.green,
+            content: Column(
+              children: [
+                Text(
+                  '${produit.nomProduit} ajouté à vos souhaits',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      } else if (nouvelEtat == false) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            duration: Duration(seconds: 1),
 
-                            backgroundColor: const Color.fromARGB(255, 175, 76, 76),
-                            content: Column(
-                            children: [
-                              Text('${produit.nomProduit} retiré de vos souhaits',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold
-                              ),
-                              ),
-                            ],
-                          ))
-                        );
-          }
-          
+            backgroundColor: const Color.fromARGB(255, 175, 76, 76),
+            content: Column(
+              children: [
+                Text(
+                  '${produit.nomProduit} retiré de vos souhaits',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+
       setState(() {
         if (nouvelEtat) {
           _souhaits.add(produit.idProduit);
@@ -125,50 +127,57 @@ class _RecentsState extends State<Recents> {
           ) // Vérifiez que le nom de la collection est correct
           .doc(produit.idProduit)
           .update({'auPanier': nouvelEtat, 'jeVeut': false});
-          if (nouvelEtat == true){
-            ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            duration: Duration(seconds: 1),
-                            backgroundColor: Colors.green,
-                            content: Column(
-                            children: [
-                              Column(
-                                children: [
-                                  Icon(Icons.add_shopping_cart_outlined,color: style.blanc,),
-                                  Text('${produit.nomProduit} ajouté au panier',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold
-                                  ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ))
-                        );
-          } else if (nouvelEtat == false){
-            ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            duration: Duration(seconds: 1),
+      if (nouvelEtat == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            duration: Duration(seconds: 1),
+            backgroundColor: Colors.green,
+            content: Column(
+              children: [
+                Column(
+                  children: [
+                    Icon(Icons.add_shopping_cart_outlined, color: style.blanc),
+                    Text(
+                      '${produit.nomProduit} ajouté au panier',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      } else if (nouvelEtat == false) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            duration: Duration(seconds: 1),
 
-                            backgroundColor: const Color.fromARGB(255, 175, 76, 76),
-                            content: Column(
-                            children: [
-                              Column(
-                                children: [
-                                  Icon(Icons.remove_shopping_cart_outlined,color: style.blanc,),
-                                  Text('${produit.nomProduit} retiré du panier ',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold
-                                  ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ))
-                        );
-          }
+            backgroundColor: const Color.fromARGB(255, 175, 76, 76),
+            content: Column(
+              children: [
+                Column(
+                  children: [
+                    Icon(
+                      Icons.remove_shopping_cart_outlined,
+                      color: style.blanc,
+                    ),
+                    Text(
+                      '${produit.nomProduit} retiré du panier ',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      }
 
       setState(() {
         if (nouvelEtat) {
@@ -192,94 +201,208 @@ class _RecentsState extends State<Recents> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: FutureBuilder<List<Produit>>(
-                future:
-                    _produitsFuture, // Utilise le Future qui charge les produits
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                      child: CircularProgressIndicator(
-                        color: Color.fromARGB(255, 141, 13, 4),
-                      ),
-                    );
-                  } else if (snapshot.hasError) {
-                    return Center(child: Text('Erreur: ${snapshot.error}'));
-                  } else if (!snapshot.hasData) {
-                    return const Center(
-                      child: Column(
-                        children: [
-                          SizedBox(height: 140),
-                          Icon(
-                            Icons.delivery_dining_outlined,
-                            size: 200,
-                            color: Colors.grey,
-                          ),
-                          Text(
-                            'Aucun article trouvé',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
+      body: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          if (constraints.maxWidth > 600) {
+            return SingleChildScrollView(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: FutureBuilder<List<Produit>>(
+                      future:
+                          _produitsFuture, // Utilise le Future qui charge les produits
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                            child: CircularProgressIndicator(
+                              color: Color.fromARGB(255, 141, 13, 4),
                             ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
+                          );
+                        } else if (snapshot.hasError) {
+                          return Center(
+                            child: Text('Erreur: ${snapshot.error}'),
+                          );
+                        } else if (!snapshot.hasData) {
+                          return const Center(
+                            child: Column(
+                              children: [
+                                SizedBox(height: 140),
+                                Icon(
+                                  Icons.delivery_dining_outlined,
+                                  size: 200,
+                                  color: Colors.grey,
+                                ),
+                                Text(
+                                  'Aucun article trouvé',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
 
-                  final produits = snapshot.data!;
-                  final produitsBureautique =
-                      produits
-                          .where((p) => p.categorie == 'Bureautique')
-                          .toList();
-                  final produitsPopulaires =
-                      produits.where((p) {
-                        final int vuesCount = int.tryParse(p.vues) ?? 0;
-                        return vuesCount > 15;
-                      }).toList();
+                        final produits = snapshot.data!;
+                        final produitsBureautique =
+                            produits
+                                .where((p) => p.categorie == 'Bureautique')
+                                .toList();
+                        final produitsPopulaires =
+                            produits.where((p) {
+                              final int vuesCount = int.tryParse(p.vues) ?? 0;
+                              return vuesCount > 15;
+                            }).toList();
 
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _imageHeader('assets/images/05.jpg'),
-                      const SizedBox(height: 10),
-                      _sectionProduits(
-                        'Articles Populaires',
-                        produitsPopulaires,
-                      ),
-                      _imageHeader('assets/images/06.jpg'),
-                      const SizedBox(height: 10),
-                      _sectionProduits(
-                        'Dans la catégorie Bureautique',
-                        produitsBureautique,
-                      ),
-                      _imageHeader('assets/images/07.jpg'),
-                      const SizedBox(height: 10),
-                    ],
-                  );
-                },
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _imageHeader1(
+                              'https://wordpressthemes.live/WCG5/WCM116_kartpul/electronics/wp-content/uploads/2024/09/10.jpg',
+                            ),
+                            const SizedBox(height: 10),
+                            _sectionProduits(
+                              'Articles Populaires',
+                              produitsPopulaires,
+                            ),
+                            _imageHeader1(
+                              'https://wordpressthemes.live/WCG5/WCM116_kartpul/electronics/wp-content/uploads/2024/09/09.jpg',
+                            ),
+                            const SizedBox(height: 10),
+                            _sectionProduits(
+                              'Dans la catégorie Bureautique',
+                              produitsBureautique,
+                            ),
+                            _imageHeader1(
+                              'https://wordpressthemes.live/WCG5/WCM116_kartpul/electronics/wp-content/uploads/2024/09/08.jpg',
+                            ),
+                            const SizedBox(height: 10),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
+            );
+          } else {
+            return SingleChildScrollView(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: FutureBuilder<List<Produit>>(
+                      future:
+                          _produitsFuture, // Utilise le Future qui charge les produits
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                            child: CircularProgressIndicator(
+                              color: Color.fromARGB(255, 141, 13, 4),
+                            ),
+                          );
+                        } else if (snapshot.hasError) {
+                          return Center(
+                            child: Text('Erreur: ${snapshot.error}'),
+                          );
+                        } else if (!snapshot.hasData) {
+                          return const Center(
+                            child: Column(
+                              children: [
+                                SizedBox(height: 140),
+                                Icon(
+                                  Icons.delivery_dining_outlined,
+                                  size: 200,
+                                  color: Colors.grey,
+                                ),
+                                Text(
+                                  'Aucun article trouvé',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+
+                        final produits = snapshot.data!;
+                        final produitsBureautique =
+                            produits
+                                .where((p) => p.categorie == 'Bureautique')
+                                .toList();
+                        final produitsPopulaires =
+                            produits.where((p) {
+                              final int vuesCount = int.tryParse(p.vues) ?? 0;
+                              return vuesCount > 15;
+                            }).toList();
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _imageHeader2(
+                              'https://wordpressthemes.live/WCG5/WCM116_kartpul/electronics/wp-content/uploads/2024/09/10.jpg',
+                            ),
+                            const SizedBox(height: 10),
+                            _sectionProduits(
+                              'Articles Populaires',
+                              produitsPopulaires,
+                            ),
+                            _imageHeader2(
+                              'https://wordpressthemes.live/WCG5/WCM116_kartpul/electronics/wp-content/uploads/2024/09/09.jpg',
+                            ),
+                            const SizedBox(height: 10),
+                            _sectionProduits(
+                              'Dans la catégorie Bureautique',
+                              produitsBureautique,
+                            ),
+                            _imageHeader2(
+                              'https://wordpressthemes.live/WCG5/WCM116_kartpul/electronics/wp-content/uploads/2024/09/08.jpg',
+                            ),
+                            const SizedBox(height: 10),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+        },
       ),
     );
   }
 
   // Section d'images
-  Widget _imageHeader(String path) {
-    return Center(
-      child: Container(
-        height: 70,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          image: DecorationImage(image: AssetImage(path), fit: BoxFit.cover),
-        ),
-      ),
+  Widget _imageHeader1(String path) {
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        return SizedBox(
+          height: 90,
+          width: constraints.maxWidth,
+
+          child: Image.network(path, fit: BoxFit.fitWidth),
+        );
+      },
+    );
+  }
+
+  Widget _imageHeader2(String path) {
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        return Container(
+          height: 70,
+          width: constraints.maxWidth,
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(20)),
+          child: Image.network(path, fit: BoxFit.fitWidth),
+        );
+      },
     );
   }
 
@@ -305,7 +428,7 @@ class _RecentsState extends State<Recents> {
           ),
         ),
         SizedBox(
-          height: 310,
+          height: 375,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: produits.length,
@@ -324,9 +447,7 @@ class _RecentsState extends State<Recents> {
 
     return InkWell(
       onTap: () {
-        Navigator.pushNamed(context, 
-        '/details',
-        arguments: produit);
+        Navigator.pushNamed(context, '/details', arguments: produit);
       },
       child: Card(
         margin: const EdgeInsets.all(10),
@@ -337,15 +458,17 @@ class _RecentsState extends State<Recents> {
           child: Column(
             children: [
               const SizedBox(height: 3),
-              Container(
-                height: 180,
-                width: 255,
-                decoration: BoxDecoration(
-                  image: const DecorationImage(
-                    image: AssetImage('assets/images/05.jpg'),
-                    fit: BoxFit.cover,
+              Padding(
+                padding: const EdgeInsets.all(5.0),
+                child: Container(
+                  height: 230,
+                  width: 255,
+                  decoration: BoxDecoration(
+                    color: style.blanc,
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(color: Colors.grey.withOpacity(0.5)),
                   ),
-                  borderRadius: BorderRadius.circular(10),
+                  child: Image.network(produit.img1),
                 ),
               ),
               const SizedBox(height: 10),
@@ -362,7 +485,9 @@ class _RecentsState extends State<Recents> {
                             Text(
                               produit.nomProduit,
                               maxLines: 3,
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),
@@ -393,9 +518,8 @@ class _RecentsState extends State<Recents> {
                                   ? const Color.fromARGB(255, 141, 13, 4)
                                   : Colors.white,
                         ),
-                        onPressed: () async{
+                        onPressed: () async {
                           await _toggleJeVeut(produit);
-                          
                         },
                         child: Row(
                           children: [
@@ -407,7 +531,9 @@ class _RecentsState extends State<Recents> {
                             const SizedBox(width: 3),
                             Text(
                               isSouhait ? 'Souhaité' : 'Souhait',
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),
@@ -441,7 +567,9 @@ class _RecentsState extends State<Recents> {
                             const SizedBox(width: 3),
                             Text(
                               isPanier ? 'Ajouté' : 'Panier',
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),

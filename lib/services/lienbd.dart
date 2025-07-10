@@ -6,7 +6,6 @@ import 'package:ras_app/basicdata/facture.dart';
 import 'package:ras_app/basicdata/produit.dart';
 
 class FirestoreService {
-
   // Collections references
   final CollectionReference categoriesCollection = FirebaseFirestore.instance
       .collection('Categories');
@@ -73,8 +72,9 @@ class FirestoreService {
   }
 
   // Opérations sur les produits
-  Future<void> addProduit(Produit produit) {
+  Future<void> addProduit(Produit produit, bool bool) {
     return produitsCollection.add({
+      'enStock': produit.enStock,
       'idProduit': '',
       'nomProduit': produit.nomProduit,
       'description': produit.description,
@@ -87,14 +87,21 @@ class FirestoreService {
       'jeVeut': produit.jeVeut,
     });
   }
-
- 
+  Future<void> updateProduit(String id, bool enStock) {
+    return produitsCollection.doc(id).update({
+      'enStock': enStock,
+    });
+  }
 
   Future<List<Produit>> getProduits() async {
     QuerySnapshot snapshot = await produitsCollection.get();
     return snapshot.docs.map((doc) {
       Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       return Produit(
+        enStock: data['enStock'] ?? true,
+        img1: data['img1'] ?? '',
+        img2: data['img2'] ?? '',
+        img3: data['img3'] ?? '',
         auPanier: data['auPanier'] ?? false,
         idProduit: doc.id,
         nomProduit: data['nomProduit'] ?? '',
@@ -179,6 +186,10 @@ class FirestoreService {
       List<Produit> produits =
           produitsData.map((produitData) {
             return Produit(
+              enStock: produitData['enStock'] ?? true,
+              img1: produitData['img1'] ?? '',
+              img2: produitData['img1'] ?? '',
+              img3: produitData['img1'] ?? '',
               auPanier: produitData['auPanier'] ?? false,
               idProduit: produitData['idProduit'] ?? '',
               nomProduit: produitData['nomProduit'] ?? '',
@@ -206,7 +217,7 @@ class FirestoreService {
         codePostal: data['codePostal'] ?? '',
         utilisateur: utilisateur,
         produit: produits,
-    enPromo: false,
+        enPromo: false,
 
         methodePaiment: data['methodePaiment'] ?? false,
         choixLivraison: data['choixLivraison'] ?? false,
@@ -275,6 +286,10 @@ class FirestoreService {
       List<Produit> produits =
           produitsData.map((produitData) {
             return Produit(
+              img1: produitData['img1'] ?? '',
+              img2: produitData['img1'] ?? '',
+              img3: produitData['img1'] ?? '',
+              enStock: produitData['enStock'] ?? true,
               auPanier: produitData['auPanier'] ?? false,
               idProduit: produitData['idProduit'] ?? '',
               nomProduit: produitData['nomProduit'] ?? '',
@@ -335,6 +350,10 @@ class FirestoreService {
     return snapshot.docs.map((doc) {
       Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       return Produit(
+        enStock: data['enStock'] ?? true,
+        img1: data['img1'] ?? '',
+        img2: data['img1'] ?? '',
+        img3: data['img1'] ?? '',
         auPanier: data['auPanier'] ?? false,
         idProduit: data['idProduit'] ?? '',
         nomProduit: data['nomProduit'] ?? '',
