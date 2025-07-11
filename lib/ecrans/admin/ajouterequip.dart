@@ -132,7 +132,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: Colors.green,
-            content: Text('Produit ajouté avec succès', style: TextStyle(color: style.blanc)),
+            content: Text('Produit ajouté avec succès', style: TextStyle(color: Colors.white)),
           ),
         );
         Navigator.pop(context);
@@ -142,7 +142,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: Colors.red,
-            content: Text('Erreur lors de l\'ajout : ${e.toString()}', style: TextStyle(color: style.blanc)),
+            content: Text('Erreur lors de l\'ajout : ${e.toString()}', style: TextStyle(color: Colors.white)),
           ),
         );
       }
@@ -158,9 +158,9 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Ajouter un nouveau produit'),
-        titleTextStyle: TextStyle(color: style.blanc, fontSize: 20, fontWeight: FontWeight.bold),
-        backgroundColor: style.rouge,
-        iconTheme: IconThemeData(color: style.blanc),
+        titleTextStyle: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+        backgroundColor: styles.rouge,
+        iconTheme: IconThemeData(color: Colors.white),
         centerTitle: true,
       ),
       body: Form(
@@ -210,7 +210,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
                 decoration: BoxDecoration(
                   color: Colors.grey[200],
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: style.rouge, width: 1.5),
+                  border: Border.all(color: styles.rouge, width: 1.5),
                   image: _imageFiles[index] != null
                       ? DecorationImage(
                           image: FileImage(_imageFiles[index]!),
@@ -223,7 +223,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
                         child: Icon(
                           Icons.add_a_photo_outlined,
                           size: 40,
-                          color: style.rouge,
+                          color: styles.rouge,
                         ),
                       )
                     : null,
@@ -240,6 +240,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
     return Column(
       children: [
         TextFormField(
+          maxLength: 22,
           controller: _nomController,
           decoration: _buildInputDecoration('Nom du produit'),
           validator: (value) => value == null || value.isEmpty ? 'Veuillez entrer le nom du produit' : null,
@@ -312,7 +313,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
       child: ElevatedButton(
         onPressed: _isLoading ? null : _submitForm,
         style: ElevatedButton.styleFrom(
-          backgroundColor: style.rouge,
+          backgroundColor: styles.rouge,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
@@ -320,11 +321,11 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
             ? SizedBox(
                 height: 24,
                 width: 24,
-                child: CircularProgressIndicator(color: style.blanc, strokeWidth: 3),
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
               )
             : Text(
                 'Ajouter le produit',
-                style: TextStyle(fontSize: 18, color: style.blanc, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
               ),
       ),
     );
@@ -342,7 +343,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: style.rouge!, width: 2),
+        borderSide: BorderSide(color: styles.rouge!, width: 2),
       ),
     );
   }

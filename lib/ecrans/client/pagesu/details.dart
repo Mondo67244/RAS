@@ -121,12 +121,12 @@ class _DetailsState extends State<Details> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        foregroundColor: style.blanc,
+        foregroundColor: Colors.white,
         title: const Text(
           'Détails de l\'article',
           style: TextStyle(color: Colors.white),
         ),
-        backgroundColor: style.rouge,
+        backgroundColor: styles.rouge,
       ),
       body: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {

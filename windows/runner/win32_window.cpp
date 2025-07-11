@@ -251,7 +251,7 @@ void Win32Window::SetChildContent(HWND content) {
 
 RECT Win32Window::GetUtilisateurArea() {
   RECT frame;
-  GetUtilisateurRect(window_handle_, &frame);
+  GetClientRect(window_handle_, &frame);
   return frame;
 }
 

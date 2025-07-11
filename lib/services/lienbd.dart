@@ -1,3 +1,5 @@
+// Fichier : services/lienbd.dart
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ras_app/basicdata/categorie.dart';
 import 'package:ras_app/basicdata/utilisateur.dart';
@@ -7,25 +9,28 @@ import 'package:ras_app/basicdata/produit.dart';
 
 class FirestoreService {
   // Collections references
-  final CollectionReference categoriesCollection = FirebaseFirestore.instance
-      .collection('Categories');
+  final CollectionReference categoriesCollection =
+      FirebaseFirestore.instance.collection('Categories');
 
-  final CollectionReference utilisateursCollection = FirebaseFirestore.instance
-      .collection('Utilisateurs');
+  final CollectionReference utilisateursCollection =
+      FirebaseFirestore.instance.collection('Utilisateurs');
 
-  final CollectionReference produitsCollection = FirebaseFirestore.instance
-      .collection('Produits');
+  final CollectionReference produitsCollection =
+      FirebaseFirestore.instance.collection('Produits');
 
-  final CollectionReference commandesCollection = FirebaseFirestore.instance
-      .collection('Commandes');
+  final CollectionReference commandesCollection =
+      FirebaseFirestore.instance.collection('Commandes');
 
-  final CollectionReference facturesCollection = FirebaseFirestore.instance
-      .collection('Factures');
+  final CollectionReference facturesCollection =
+      FirebaseFirestore.instance.collection('Factures');
 
-  final CollectionReference listesSouhaitCollection = FirebaseFirestore.instance
-      .collection('listesSouhait');
+  final CollectionReference listesSouhaitCollection =
+      FirebaseFirestore.instance.collection('listesSouhait');
 
+  // =======================================================================
   // Opérations pour la collection catégorie
+  // =======================================================================
+
   Future<void> addCategorie(Categorie categorie) {
     return categoriesCollection.doc(categorie.nomCategorie).set({
       'nomCategorie': categorie.nomCategorie,
@@ -44,7 +49,10 @@ class FirestoreService {
     }).toList();
   }
 
-  //Opération pour les utilisateurs
+  // =======================================================================
+  // Opération pour les utilisateurs
+  // =======================================================================
+
   Future<void> addUtilisateur(Utilisateur utilisateur) {
     return utilisateursCollection.doc(utilisateur.idUtilisateur).set({
       'idUtilisateur': utilisateur.idUtilisateur,
@@ -71,7 +79,10 @@ class FirestoreService {
     }).toList();
   }
 
+  // =======================================================================
   // Opérations sur les produits
+  // =======================================================================
+
   Future<void> addProduit(Produit produit, bool bool) {
     return produitsCollection.add({
       'enStock': produit.enStock,
@@ -87,14 +98,16 @@ class FirestoreService {
       'jeVeut': produit.jeVeut,
     });
   }
+
   Future<void> updateProduit(String id, bool enStock) {
     return produitsCollection.doc(id).update({
       'enStock': enStock,
     });
   }
-
+  
+  /// Récupère la liste de tous les produits.
   Future<List<Produit>> getProduits() async {
-    QuerySnapshot snapshot = await produitsCollection.get();
+    QuerySnapshot snapshot = await produitsCollection.orderBy('createdAt', descending: true).get();
     return snapshot.docs.map((doc) {
       Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       return Produit(
@@ -108,7 +121,7 @@ class FirestoreService {
         nomProduit: data['nomProduit'] ?? '',
         description: data['description'] ?? '',
         prix: data['prix'] ?? '',
-        vues: data['vues'] ?? '',
+        vues: data['vues']?.toString() ?? '0',
         modele: data['modele'] ?? '',
         marque: data['marque'] ?? '',
         categorie: data['categorie'] ?? '',
@@ -118,6 +131,26 @@ class FirestoreService {
     }).toList();
   }
 
+
+  
+  Future<void> updateProductWishlist(String productId, bool newStatus) {
+    return produitsCollection.doc(productId).update({
+      'jeVeut': newStatus,
+      if (newStatus) 'auPanier': false, // Règle métier : un produit ne peut être aux souhaits et au panier en même temps
+    });
+  }
+
+  Future<void> updateProductCart(String productId, bool newStatus) {
+    return produitsCollection.doc(productId).update({
+      'auPanier': newStatus,
+      if (newStatus) 'jeVeut': false, 
+    });
+  }
+
+  // =======================================================================
+  // Opérations sur les commandes
+  // =======================================================================
+  
   // Opérations sur les commandes
   Future<void> addCommande(Commande commande) async {
     // Convert Utilisateur to Map
@@ -165,7 +198,8 @@ class FirestoreService {
     });
   }
 
-  Future<List<Commande>> getCommandes() async {
+
+   Future<List<Commande>> getCommandes() async {
     QuerySnapshot snapshot = await commandesCollection.get();
     return snapshot.docs.map((doc) {
       Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
@@ -227,6 +261,11 @@ class FirestoreService {
     }).toList();
   }
 
+
+  // =======================================================================
+  // Opérations sur les factures
+  // =======================================================================
+
   // Opérations sur les factures
   Future<void> addFacture(Facture facture) async {
     // Convert Utilisateur to Map
@@ -265,6 +304,7 @@ class FirestoreService {
       'quantite': facture.quantite,
     });
   }
+
 
   Future<List<Facture>> getFactures() async {
     QuerySnapshot snapshot = await facturesCollection.get();
@@ -317,6 +357,8 @@ class FirestoreService {
       );
     }).toList();
   }
+
+
 
   // Opérations sur la liste de souhaits
   Future<void> ajoutListeSouhait(String userId, Produit produit) {

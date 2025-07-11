@@ -1,8 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:convert'; // Importé pour le décodage Base64
+import 'dart:typed_data'; // Importé pour Uint8List
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:ras_app/basicdata/produit.dart';
-import 'package:ras_app/basicdata/style.dart';
+import 'package:ras_app/basicdata/style.dart'
+    as styles; // Renommé pour éviter les conflits
 import 'package:ras_app/services/lienbd.dart';
 
 class Recents extends StatefulWidget {
@@ -15,407 +17,243 @@ class Recents extends StatefulWidget {
 class _RecentsState extends State<Recents> {
   late Future<List<Produit>> _produitsFuture;
   final FirestoreService _firestoreService = FirestoreService();
-
-  // États individuels pour chaque produit, initialisés à partir de Firestore
   final Set<String> _souhaits = {};
   final Set<String> _paniers = {};
 
   @override
   void initState() {
     super.initState();
-    _changeletatdesboutons();
+    _chargerdonneesbasique();
   }
 
-  Future<void> _changeletatdesboutons() async {
+  Future<void> _chargerdonneesbasique() async {
     _produitsFuture = _firestoreService.getProduits();
     try {
-      // Pour récupérer les produits
-      List<Produit> produits = await _produitsFuture;
-
-      // Initialiser les champs en fonction des champs de la base de donnée
+      final produits = await _produitsFuture;
+      if (!mounted) return;
       setState(() {
         for (var produit in produits) {
-          if (produit.jeVeut == true) {
-            _souhaits.add(produit.idProduit);
-          }
-          if (produit.auPanier == true) {
-            _paniers.add(produit.idProduit);
-          }
+          if (produit.jeVeut) _souhaits.add(produit.idProduit);
+          if (produit.auPanier) _paniers.add(produit.idProduit);
         }
       });
     } catch (e) {
-      print(
-        'Erreur lors du chargement des produits et des états des boutons: $e',
-      );
+      print('Erreur lors du chargement des données initiales: $e');
+      _messageReponse('Erreur de chargement des données.', isSuccess: false);
     }
   }
 
-  // Fonction pour basculer l'état "jeVeut" et mettre à jour Firestore et l'état local
+  //Logique du bouton souhait
   Future<void> _toggleJeVeut(Produit produit) async {
     final bool nouvelEtat = !_souhaits.contains(produit.idProduit);
-    try {
-      await FirebaseFirestore.instance
-          .collection('Produits')
-          .doc(produit.idProduit)
-          .update({'jeVeut': nouvelEtat, 'auPanier': false});
-      if (nouvelEtat == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            duration: Duration(seconds: 1),
-
-            backgroundColor: Colors.green,
-            content: Column(
-              children: [
-                Text(
-                  '${produit.nomProduit} ajouté à vos souhaits',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      } else if (nouvelEtat == false) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            duration: Duration(seconds: 1),
-
-            backgroundColor: const Color.fromARGB(255, 175, 76, 76),
-            content: Column(
-              children: [
-                Text(
-                  '${produit.nomProduit} retiré de vos souhaits',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
+    setState(() {
+      if (nouvelEtat) {
+        _souhaits.add(produit.idProduit);
+        _paniers.remove(produit.idProduit);
+      } else {
+        _souhaits.remove(produit.idProduit);
       }
-
+    });
+    _messageReponse(
+      nouvelEtat
+          ? '${produit.nomProduit} ajouté à vos souhaits'
+          : '${produit.nomProduit} retiré de vos souhaits',
+      isSuccess: nouvelEtat,
+    );
+    try {
+      await _firestoreService.updateProductWishlist(
+        produit.idProduit,
+        nouvelEtat,
+      );
+    } catch (e) {
+      print('Erreur Firestore pour JeVeut: $e');
+      _messageReponse('Erreur de mise à jour du souhait.', isSuccess: false);
       setState(() {
         if (nouvelEtat) {
-          _souhaits.add(produit.idProduit);
-          _paniers.remove(produit.idProduit);
-        } else {
           _souhaits.remove(produit.idProduit);
-          ;
+        } else {
+          _souhaits.add(produit.idProduit);
         }
       });
-    } catch (e) {
-      print(
-        'Erreur lors de la mise à jour de jeVeut pour ${produit.idProduit}: $e',
-      );
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur de mise à jour du souhait: $e')),
-      );
     }
   }
 
-  // Fonction pour basculer l'état "auPanier" et mettre à jour Firestore et l'état local
+  //Logique du bouton panier
   Future<void> _toggleAuPanier(Produit produit) async {
     final bool nouvelEtat = !_paniers.contains(produit.idProduit);
-    try {
-      await FirebaseFirestore.instance
-          .collection(
-            'Produits',
-          ) // Vérifiez que le nom de la collection est correct
-          .doc(produit.idProduit)
-          .update({'auPanier': nouvelEtat, 'jeVeut': false});
-      if (nouvelEtat == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            duration: Duration(seconds: 1),
-            backgroundColor: Colors.green,
-            content: Column(
-              children: [
-                Column(
-                  children: [
-                    Icon(Icons.add_shopping_cart_outlined, color: style.blanc),
-                    Text(
-                      '${produit.nomProduit} ajouté au panier',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      } else if (nouvelEtat == false) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            duration: Duration(seconds: 1),
-
-            backgroundColor: const Color.fromARGB(255, 175, 76, 76),
-            content: Column(
-              children: [
-                Column(
-                  children: [
-                    Icon(
-                      Icons.remove_shopping_cart_outlined,
-                      color: style.blanc,
-                    ),
-                    Text(
-                      '${produit.nomProduit} retiré du panier ',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
+    setState(() {
+      if (nouvelEtat) {
+        _paniers.add(produit.idProduit);
+        _souhaits.remove(produit.idProduit);
+      } else {
+        _paniers.remove(produit.idProduit);
       }
-
+    });
+    _messageReponse(
+      nouvelEtat
+          ? '${produit.nomProduit} ajouté au panier'
+          : '${produit.nomProduit} retiré du panier',
+      isSuccess: nouvelEtat,
+      icon:
+          nouvelEtat
+              ? Icons.add_shopping_cart_outlined
+              : Icons.remove_shopping_cart_outlined,
+    );
+    try {
+      // APPEL AU SERVICE CENTRALISÉ
+      await _firestoreService.updateProductCart(produit.idProduit, nouvelEtat);
+    } catch (e) {
+      print('Erreur Firestore pour AuPanier: $e');
+      _messageReponse('Erreur de mise à jour du panier.', isSuccess: false);
       setState(() {
+        // Annulation en cas d'erreur
         if (nouvelEtat) {
-          _paniers.add(produit.idProduit);
-          _souhaits.remove(produit.idProduit);
-        } else {
           _paniers.remove(produit.idProduit);
+        } else {
+          _paniers.add(produit.idProduit);
         }
       });
-    } catch (e) {
-      print(
-        'Erreur lors de la mise à jour de auPanier pour ${produit.idProduit}: $e',
-      );
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur de mise à jour du panier: $e')),
-      );
     }
   }
 
-  //Scaffold permettant d'afficher les cartes
+  //Message du bas
+  void _messageReponse(
+    String message, {
+    bool isSuccess = true,
+    IconData? icon,
+  }) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        duration: const Duration(seconds: 1),
+        backgroundColor: isSuccess ? styles.styles.vert : styles.styles.erreur,
+        content: Row(
+          children: [
+            if (icon != null) ...[
+              Icon(icon, color: Colors.white),
+              const SizedBox(width: 8),
+            ],
+            Expanded(child: Text(message, style: styles.styles.textebas)),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-          if (constraints.maxWidth > 600) {
-            return SingleChildScrollView(
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: FutureBuilder<List<Produit>>(
-                      future:
-                          _produitsFuture, // Utilise le Future qui charge les produits
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Center(
-                            child: CircularProgressIndicator(
-                              color: Color.fromARGB(255, 141, 13, 4),
-                            ),
-                          );
-                        } else if (snapshot.hasError) {
-                          return Center(
-                            child: Text('Erreur: ${snapshot.error}'),
-                          );
-                        } else if (!snapshot.hasData) {
-                          return const Center(
-                            child: Column(
-                              children: [
-                                SizedBox(height: 140),
-                                Icon(
-                                  Icons.delivery_dining_outlined,
-                                  size: 200,
-                                  color: Colors.grey,
-                                ),
-                                Text(
-                                  'Aucun article trouvé',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }
-
-                        final produits = snapshot.data!;
-                        final produitsBureautique =
-                            produits
-                                .where((p) => p.categorie == 'Bureautique')
-                                .toList();
-                        final produitsPopulaires =
-                            produits.where((p) {
-                              final int vuesCount = int.tryParse(p.vues) ?? 0;
-                              return vuesCount > 15;
-                            }).toList();
-
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _imageHeader1(
-                              'https://wordpressthemes.live/WCG5/WCM116_kartpul/electronics/wp-content/uploads/2024/09/10.jpg',
-                            ),
-                            const SizedBox(height: 10),
-                            _sectionProduits(
-                              'Articles Populaires',
-                              produitsPopulaires,
-                            ),
-                            _imageHeader1(
-                              'https://wordpressthemes.live/WCG5/WCM116_kartpul/electronics/wp-content/uploads/2024/09/09.jpg',
-                            ),
-                            const SizedBox(height: 10),
-                            _sectionProduits(
-                              'Dans la catégorie Bureautique',
-                              produitsBureautique,
-                            ),
-                            _imageHeader1(
-                              'https://wordpressthemes.live/WCG5/WCM116_kartpul/electronics/wp-content/uploads/2024/09/08.jpg',
-                            ),
-                            const SizedBox(height: 10),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
+      body: FutureBuilder<List<Produit>>(
+        future: _produitsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(color: styles.styles.rouge),
             );
-          } else {
-            return SingleChildScrollView(
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('Erreur: ${snapshot.error}'));
+          }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: FutureBuilder<List<Produit>>(
-                      future:
-                          _produitsFuture, // Utilise le Future qui charge les produits
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Center(
-                            child: CircularProgressIndicator(
-                              color: Color.fromARGB(255, 141, 13, 4),
-                            ),
-                          );
-                        } else if (snapshot.hasError) {
-                          return Center(
-                            child: Text('Erreur: ${snapshot.error}'),
-                          );
-                        } else if (!snapshot.hasData) {
-                          return const Center(
-                            child: Column(
-                              children: [
-                                SizedBox(height: 140),
-                                Icon(
-                                  Icons.delivery_dining_outlined,
-                                  size: 200,
-                                  color: Colors.grey,
-                                ),
-                                Text(
-                                  'Aucun article trouvé',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }
-
-                        final produits = snapshot.data!;
-                        final produitsBureautique =
-                            produits
-                                .where((p) => p.categorie == 'Bureautique')
-                                .toList();
-                        final produitsPopulaires =
-                            produits.where((p) {
-                              final int vuesCount = int.tryParse(p.vues) ?? 0;
-                              return vuesCount > 15;
-                            }).toList();
-
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _imageHeader2(
-                              'https://wordpressthemes.live/WCG5/WCM116_kartpul/electronics/wp-content/uploads/2024/09/10.jpg',
-                            ),
-                            const SizedBox(height: 10),
-                            _sectionProduits(
-                              'Articles Populaires',
-                              produitsPopulaires,
-                            ),
-                            _imageHeader2(
-                              'https://wordpressthemes.live/WCG5/WCM116_kartpul/electronics/wp-content/uploads/2024/09/09.jpg',
-                            ),
-                            const SizedBox(height: 10),
-                            _sectionProduits(
-                              'Dans la catégorie Bureautique',
-                              produitsBureautique,
-                            ),
-                            _imageHeader2(
-                              'https://wordpressthemes.live/WCG5/WCM116_kartpul/electronics/wp-content/uploads/2024/09/08.jpg',
-                            ),
-                            const SizedBox(height: 10),
-                          ],
-                        );
-                      },
-                    ),
+                  Icon(
+                    Icons.delivery_dining_outlined,
+                    size: 200,
+                    color: Colors.grey,
+                  ),
+                  SizedBox(height: 20),
+                  Text(
+                    'Aucun article trouvé',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                   ),
                 ],
               ),
             );
           }
+          final produits = snapshot.data!;
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final bool isWideScreen = constraints.maxWidth > 600;
+              return _contenu(produits, isWideScreen: isWideScreen);
+            },
+          );
         },
       ),
     );
   }
 
-  // Section d'images
-  Widget _imageHeader1(String path) {
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constraints) {
-        return SizedBox(
-          height: 90,
-          width: constraints.maxWidth,
+  //Contenu de la page
+  Widget _contenu(
+    List<Produit> produits, {required bool isWideScreen}) {
+    final produitsBureautique =
+        produits.where((p) => p.categorie == 'Bureautique').toList();
+    final produitsPopulaires =
+        produits.where((p) => (int.tryParse(p.vues) ?? 0) > 15).toList();
 
-          child: Image.network(path, fit: BoxFit.fitWidth),
-        );
-      },
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _imagesEntetes(
+            'https://wordpressthemes.live/WCG5/WCM116_kartpul/electronics/wp-content/uploads/2024/09/10.jpg',
+            isWide: isWideScreen,
+          ),
+          const SizedBox(height: 10),
+          _sectionProduits('Articles Populaires', produitsPopulaires),
+          _imagesEntetes(
+            'https://wordpressthemes.live/WCG5/WCM116_kartpul/electronics/wp-content/uploads/2024/09/09.jpg',
+            isWide: isWideScreen,
+          ),
+          const SizedBox(height: 10),
+          _sectionProduits(
+            'Dans la catégorie Bureautique',
+            produitsBureautique,
+          ),
+          _imagesEntetes(
+            'https://wordpressthemes.live/WCG5/WCM116_kartpul/electronics/wp-content/uploads/2024/09/08.jpg',
+            isWide: isWideScreen,
+          ),
+          const SizedBox(height: 10),
+        ],
+      ),
     );
   }
 
-  Widget _imageHeader2(String path) {
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constraints) {
-        return Container(
-          height: 70,
-          width: constraints.maxWidth,
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(20)),
-          child: Image.network(path, fit: BoxFit.fitWidth),
-        );
-      },
+  //Images des entetes
+  Widget _imagesEntetes(String path, {required bool isWide}) {
+    return SizedBox(
+      height: isWide ? 90 : 70,
+      width: double.infinity,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(isWide ? 0 : 12),
+        child: Image.network(
+          path,
+          fit: BoxFit.cover,
+          loadingBuilder:
+              (context, child, loadingProgress) =>
+                  loadingProgress == null
+                      ? child
+                      : const Center(child: CircularProgressIndicator()),
+          errorBuilder: (context, error, stackTrace) => const Icon(Icons.error),
+        ),
+      ),
     );
   }
 
-  // Section de produits
   Widget _sectionProduits(String titre, List<Produit> produits) {
+    if (produits.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
           child: Row(
             children: [
-              Icon(FluentIcons.arrow_right_24_filled),
+              const Icon(FluentIcons.arrow_right_24_filled),
               const SizedBox(width: 5),
               Text(
                 titre,
@@ -428,13 +266,12 @@ class _RecentsState extends State<Recents> {
           ),
         ),
         SizedBox(
-          height: 375,
+          height:
+              375, // Garde une hauteur fixe pour la liste horizontale de cartes
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: produits.length,
-            itemBuilder: (context, index) {
-              return _carteArticle(produits[index]);
-            },
+            itemBuilder: (context, index) => _carteArticle(produits[index]),
           ),
         ),
       ],
@@ -445,144 +282,154 @@ class _RecentsState extends State<Recents> {
     final bool isSouhait = _souhaits.contains(produit.idProduit);
     final bool isPanier = _paniers.contains(produit.idProduit);
 
-    return InkWell(
-      onTap: () {
-        Navigator.pushNamed(context, '/details', arguments: produit);
-      },
-      child: Card(
-        margin: const EdgeInsets.all(10),
-        elevation: 2,
-        child: Container(
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(25)),
-          width: 260,
+    return SizedBox(
+      width: 280,
+      child: InkWell(
+        onTap:
+            () => Navigator.pushNamed(context, '/details', arguments: produit),
+        child: Card(
+          margin: const EdgeInsets.all(
+            8,
+          ), 
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          clipBehavior:
+              Clip.antiAlias, 
           child: Column(
+            mainAxisSize:
+                MainAxisSize
+                    .min, 
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 3),
-              Padding(
-                padding: const EdgeInsets.all(5.0),
-                child: Container(
-                  height: 230,
-                  width: 255,
-                  decoration: BoxDecoration(
-                    color: style.blanc,
-                    borderRadius: BorderRadius.circular(15),
-                    border: Border.all(color: Colors.grey.withOpacity(0.5)),
-                  ),
-                  child: Image.network(produit.img1),
+
+              //ClipRRECT arrondis les bords du haut
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(15.0),
                 ),
+                child: _appelImages(produit.img1),
               ),
-              const SizedBox(height: 10),
-              Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              
+              //nom du produit et son prix
+               Padding(
+                 padding: const EdgeInsets.only(left: 8,right: 8,top: 3),
+                 child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(
-                        width: 130,
-                        height: 40,
-                        child: Column(
-                          children: [
-                            Text(
-                              produit.nomProduit,
-                              maxLines: 3,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Text(
-                        '${produit.prix} CFA',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Color.fromARGB(255, 141, 13, 4),
-                        ),
-                      ),
+                        Text(
+                            produit.nomProduit,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: styles.styles.styleTitre,
+                            softWrap: true,
+                          ),
+                      Center(child: Text('${produit.prix} CFA', style: styles.styles.stylePrix)),
                     ],
                   ),
-                  const SizedBox(height: 5),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      const SizedBox(width: 5),
-                      //Bouton souhait
-                      ElevatedButton(
+               ),
+
+//Les boutons
+              Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
                           backgroundColor:
                               isSouhait
-                                  ? Colors.white
-                                  : const Color.fromARGB(255, 141, 13, 4),
-                          foregroundColor:
-                              isSouhait
-                                  ? const Color.fromARGB(255, 141, 13, 4)
+                                  ? styles.styles.rouge.withOpacity(0.1)
                                   : Colors.white,
+                          foregroundColor: styles.styles.rouge,
+                          side: BorderSide(
+                            color: styles.styles.rouge.withOpacity(0.5),
+                          ),
+                          elevation: 0,
                         ),
-                        onPressed: () async {
-                          await _toggleJeVeut(produit);
-                        },
-                        child: Row(
-                          children: [
-                            Icon(
-                              isSouhait
-                                  ? FluentIcons.book_star_24_filled
-                                  : FluentIcons.book_star_24_regular,
-                            ),
-                            const SizedBox(width: 3),
-                            Text(
-                              isSouhait ? 'Souhaité' : 'Souhait',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
+                        onPressed: () => _toggleJeVeut(produit),
+                        icon: Icon(
+                          isSouhait
+                              ? FluentIcons.book_star_24_filled
+                              : FluentIcons.book_star_24_regular,
                         ),
+                        label: Text(isSouhait ? 'Souhaité' : 'Souhait'),
                       ),
-                      const SizedBox(width: 5),
-                      //Bouton Panier
-                      ElevatedButton(
+                    const SizedBox(width: 8),
+                     ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
                           backgroundColor:
-                              isPanier
-                                  ? const Color.fromARGB(255, 1, 7, 71)
-                                  : Colors.white,
+                              isPanier ? styles.styles.bleu : Colors.white,
                           foregroundColor:
-                              isPanier
-                                  ? Colors.white
-                                  : const Color.fromARGB(255, 1, 7, 71),
+                              isPanier ? Colors.white : styles.styles.bleu,
+                          side: BorderSide(
+                            color: styles.styles.bleu.withOpacity(0.5),
+                          ),
+                          elevation: 0,
                         ),
-                        onPressed:
-                            () => _toggleAuPanier(
-                              produit,
-                            ), // Appel à la nouvelle fonction
-                        child: Row(
-                          children: [
-                            Icon(
-                              isPanier
-                                  ? FluentIcons
-                                      .shopping_bag_tag_24_filled // Icône pour "ajouté au panier"
-                                  : FluentIcons
-                                      .shopping_bag_tag_24_regular, // Icône pour "non ajouté au panier"
-                            ),
-                            const SizedBox(width: 3),
-                            Text(
-                              isPanier ? 'Ajouté' : 'Panier',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
+                        onPressed: () => _toggleAuPanier(produit),
+                        icon: Icon(
+                          isPanier
+                              ? FluentIcons.shopping_bag_tag_24_filled
+                              : FluentIcons.shopping_bag_tag_24_regular,
                         ),
+                        label: Text(isPanier ? 'Ajouté' : 'Panier'),
                       ),
-                      const SizedBox(width: 5),
-                    ],
-                  ),
-                ],
-              ),
+                  ],
+                ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  //Appeler les images depuis les champs
+  Widget _appelImages(String imageData) {
+    // Si la donnée est vide, on affiche une icône
+    if (imageData.isEmpty) {
+      return const Icon(
+        Icons.image_not_supported_outlined,
+        color: Colors.grey,
+        size: 50,
+      );
+    }
+
+    if (imageData.startsWith('http')) {
+      return Image.network(
+        imageData,
+        fit: BoxFit.contain,
+        loadingBuilder:
+            (context, child, progress) =>
+                progress == null
+                    ? child
+                    : const Center(child: CircularProgressIndicator()),
+        errorBuilder:
+            (context, error, stack) =>
+                const Icon(Icons.error, color: Colors.grey, size: 50),
+      );
+    }
+    //Logique pour le décodage des images
+    try {
+      final Uint8List imageBytes = base64.decode(imageData);
+      return Image.memory(
+        imageBytes,
+        fit: BoxFit.contain,
+        errorBuilder:
+            (context, error, stack) => const Icon(
+              Icons.broken_image_outlined,
+              color: Colors.grey,
+              size: 50,
+            ),
+      );
+    } catch (e) {
+      // Si le décodage échoue, on affiche une icône d'erreur
+      print('Erreur de décodage Base64: $e');
+      return const Icon(
+        Icons.broken_image_outlined,
+        color: Colors.red,
+        size: 50,
+      );
+    }
   }
 }

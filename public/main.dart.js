@@ -19144,7 +19144,7 @@ this.b=$},
 adr(a){var s=0,r=A.I(t.H)
 var $async$adr=A.J(function(b,c){if(b===1)return A.F(c,r)
 while(true)switch(s){case 0:s=2
-return A.K(B.aL.cj(u.p,A.am(["label",a.a,"primaryColor",a.b],t.N,t.z),t.H),$async$adr)
+return A.K(B.aL.cj(u.p,A.am(["label",a.a,"rouge",a.b],t.N,t.z),t.H),$async$adr)
 case 2:return A.G(null,r)}})
 return A.H($async$adr,r)},
 axC(a){if($.ub!=null){$.ub=a
@@ -29327,7 +29327,7 @@ return
 case u.p:o=t.xE.a(s.b)
 n=A.ac(o.h(0,"label"))
 if(n==null)n=""
-m=A.cD(o.h(0,"primaryColor"))
+m=A.cD(o.h(0,"rouge"))
 if(m==null)m=4278190080
 q=self.document
 q.title=n
