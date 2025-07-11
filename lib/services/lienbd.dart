@@ -98,6 +98,7 @@ class FirestoreService {
     return snapshot.docs.map((doc) {
       Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       return Produit(
+        createdAt: data['createdAt'] ?? Timestamp.now(),
         enStock: data['enStock'] ?? true,
         img1: data['img1'] ?? '',
         img2: data['img2'] ?? '',
@@ -186,6 +187,7 @@ class FirestoreService {
       List<Produit> produits =
           produitsData.map((produitData) {
             return Produit(
+              createdAt: data['createdAt'] ?? Timestamp.now(),
               enStock: produitData['enStock'] ?? true,
               img1: produitData['img1'] ?? '',
               img2: produitData['img1'] ?? '',
@@ -286,6 +288,7 @@ class FirestoreService {
       List<Produit> produits =
           produitsData.map((produitData) {
             return Produit(
+              createdAt: data['createdAt'] ?? Timestamp.now(),
               img1: produitData['img1'] ?? '',
               img2: produitData['img1'] ?? '',
               img3: produitData['img1'] ?? '',
@@ -350,6 +353,7 @@ class FirestoreService {
     return snapshot.docs.map((doc) {
       Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       return Produit(
+        createdAt: data['createdAt'] ?? Timestamp.now(),
         enStock: data['enStock'] ?? true,
         img1: data['img1'] ?? '',
         img2: data['img1'] ?? '',

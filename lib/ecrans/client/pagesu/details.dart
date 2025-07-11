@@ -48,8 +48,11 @@ class _DetailsState extends State<Details> {
                   child: Image.network(
                     widget.produit.img1,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.error_outline, size: 50),
+                    errorBuilder: (context, error, stackTrace) {
+                      print('Error loading image: $error');
+                      print(stackTrace);
+                      return const Icon(Icons.error_outline, size: 50);
+                    },
                   ),
                 ),
                 SizedBox(
@@ -70,33 +73,9 @@ class _DetailsState extends State<Details> {
                         const Icon(Icons.error_outline, size: 50),
                   ),
                 ),
-                SizedBox(
-                  height: hauteurMax,
-                  child: Image.asset(
-                    'assets/images/01.jpg',
-                    fit: BoxFit.cover ,
-                    errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.error_outline, size: 50),
-                  ),
-                ),
-                SizedBox(
-                  height: hauteurMax,
-                  child: Image.asset(
-                    'assets/images/01.jpg',
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.error_outline, size: 50),
-                  ),
-                ),
-                SizedBox(
-                  height: hauteurMax,
-                  child: Image.asset(
-                    'assets/images/05.jpg',
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.error_outline, size: 50),
-                  ),
-                ),
+                
+                
+                
               ],
             ),
           ),

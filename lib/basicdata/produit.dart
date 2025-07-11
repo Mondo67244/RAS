@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Produit {
 String idProduit;
 String nomProduit;
@@ -18,9 +20,12 @@ String img1;
 String img2;
 String img3;
 bool enStock;
+//la date a laquelle le produit a été ajouté a la base de donnée
+Timestamp createdAt;
 
 
 Produit({
+required this.createdAt,
 required this.enStock,
 required this.img1,
 required this.img2,

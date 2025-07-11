@@ -3,7 +3,7 @@ class Utilisateur {
   String nomUtilisateur;
   String prenomUtilisateur;
   String emailUtilisateur;
-  int numeroUtilisateur;
+  String numeroUtilisateur;
   String villeUtilisateur;
   
   Utilisateur({

@@ -15,6 +15,7 @@ dependencies:
   cloud_firestore: ^5.6.10
   fluentui_system_icons: ^1.1.273
   iconsax_plus: ^1.0.0
+  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_test:
