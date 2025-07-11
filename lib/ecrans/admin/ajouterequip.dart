@@ -240,7 +240,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
     return Column(
       children: [
         TextFormField(
-          maxLength: 22,
+          maxLength: 32,
           controller: _nomController,
           decoration: _buildInputDecoration('Nom du produit'),
           validator: (value) => value == null || value.isEmpty ? 'Veuillez entrer le nom du produit' : null,

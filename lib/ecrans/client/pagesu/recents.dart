@@ -186,8 +186,7 @@ class _RecentsState extends State<Recents> {
   }
 
   //Contenu de la page
-  Widget _contenu(
-    List<Produit> produits, {required bool isWideScreen}) {
+  Widget _contenu(List<Produit> produits, {required bool isWideScreen}) {
     final produitsBureautique =
         produits.where((p) => p.categorie == 'Bureautique').toList();
     final produitsPopulaires =
@@ -281,6 +280,7 @@ class _RecentsState extends State<Recents> {
   Widget _carteArticle(Produit produit) {
     final bool isSouhait = _souhaits.contains(produit.idProduit);
     final bool isPanier = _paniers.contains(produit.idProduit);
+    final bool isWideScreen = MediaQuery.of(context).size.width > 400;
 
     return SizedBox(
       width: 280,
@@ -288,95 +288,106 @@ class _RecentsState extends State<Recents> {
         onTap:
             () => Navigator.pushNamed(context, '/details', arguments: produit),
         child: Card(
-          margin: const EdgeInsets.all(
-            8,
-          ), 
+          margin: const EdgeInsets.all(8),
           elevation: 2,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
           ),
-          clipBehavior:
-              Clip.antiAlias, 
+          clipBehavior: Clip.antiAlias,
           child: Column(
-            mainAxisSize:
-                MainAxisSize
-                    .min, 
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               //ClipRRECT arrondis les bords du haut
               ClipRRect(
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(15.0),
                 ),
-                child: _appelImages(produit.img1),
-              ),
-              
-              //nom du produit et son prix
-               Padding(
-                 padding: const EdgeInsets.only(left: 8,right: 8,top: 3),
-                 child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                        Text(
-                            produit.nomProduit,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: styles.styles.styleTitre,
-                            softWrap: true,
-                          ),
-                      Center(child: Text('${produit.prix} CFA', style: styles.styles.stylePrix)),
-                    ],
+                child: SizedBox(
+                  height: isWideScreen ? 260 : 240,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _appelImages(produit.img1),
+                        _appelImages(produit.img2),
+                        _appelImages(produit.img3),
+                      ],
+                    ),
                   ),
-               ),
+                ),
+              ),
 
-//Les boutons
-              Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+              //nom du produit et son prix
+              Padding(
+                padding: const EdgeInsets.only(left: 8, right: 8, top: 3),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              isSouhait
-                                  ? styles.styles.rouge.withOpacity(0.1)
-                                  : Colors.white,
-                          foregroundColor: styles.styles.rouge,
-                          side: BorderSide(
-                            color: styles.styles.rouge.withOpacity(0.5),
-                          ),
-                          elevation: 0,
-                        ),
-                        onPressed: () => _toggleJeVeut(produit),
-                        icon: Icon(
-                          isSouhait
-                              ? FluentIcons.book_star_24_filled
-                              : FluentIcons.book_star_24_regular,
-                        ),
-                        label: Text(isSouhait ? 'Souhaité' : 'Souhait'),
+                    Text(
+                      produit.nomProduit,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: styles.styles.styleTitre,
+                      softWrap: true,
+                    ),
+                    Center(
+                      child: Text(
+                        '${produit.prix} CFA',
+                        style: styles.styles.stylePrix,
                       ),
-                    const SizedBox(width: 8),
-                     ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              isPanier ? styles.styles.bleu : Colors.white,
-                          foregroundColor:
-                              isPanier ? Colors.white : styles.styles.bleu,
-                          side: BorderSide(
-                            color: styles.styles.bleu.withOpacity(0.5),
-                          ),
-                          elevation: 0,
-                        ),
-                        onPressed: () => _toggleAuPanier(produit),
-                        icon: Icon(
-                          isPanier
-                              ? FluentIcons.shopping_bag_tag_24_filled
-                              : FluentIcons.shopping_bag_tag_24_regular,
-                        ),
-                        label: Text(isPanier ? 'Ajouté' : 'Panier'),
-                      ),
+                    ),
                   ],
                 ),
+              ),
+
+              //Les boutons
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          isSouhait
+                              ? styles.styles.rouge.withOpacity(0.1)
+                              : Colors.white,
+                      foregroundColor: styles.styles.rouge,
+                      side: BorderSide(
+                        color: styles.styles.rouge.withOpacity(0.5),
+                      ),
+                      elevation: 0,
+                    ),
+                    onPressed: () => _toggleJeVeut(produit),
+                    icon: Icon(
+                      isSouhait
+                          ? FluentIcons.book_star_24_filled
+                          : FluentIcons.book_star_24_regular,
+                    ),
+                    label: Text(isSouhait ? 'Souhaité' : 'Souhait'),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          isPanier ? styles.styles.bleu : Colors.white,
+                      foregroundColor:
+                          isPanier ? Colors.white : styles.styles.bleu,
+                      side: BorderSide(
+                        color: styles.styles.bleu.withOpacity(0.5),
+                      ),
+                      elevation: 0,
+                    ),
+                    onPressed: () => _toggleAuPanier(produit),
+                    icon: Icon(
+                      isPanier
+                          ? FluentIcons.shopping_bag_tag_24_filled
+                          : FluentIcons.shopping_bag_tag_24_regular,
+                    ),
+                    label: Text(isPanier ? 'Ajouté' : 'Panier'),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
