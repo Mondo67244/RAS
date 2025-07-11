@@ -262,10 +262,7 @@ class FirestoreService {
   }
 
 
-  // =======================================================================
-  // Opérations sur les factures
-  // =======================================================================
-
+ 
   // Opérations sur les factures
   Future<void> addFacture(Facture facture) async {
     // Convert Utilisateur to Map

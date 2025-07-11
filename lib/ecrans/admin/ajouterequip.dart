@@ -35,7 +35,6 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
   String? _selectedCategory;
 
   final List<String> _types = [
-    'Ordinateurs',
     'Bureautique',
     'Appareils Mobiles',
     'Accessoires',

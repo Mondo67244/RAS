@@ -7,6 +7,7 @@ import 'package:ras_app/ecrans/client/pagesu/promo.dart';
 import 'package:ras_app/ecrans/client/pagesu/recents.dart';
 import 'package:ras_app/ecrans/client/pagesu/resultats.dart';
 import 'package:ras_app/ecrans/client/pagesu/souhaits.dart';
+import 'package:ras_app/services/lienbd.dart';
 
 class Accueilu extends StatefulWidget {
   const Accueilu({super.key});
@@ -262,4 +263,6 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
       ),
     );
   }
+
+
 }
