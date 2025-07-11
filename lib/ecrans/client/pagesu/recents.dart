@@ -3,8 +3,7 @@ import 'dart:typed_data'; // Importé pour Uint8List
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:ras_app/basicdata/produit.dart';
-import 'package:ras_app/basicdata/style.dart'
-    as styles; // Renommé pour éviter les conflits
+import 'package:ras_app/basicdata/style.dart';
 import 'package:ras_app/services/lienbd.dart';
 
 class Recents extends StatefulWidget {
@@ -126,14 +125,14 @@ class _RecentsState extends State<Recents> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         duration: const Duration(seconds: 1),
-        backgroundColor: isSuccess ? styles.styles.vert : styles.styles.erreur,
+        backgroundColor: isSuccess ? styles.vert : styles.erreur,
         content: Row(
           children: [
             if (icon != null) ...[
               Icon(icon, color: Colors.white),
               const SizedBox(width: 8),
             ],
-            Expanded(child: Text(message, style: styles.styles.textebas)),
+            Expanded(child: Text(message, style: styles.textebas)),
           ],
         ),
       ),
@@ -148,7 +147,7 @@ class _RecentsState extends State<Recents> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
-              child: CircularProgressIndicator(color: styles.styles.rouge),
+              child: CircularProgressIndicator(color: styles.rouge),
             );
           }
           if (snapshot.hasError) {
@@ -329,13 +328,13 @@ class _RecentsState extends State<Recents> {
                       produit.nomProduit,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: styles.styles.styleTitre,
+                      style: styles.styleTitre,
                       softWrap: true,
                     ),
                     Center(
                       child: Text(
                         '${produit.prix} CFA',
-                        style: styles.styles.stylePrix,
+                        style: styles.stylePrix,
                       ),
                     ),
                   ],
@@ -350,12 +349,10 @@ class _RecentsState extends State<Recents> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor:
                           isSouhait
-                              ? styles.styles.rouge.withOpacity(0.1)
+                              ? styles.rouge.withOpacity(0.1)
                               : Colors.white,
-                      foregroundColor: styles.styles.rouge,
-                      side: BorderSide(
-                        color: styles.styles.rouge.withOpacity(0.5),
-                      ),
+                      foregroundColor: styles.rouge,
+                      side: BorderSide(color: styles.rouge.withOpacity(0.5)),
                       elevation: 0,
                     ),
                     onPressed: () => _toggleJeVeut(produit),
@@ -369,13 +366,9 @@ class _RecentsState extends State<Recents> {
                   const SizedBox(width: 8),
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          isPanier ? styles.styles.bleu : Colors.white,
-                      foregroundColor:
-                          isPanier ? Colors.white : styles.styles.bleu,
-                      side: BorderSide(
-                        color: styles.styles.bleu.withOpacity(0.5),
-                      ),
+                      backgroundColor: isPanier ? styles.bleu : Colors.white,
+                      foregroundColor: isPanier ? Colors.white : styles.bleu,
+                      side: BorderSide(color: styles.bleu.withOpacity(0.5)),
                       elevation: 0,
                     ),
                     onPressed: () => _toggleAuPanier(produit),

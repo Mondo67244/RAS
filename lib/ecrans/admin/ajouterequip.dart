@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; 
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:io';
@@ -75,7 +75,13 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: Colors.green,
-            content: Center(child: Text('Image ${index + 1} importée avec succès',style: TextStyle(fontWeight: FontWeight.bold),))),
+            content: Center(
+              child: Text(
+                'Image ${index + 1} importée avec succès',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
         );
       }
     }
@@ -86,7 +92,9 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
     // 1. Valider le formulaire
     if (!_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez remplir tous les champs obligatoires.')),
+        const SnackBar(
+          content: Text('Veuillez remplir tous les champs obligatoires.'),
+        ),
       );
       return;
     }
@@ -94,7 +102,9 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
     // 2. Vérifier que les 3 images ont été sélectionnées
     if (_imageFiles.any((file) => file == null)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez sélectionner 3 images pour le produit.')),
+        const SnackBar(
+          content: Text('Veuillez sélectionner 3 images pour le produit.'),
+        ),
       );
       return;
     }
@@ -115,13 +125,13 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
         'description': _descriptionController.text.trim(),
         'marque': _marqueController.text.trim(),
         'modele': _modeleController.text.trim(),
-        'prix': _prixController.text.trim(), 
+        'prix': _prixController.text.trim(),
         'categorie': _selectedCategory,
         'type': _selectedType,
         'img1': base64Images[0],
         'img2': base64Images[1],
         'img3': base64Images[2],
-        'vues': 0 , 
+        'vues': 0,
         'jeVeut': false,
         'auPanier': false,
         'enStock': true,
@@ -132,7 +142,10 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: Colors.green,
-            content: Text('Produit ajouté avec succès', style: TextStyle(color: Colors.white)),
+            content: Text(
+              'Produit ajouté avec succès',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         );
         Navigator.pop(context);
@@ -142,7 +155,10 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: Colors.red,
-            content: Text('Erreur lors de l\'ajout : ${e.toString()}', style: TextStyle(color: Colors.white)),
+            content: Text(
+              'Erreur lors de l\'ajout : ${e.toString()}',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         );
       }
@@ -158,7 +174,11 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Ajouter un nouveau produit'),
-        titleTextStyle: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+        titleTextStyle: TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
         backgroundColor: styles.rouge,
         iconTheme: IconThemeData(color: Colors.white),
         centerTitle: true,
@@ -190,7 +210,11 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
   Widget _nomdestitres(String title) {
     return Text(
       title,
-      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey[800]),
+      style: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+        color: Colors.grey[800],
+      ),
     );
   }
 
@@ -211,22 +235,24 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
                   color: Colors.grey[200],
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: styles.rouge, width: 1.5),
-                  image: _imageFiles[index] != null
-                      ? DecorationImage(
-                          image: FileImage(_imageFiles[index]!),
-                          fit: BoxFit.cover,
-                        )
-                      : null,
+                  image:
+                      _imageFiles[index] != null
+                          ? DecorationImage(
+                            image: FileImage(_imageFiles[index]!),
+                            fit: BoxFit.cover,
+                          )
+                          : null,
                 ),
-                child: _imageFiles[index] == null
-                    ? Center(
-                        child: Icon(
-                          Icons.add_a_photo_outlined,
-                          size: 40,
-                          color: styles.rouge,
-                        ),
-                      )
-                    : null,
+                child:
+                    _imageFiles[index] == null
+                        ? Center(
+                          child: Icon(
+                            Icons.add_a_photo_outlined,
+                            size: 40,
+                            color: styles.rouge,
+                          ),
+                        )
+                        : null,
               ),
             ),
           );
@@ -243,29 +269,45 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
           maxLength: 32,
           controller: _nomController,
           decoration: _buildInputDecoration('Nom du produit'),
-          validator: (value) => value == null || value.isEmpty ? 'Veuillez entrer le nom du produit' : null,
+          validator:
+              (value) =>
+                  value == null || value.isEmpty
+                      ? 'Veuillez entrer le nom du produit'
+                      : null,
         ),
         const SizedBox(height: 16),
         TextFormField(
           controller: _marqueController,
           decoration: _buildInputDecoration('Marque'),
-          validator: (value) => value == null || value.isEmpty ? 'Veuillez entrer la marque' : null,
+          validator:
+              (value) =>
+                  value == null || value.isEmpty
+                      ? 'Veuillez entrer la marque'
+                      : null,
         ),
         const SizedBox(height: 16),
         TextFormField(
           controller: _modeleController,
           decoration: _buildInputDecoration('Modèle'),
-          validator: (value) => value == null || value.isEmpty ? 'Veuillez entrer le modèle' : null,
+          validator:
+              (value) =>
+                  value == null || value.isEmpty
+                      ? 'Veuillez entrer le modèle'
+                      : null,
         ),
         const SizedBox(height: 16),
         TextFormField(
           controller: _prixController,
           decoration: _buildInputDecoration('Prix (en CFA)'),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+          ],
           validator: (value) {
-            if (value == null || value.isEmpty) return 'Veuillez entrer un prix';
-            if (double.tryParse(value) == null) return 'Veuillez entrer un prix valide';
+            if (value == null || value.isEmpty)
+              return 'Veuillez entrer un prix';
+            if (double.tryParse(value) == null)
+              return 'Veuillez entrer un prix valide';
             return null;
           },
         ),
@@ -273,34 +315,40 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
         DropdownButtonFormField<String>(
           value: _selectedCategory,
           decoration: _buildInputDecoration('Catégorie'),
-          items: _categories.map((String category) {
-            return DropdownMenuItem<String>(
-              value: category,
-              child: Text(category),
-            );
-          }).toList(),
+          items:
+              _categories.map((String category) {
+                return DropdownMenuItem<String>(
+                  value: category,
+                  child: Text(category),
+                );
+              }).toList(),
           onChanged: (newValue) => setState(() => _selectedCategory = newValue),
-          validator: (value) => value == null ? 'Veuillez choisir une catégorie' : null,
+          validator:
+              (value) =>
+                  value == null ? 'Veuillez choisir une catégorie' : null,
         ),
         const SizedBox(height: 16),
         DropdownButtonFormField<String>(
           value: _selectedType,
           decoration: _buildInputDecoration('Type'),
-          items: _types.map((String type) {
-            return DropdownMenuItem<String>(
-              value: type,
-              child: Text(type),
-            );
-          }).toList(),
+          items:
+              _types.map((String type) {
+                return DropdownMenuItem<String>(value: type, child: Text(type));
+              }).toList(),
           onChanged: (newValue) => setState(() => _selectedType = newValue),
-          validator: (value) => value == null ? 'Veuillez choisir un type' : null,
+          validator:
+              (value) => value == null ? 'Veuillez choisir un type' : null,
         ),
         const SizedBox(height: 16),
         TextFormField(
           controller: _descriptionController,
           decoration: _buildInputDecoration('Description'),
           maxLines: 4,
-          validator: (value) => value == null || value.isEmpty ? 'Veuillez entrer une description' : null,
+          validator:
+              (value) =>
+                  value == null || value.isEmpty
+                      ? 'Veuillez entrer une description'
+                      : null,
         ),
       ],
     );
@@ -315,18 +363,28 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
         style: ElevatedButton.styleFrom(
           backgroundColor: styles.rouge,
           padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
-        child: _isLoading
-            ? SizedBox(
-                height: 24,
-                width: 24,
-                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
-              )
-            : Text(
-                'Ajouter le produit',
-                style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
-              ),
+        child:
+            _isLoading
+                ? SizedBox(
+                  height: 24,
+                  width: 24,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 3,
+                  ),
+                )
+                : Text(
+                  'Ajouter le produit',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
       ),
     );
   }

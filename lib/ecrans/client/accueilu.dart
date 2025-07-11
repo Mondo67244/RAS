@@ -1,5 +1,6 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:ras_app/basicdata/style.dart';
 import 'package:ras_app/ecrans/client/pagesu/commandes.dart';
 import 'package:ras_app/ecrans/client/pagesu/panier.dart';
 import 'package:ras_app/ecrans/client/pagesu/promo.dart';
@@ -34,11 +35,13 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: FloatingActionButton(onPressed: (){
-        Navigator.pushNamed(context, '/admin/nouveau produit');
-      }),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.pushNamed(context, '/admin/nouveau produit');
+        },
+      ),
       appBar: AppBar(
-        
+        foregroundColor: styles.blanc,
         backgroundColor: const Color.fromARGB(255, 163, 14, 3),
         title: SizedBox(
           width: 400,
@@ -88,10 +91,7 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                         _isClick = !_isClick;
                       });
                     },
-                    icon: Icon(
-                      _isClick ? Icons.close : Icons.search,
-                      color: Colors.white,
-                    ),
+                    icon: Icon(_isClick ? Icons.close : Icons.search),
                   ),
                 ),
               ),
@@ -110,14 +110,26 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
               labelColor: const Color.fromARGB(255, 163, 14, 3),
               //Les différentes pages
               tabs: const [
-                Tab(child: Row(children: [Text('Accueil',style: TextStyle(fontWeight: FontWeight.bold))])),
+                Tab(
+                  child: Row(
+                    children: [
+                      Text(
+                        'Accueil',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
                 Tab(
                   //Promotion
                   child: Row(
                     children: [
                       Icon(FluentIcons.gift_card_24_filled),
                       SizedBox(width: 3),
-                      Text('Promotions',style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text(
+                        'Promotions',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ],
                   ),
                 ),
@@ -127,7 +139,10 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                     children: [
                       Icon(FluentIcons.shopping_bag_tag_24_filled),
                       SizedBox(width: 3),
-                      Text('Mon Panier',style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text(
+                        'Mon Panier',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ],
                   ),
                 ),
@@ -137,7 +152,10 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                     children: [
                       Icon(FluentIcons.book_star_24_filled),
                       SizedBox(width: 3),
-                      Text('Mes Souhaits',style: TextStyle(fontWeight: FontWeight.bold),),
+                      Text(
+                        'Mes Souhaits',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ],
                   ),
                 ),
@@ -147,7 +165,10 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                     children: [
                       Icon(FluentIcons.receipt_bag_24_filled),
                       SizedBox(width: 3),
-                      Text('Mes Commandes',style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text(
+                        'Mes Commandes',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ],
                   ),
                 ),
