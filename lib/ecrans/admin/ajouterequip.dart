@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:io';
-import 'dart:convert'; // Pour encoder en base64
-import 'dart:typed_data'; // Pour Uint8List
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:ras_app/basicdata/style.dart';
 
 class AjouterEquipPage extends StatefulWidget {
@@ -23,25 +23,28 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
   final _marqueController = TextEditingController();
   final _modeleController = TextEditingController();
   final _prixController = TextEditingController();
-
+  final _quantiteController = TextEditingController();
   final List<File?> _imageFiles = [null, null, null];
   final ImagePicker _picker = ImagePicker();
+  bool estChoisi = false;
+  bool cash = false;
+  bool electronique = false;
 
   // Données pour les menus déroulants
   final List<String> _categories = [
-    'Équipements informatiques',
+    'Informatique',
     'Électro Ménager',
+    'Électronique',
   ];
   String? _selectedCategory;
-
-  final List<String> _types = [
-    'Bureautique',
-    'Appareils Mobiles',
-    'Accessoires',
-    'Réseau',
-    'Divers',
-  ];
   String? _selectedType;
+
+  // Structure des types par catégorie
+  final Map<String, List<String>> categoryTypes = {
+    'Informatique': ['Bureautique', 'Réseau', 'Accessoires'],
+    'Électro Ménager': ['Divers'],
+    'Électronique': ['Appareils Mobiles', 'Accessoires'],
+  };
 
   bool _isLoading = false;
 
@@ -49,17 +52,16 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
   void initState() {
     super.initState();
     _selectedCategory = _categories.first;
-    _selectedType = _types.first;
   }
 
   @override
   void dispose() {
-    // Libérer les ressources des contrôleurs
     _nomController.dispose();
     _descriptionController.dispose();
     _marqueController.dispose();
     _modeleController.dispose();
     _prixController.dispose();
+    _quantiteController.dispose();
     super.dispose();
   }
 
@@ -88,7 +90,6 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
 
   // Fonction pour soumettre le formulaire
   Future<void> _submitForm() async {
-    // 1. Valider le formulaire
     if (!_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -98,7 +99,6 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
       return;
     }
 
-    // 2. Vérifier que les 3 images ont été sélectionnées
     if (_imageFiles.any((file) => file == null)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -111,14 +111,12 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
     setState(() => _isLoading = true);
 
     try {
-      // 3. Encoder les images en Base64
       final List<String> base64Images = [];
       for (final file in _imageFiles) {
         final Uint8List imageBytes = await file!.readAsBytes();
         base64Images.add(base64Encode(imageBytes));
       }
 
-      // 4. Sauvegarder les données dans Firestore
       await FirebaseFirestore.instance.collection('Produits').add({
         'nomProduit': _nomController.text.trim(),
         'description': _descriptionController.text.trim(),
@@ -131,6 +129,10 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
         'img2': base64Images[1],
         'img3': base64Images[2],
         'vues': 0,
+        'quantite': _quantiteController.text.trim(),
+        'livrable': estChoisi,
+        'cash': cash,
+        'electronique': electronique,
         'jeVeut': false,
         'auPanier': false,
         'enStock': true,
@@ -182,30 +184,34 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
         iconTheme: IconThemeData(color: Colors.white),
         centerTitle: true,
       ),
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _nomdestitres('Images du produit (3 obligatoires)'),
-              const SizedBox(height: 16),
-              _prendreImage(),
-              const SizedBox(height: 24),
-              _nomdestitres('Détails du produit'),
-              const SizedBox(height: 16),
-              _zonesTextes(),
-              const SizedBox(height: 32),
-              _boutonAjouter(),
-            ],
+      body: Center(
+        child: Container(
+          constraints: BoxConstraints(maxWidth: 500),
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _nomdestitres('Images du produit (3 obligatoires)'),
+                  const SizedBox(height: 16),
+                  _prendreImage(),
+                  const SizedBox(height: 24),
+                  _nomdestitres('Détails du produit'),
+                  const SizedBox(height: 16),
+                  _zonesTextes(),
+                  const SizedBox(height: 32),
+                  _boutonAjouter(),
+                ],
+              ),
+            ),
           ),
         ),
       ),
     );
   }
 
-  // Widget pour le titre d'une section
   Widget _nomdestitres(String title) {
     return Text(
       title,
@@ -217,7 +223,6 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
     );
   }
 
-  // Widget pour la sélection des images
   Widget _prendreImage() {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -260,14 +265,14 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
     );
   }
 
-  // Widget contenant tous les champs du formulaire
   Widget _zonesTextes() {
     return Column(
       children: [
+        //Nom du produit
         TextFormField(
           maxLength: 32,
           controller: _nomController,
-          decoration: _buildInputDecoration('Nom du produit'),
+          decoration: _titresChamps('Nom du produit'),
           validator:
               (value) =>
                   value == null || value.isEmpty
@@ -275,9 +280,25 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
                       : null,
         ),
         const SizedBox(height: 16),
+        //Quantité
+        TextFormField(
+          controller: _quantiteController,
+          decoration: _titresChamps('Quantité disponible'),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Veuillez entrer une quantité';
+            }
+            if (int.tryParse(value) == null) {
+              return 'Veuillez entrer une quantité valide';
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: 16),
+        //Marque
         TextFormField(
           controller: _marqueController,
-          decoration: _buildInputDecoration('Marque'),
+          decoration: _titresChamps('Marque'),
           validator:
               (value) =>
                   value == null || value.isEmpty
@@ -285,9 +306,10 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
                       : null,
         ),
         const SizedBox(height: 16),
+        //Modele
         TextFormField(
           controller: _modeleController,
-          decoration: _buildInputDecoration('Modèle'),
+          decoration: _titresChamps('Modèle'),
           validator:
               (value) =>
                   value == null || value.isEmpty
@@ -295,25 +317,30 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
                       : null,
         ),
         const SizedBox(height: 16),
+        //Prix
         TextFormField(
           controller: _prixController,
-          decoration: _buildInputDecoration('Prix (en CFA)'),
+          decoration: _titresChamps('Prix (en CFA)'),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           inputFormatters: [
             FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
           ],
           validator: (value) {
-            if (value == null || value.isEmpty)
+            if (value == null || value.isEmpty) {
               return 'Veuillez entrer un prix';
-            if (double.tryParse(value) == null)
+            }
+            if (double.tryParse(value) == null) {
               return 'Veuillez entrer un prix valide';
+            }
             return null;
           },
         ),
         const SizedBox(height: 16),
+
+        //List des catégories
         DropdownButtonFormField<String>(
           value: _selectedCategory,
-          decoration: _buildInputDecoration('Catégorie'),
+          decoration: _titresChamps('Catégorie'),
           items:
               _categories.map((String category) {
                 return DropdownMenuItem<String>(
@@ -321,27 +348,41 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
                   child: Text(category),
                 );
               }).toList(),
-          onChanged: (newValue) => setState(() => _selectedCategory = newValue),
+          onChanged: (newValue) {
+            setState(() {
+              _selectedCategory = newValue;
+              _selectedType = null;
+            });
+          },
           validator:
               (value) =>
                   value == null ? 'Veuillez choisir une catégorie' : null,
         ),
+        if (_selectedCategory != null) ...[
+          const SizedBox(height: 16),
+
+          //Liste des types
+          DropdownButtonFormField<String>(
+            value: _selectedType,
+            decoration: _titresChamps('Type'),
+            items:
+                categoryTypes[_selectedCategory!]!.map((String type) {
+                  return DropdownMenuItem<String>(
+                    value: type,
+                    child: Text(type),
+                  );
+                }).toList(),
+            onChanged: (newValue) => setState(() => _selectedType = newValue),
+            validator:
+                (value) => value == null ? 'Veuillez choisir un type' : null,
+          ),
+        ],
         const SizedBox(height: 16),
-        DropdownButtonFormField<String>(
-          value: _selectedType,
-          decoration: _buildInputDecoration('Type'),
-          items:
-              _types.map((String type) {
-                return DropdownMenuItem<String>(value: type, child: Text(type));
-              }).toList(),
-          onChanged: (newValue) => setState(() => _selectedType = newValue),
-          validator:
-              (value) => value == null ? 'Veuillez choisir un type' : null,
-        ),
-        const SizedBox(height: 16),
+
+        //Champs de description
         TextFormField(
           controller: _descriptionController,
-          decoration: _buildInputDecoration('Description'),
+          decoration: _titresChamps('Description'),
           maxLines: 4,
           validator:
               (value) =>
@@ -349,11 +390,75 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
                       ? 'Veuillez entrer une description'
                       : null,
         ),
+
+        //Bouton de choix de livraison
+        Row(
+          children: [
+            Text('Est livrable : ', style: TextStyle(fontSize: 17)),
+            Switch(
+              value: estChoisi,
+              activeColor: styles.rouge,
+              onChanged: (value) {
+                setState(() {
+                  estChoisi = !estChoisi;
+                });
+              },
+            ),
+            const SizedBox(width: 16),
+            Text(
+              estChoisi ? 'Oui' : 'Non',
+              style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'Méthodes de paiement acceptées : ',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 16),
+        //Champs de choix de paiement
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Row(
+              children: [
+                Text('Cash : ', style: TextStyle(fontSize: 17)),
+                Switch(
+                  value: cash,
+                  activeColor: styles.rouge,
+                  onChanged: (value) {
+                    setState(() {
+                      cash = !cash;
+                    });
+                  },
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Text(
+                  'Electronique (Mobile Money) : ',
+                  style: TextStyle(fontSize: 17),
+                ),
+                Switch(
+                  value: electronique,
+                  activeColor: styles.rouge,
+                  onChanged: (value) {
+                    setState(() {
+                      electronique = !electronique;
+                    });
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
       ],
     );
   }
 
-  // Widget pour le bouton de soumission
+  //Boutons
   Widget _boutonAjouter() {
     return SizedBox(
       width: double.infinity,
@@ -388,8 +493,8 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
     );
   }
 
-  // Fonction d'aide pour créer une décoration d'input standardisée
-  InputDecoration _buildInputDecoration(String label) {
+  //Widget pour les titres des champs
+  InputDecoration _titresChamps(String label) {
     return InputDecoration(
       labelText: label,
       labelStyle: TextStyle(color: Colors.grey[600]),

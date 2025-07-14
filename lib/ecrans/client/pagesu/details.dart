@@ -28,11 +28,12 @@ class _DetailsState extends State<Details> {
     super.initState();
     _isSouhait = widget.produit.jeVeut;
     _isPanier = widget.produit.auPanier;
-    _images = [
-      widget.produit.img1,
-      widget.produit.img2,
-      widget.produit.img3,
-    ].where((img) => img.isNotEmpty).toList();
+    _images =
+        [
+          widget.produit.img1,
+          widget.produit.img2,
+          widget.produit.img3,
+        ].where((img) => img.isNotEmpty).toList();
     _pageController = PageController();
     _pageController.addListener(() {
       if (_pageController.page?.round() != _currentPage) {
@@ -62,9 +63,15 @@ class _DetailsState extends State<Details> {
       isSuccess: nouvelEtat,
     );
     try {
-      await _firestoreService.updateProductWishlist(widget.produit.idProduit, nouvelEtat);
+      await _firestoreService.updateProductWishlist(
+        widget.produit.idProduit,
+        nouvelEtat,
+      );
       if (nouvelEtat) {
-        await _firestoreService.updateProductCart(widget.produit.idProduit, false);
+        await _firestoreService.updateProductCart(
+          widget.produit.idProduit,
+          false,
+        );
       }
     } catch (e) {
       _messageReponse('Erreur de mise à jour du souhait.', isSuccess: false);
@@ -83,12 +90,21 @@ class _DetailsState extends State<Details> {
           ? '${widget.produit.nomProduit} ajouté au panier'
           : '${widget.produit.nomProduit} retiré du panier',
       isSuccess: nouvelEtat,
-      icon: nouvelEtat ? Icons.add_shopping_cart_outlined : Icons.remove_shopping_cart_outlined,
+      icon:
+          nouvelEtat
+              ? Icons.add_shopping_cart_outlined
+              : Icons.remove_shopping_cart_outlined,
     );
     try {
-      await _firestoreService.updateProductCart(widget.produit.idProduit, nouvelEtat);
+      await _firestoreService.updateProductCart(
+        widget.produit.idProduit,
+        nouvelEtat,
+      );
       if (nouvelEtat) {
-        await _firestoreService.updateProductWishlist(widget.produit.idProduit, false);
+        await _firestoreService.updateProductWishlist(
+          widget.produit.idProduit,
+          false,
+        );
       }
     } catch (e) {
       _messageReponse('Erreur de mise à jour du panier.', isSuccess: false);
@@ -96,7 +112,11 @@ class _DetailsState extends State<Details> {
     }
   }
 
-  void _messageReponse(String message, {bool isSuccess = true, IconData? icon}) {
+  void _messageReponse(
+    String message, {
+    bool isSuccess = true,
+    IconData? icon,
+  }) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -125,9 +145,16 @@ class _DetailsState extends State<Details> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.image_not_supported, size: 80, color: Colors.grey.shade400),
+            Icon(
+              Icons.image_not_supported,
+              size: 80,
+              color: Colors.grey.shade400,
+            ),
             const SizedBox(height: 8),
-            Text("Aucune image disponible", style: TextStyle(color: Colors.grey.shade600)),
+            Text(
+              "Aucune image disponible",
+              style: TextStyle(color: Colors.grey.shade600),
+            ),
           ],
         ),
       );
@@ -153,7 +180,10 @@ class _DetailsState extends State<Details> {
                 margin: const EdgeInsets.symmetric(horizontal: 4),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: _currentPage == index ? styles.rouge : Colors.white.withOpacity(0.7),
+                  color:
+                      _currentPage == index
+                          ? styles.rouge
+                          : Colors.white.withOpacity(0.7),
                 ),
               );
             }),
@@ -165,10 +195,11 @@ class _DetailsState extends State<Details> {
               alignment: Alignment.centerLeft,
               child: _fleches(
                 icon: Icons.arrow_back_ios_new,
-                onPressed: () => _pageController.previousPage(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                ),
+                onPressed:
+                    () => _pageController.previousPage(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    ),
               ),
             ),
           if (_currentPage < _images.length - 1)
@@ -176,10 +207,11 @@ class _DetailsState extends State<Details> {
               alignment: Alignment.centerRight,
               child: _fleches(
                 icon: Icons.arrow_forward_ios,
-                onPressed: () => _pageController.nextPage(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                ),
+                onPressed:
+                    () => _pageController.nextPage(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    ),
               ),
             ),
         ],
@@ -214,37 +246,7 @@ class _DetailsState extends State<Details> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Chip(
-                label: Text(
-                  widget.produit.categorie.toUpperCase(),
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                backgroundColor: styles.bleu,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                visualDensity: VisualDensity.compact,
-              ),
-              Text(' >>> ',style: TextStyle(fontSize: 25),),
-              Chip(
-                label: Text(
-                  widget.produit.type.toUpperCase(),
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                backgroundColor: styles.rouge,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                visualDensity: VisualDensity.compact,
-              ),
+          Row(children: [
             ],
           ),
           const SizedBox(height: 16),
@@ -269,16 +271,22 @@ class _DetailsState extends State<Details> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
-                  color: widget.produit.enStock ? styles.vert.withOpacity(0.1) : styles.erreur.withOpacity(0.1),
+                  color:
+                      widget.produit.enStock
+                          ? styles.vert.withOpacity(0.1)
+                          : styles.erreur.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  widget.produit.enStock ? 'En stock' : 'Rupture de stock',
+                  widget.produit.enStock ? 'En stock' : 'Rupture',
                   style: TextStyle(
                     fontSize: 14,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.bold,
                     color: widget.produit.enStock ? styles.vert : styles.erreur,
                   ),
                 ),
@@ -289,8 +297,12 @@ class _DetailsState extends State<Details> {
           _carteDetails(),
           const SizedBox(height: 24),
           Text(
-            'Description',
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+            'Description :',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
           ),
           const SizedBox(height: 12),
           Text(
@@ -303,12 +315,165 @@ class _DetailsState extends State<Details> {
               color: Colors.grey.shade800,
             ),
           ),
+          Text(
+            'Caractéristiques du produit :',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          Wrap(
+            children: [
+              Text('c\'est un matériel faisans partie de la catégorie '),
+              Text(
+                widget.produit.categorie,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: styles.bleu,
+                ),
+              ),
+              Text(' et est de type '),
+              Text(
+                widget.produit.type,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: styles.bleu,
+                ),
+              ),
+              Text('.'),
+            ],
+          ),
+          Row(
+            children: [
+              Text(
+                ' - Marque : ',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: styles.bleu,
+                ),
+              ),
+              Text(
+                widget.produit.marque,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              Text(
+                ' - Modele : ',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: styles.bleu,
+                ),
+              ),
+              Text(
+                widget.produit.modele,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          Text(
+            'Détails divers et Facturation : ',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          Row(
+            children: [
+              Text(
+                ' - Quantité disponible : ',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: styles.bleu,
+                ),
+              ),
+              Text(
+                widget.produit.quantite,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+
+          Row(
+            children: [
+              Text(
+                ' - Livrable : ',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: styles.bleu,
+                ),
+              ),
+              Text(
+                widget.produit.livrable ? 'Oui' : 'Non',
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          _methodePaiment(),
+
           if (MediaQuery.of(context).size.width > 600) ...[
             const SizedBox(height: 32),
             _boutons(),
           ],
         ],
       ),
+    );
+  }
+
+  //Méthode de paiement
+  Widget _methodePaiment() {
+    final cash = widget.produit.cash;
+    final electro = widget.produit.electronique;
+    String methode = '';
+    if (cash == true && electro == true) {
+      methode = 'Cash et Mobile Money (MTN/ORANGE)';
+    } else if (cash == true && electro == false) {
+      methode = 'Cash';
+    } else if (cash == false && electro == true) {
+      methode = 'Mobile Money (MTN/ORANGE)';
+    } else {
+      methode = 'En attente de confirmation';
+    }
+
+    return Column(
+      children: [
+        Text(
+          '- Méthodes de paiement acceptées : ',
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: styles.bleu,
+          ),
+        ),
+        Text(
+          methode,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+      ],
     );
   }
 
@@ -321,11 +486,23 @@ class _DetailsState extends State<Details> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            _detailsIndividuels(FluentIcons.tag_24_regular, 'Marque', widget.produit.marque),
+            _detailsIndividuels(
+              FluentIcons.tag_24_regular,
+              'Marque',
+              widget.produit.marque,
+            ),
             const Divider(height: 24),
-            _detailsIndividuels(FluentIcons.box_24_regular, 'Modèle', widget.produit.modele),
+            _detailsIndividuels(
+              FluentIcons.box_24_regular,
+              'Modèle',
+              widget.produit.modele,
+            ),
             const Divider(height: 24),
-            _detailsIndividuels(FluentIcons.apps_list_detail_24_regular, 'Type', widget.produit.type),
+            _detailsIndividuels(
+              FluentIcons.apps_list_detail_24_regular,
+              'Type',
+              widget.produit.type,
+            ),
           ],
         ),
       ),
@@ -346,7 +523,7 @@ class _DetailsState extends State<Details> {
           value,
           style: const TextStyle(
             fontSize: 16,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.bold,
             color: Colors.black87,
           ),
         ),
@@ -365,16 +542,20 @@ class _DetailsState extends State<Details> {
               side: BorderSide(color: styles.rouge, width: 1.5),
               elevation: 0,
               padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             onPressed: widget.produit.enStock ? _toggleJeVeut : null,
             icon: Icon(
-              _isSouhait ? FluentIcons.book_star_24_filled : FluentIcons.book_star_24_regular,
+              _isSouhait
+                  ? FluentIcons.book_star_24_filled
+                  : FluentIcons.book_star_24_regular,
               size: 20,
             ),
             label: Text(
-              _isSouhait ? 'Souhaité' : 'Ajouter aux souhaits',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              _isSouhait ? 'Souhaité' : 'Souhaits',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),
         ),
@@ -382,20 +563,25 @@ class _DetailsState extends State<Details> {
         Expanded(
           child: ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
-              backgroundColor: widget.produit.enStock ? styles.bleu : Colors.grey.shade400,
+              backgroundColor:
+                  widget.produit.enStock ? styles.bleu : Colors.grey.shade400,
               foregroundColor: Colors.white,
               elevation: 2,
               padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             onPressed: widget.produit.enStock ? _toggleAuPanier : null,
             icon: Icon(
-              _isPanier ? FluentIcons.shopping_bag_tag_24_filled : FluentIcons.shopping_bag_tag_24_regular,
+              _isPanier
+                  ? FluentIcons.shopping_bag_tag_24_filled
+                  : FluentIcons.shopping_bag_tag_24_regular,
               size: 20,
             ),
             label: Text(
-              _isPanier ? 'Dans le panier' : 'Ajouter au panier',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              _isPanier ? 'Ajouté' : 'Panier',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),
         ),
@@ -406,7 +592,11 @@ class _DetailsState extends State<Details> {
   Widget _appelImages(String imageData) {
     if (imageData.isEmpty) {
       return const Center(
-        child: Icon(Icons.image_not_supported_outlined, color: Colors.grey, size: 60),
+        child: Icon(
+          Icons.image_not_supported_outlined,
+          color: Colors.grey,
+          size: 60,
+        ),
       );
     }
 
@@ -414,12 +604,11 @@ class _DetailsState extends State<Details> {
       return CachedNetworkImage(
         imageUrl: imageData,
         fit: BoxFit.contain,
-        placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-        errorWidget: (context, url, error) => const Icon(
-          Icons.error_outline,
-          color: Colors.grey,
-          size: 60,
-        ),
+        placeholder:
+            (context, url) => const Center(child: CircularProgressIndicator()),
+        errorWidget:
+            (context, url, error) =>
+                const Icon(Icons.error_outline, color: Colors.grey, size: 60),
         fadeInDuration: const Duration(milliseconds: 300),
       );
     }
@@ -435,11 +624,12 @@ class _DetailsState extends State<Details> {
       return Image.memory(
         imageBytes,
         fit: BoxFit.contain,
-        errorBuilder: (context, error, stackTrace) => const Icon(
-          Icons.broken_image_outlined,
-          color: Colors.red,
-          size: 60,
-        ),
+        errorBuilder:
+            (context, error, stackTrace) => const Icon(
+              Icons.broken_image_outlined,
+              color: Colors.red,
+              size: 60,
+            ),
       );
     } catch (e) {
       return const Center(
@@ -448,6 +638,7 @@ class _DetailsState extends State<Details> {
     }
   }
 
+  //Interface principale
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -455,7 +646,7 @@ class _DetailsState extends State<Details> {
       appBar: AppBar(
         title: Text(
           widget.produit.nomProduit,
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           overflow: TextOverflow.ellipsis,
         ),
         backgroundColor: Colors.white,
@@ -470,7 +661,7 @@ class _DetailsState extends State<Details> {
               key: const Key('layout Web'),
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(flex: 3, child: _montreLesImages()),
+                Expanded(flex: 2, child: _montreLesImages()),
                 Expanded(flex: 2, child: _detailsContenu()),
               ],
             );
@@ -484,14 +675,14 @@ class _DetailsState extends State<Details> {
           );
         },
       ),
-      bottomNavigationBar: MediaQuery.of(context).size.width <= 600
-          ? BottomAppBar(
-              elevation: 8,
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-              child: _boutons(),
-            )
-          : null,
+      bottomNavigationBar:
+          MediaQuery.of(context).size.width <= 600
+              ? BottomAppBar(
+                elevation: 8,
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+                child: _boutons(),
+              )
+              : null,
     );
   }
 }
-

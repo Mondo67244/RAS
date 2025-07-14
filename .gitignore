@@ -43,3 +43,9 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+.firebase/hosting.cHVibGlj.cache
+public/flutter_bootstrap.js
+public/flutter_service_worker.js
+public/main.dart.js
+public/assets/NOTICES
+public/assets/fonts/MaterialIcons-Regular.otf

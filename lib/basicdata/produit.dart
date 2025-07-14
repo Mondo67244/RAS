@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 class Produit {
 String idProduit;
 String nomProduit;
@@ -19,12 +18,22 @@ bool auPanier;
 String img1;
 String img2;
 String img3;
+//methode de paiement acceptée
+bool cash;
+bool electronique;
 bool enStock;
 //la date a laquelle le produit a été ajouté a la base de donnée
 Timestamp createdAt;
-
+//la quantité disponible du produit
+String quantite;
+//la quantité livrable du produit
+bool livrable;
 
 Produit({
+required this.cash,
+required this.electronique,
+required this.quantite,
+required this.livrable,
 required this.createdAt,
 required this.enStock,
 required this.img1,

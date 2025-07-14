@@ -19,12 +19,22 @@ class _RecentsState extends State<Recents> {
   final FirestoreService _firestoreService = FirestoreService();
   final Set<String> _souhaits = {};
   final Set<String> _paniers = {};
+  final ScrollController _populairesScrollController = ScrollController();
+  final ScrollController _bureautiqueScrollController = ScrollController();
+  
 
   @override
   void initState() {
     super.initState();
     _produitsFuture = _firestoreService.getProduits();
     _chargerDonneesInitiales();
+  }
+
+@override
+  void dispose() {
+    _populairesScrollController.dispose();
+    _bureautiqueScrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _chargerDonneesInitiales() async {
@@ -249,38 +259,105 @@ class _RecentsState extends State<Recents> {
   }
 
   Widget _sectionProduits(String titre, List<Produit> produits, bool isWideScreen) {
-    if (produits.isEmpty) return const SizedBox.shrink();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
-          child: Row(
-            children: [
-              Icon(FluentIcons.arrow_right_24_filled, color: styles.bleu, size: 24),
-              const SizedBox(width: 8),
-              Text(
-                titre,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 20,
-                  letterSpacing: -0.5,
-                ),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(
-          height: isWideScreen ? 420 : 400,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: produits.length,
-            itemBuilder: (context, index) => _carteArticle(produits[index], isWideScreen),
-          ),
-        ),
-      ],
+  if (produits.isEmpty) return const SizedBox.shrink();
+
+  // Créer un ScrollController pour cette section
+  final ScrollController scrollController = ScrollController();
+
+  // Largeur d'une carte (incluant les marges)
+  final double cardWidth = isWideScreen ? 320 : 300; 
+
+  // Fonction pour faire défiler de deux cartes
+  void scrollCards(int direction) {
+    final double scrollAmount = cardWidth * 2 * direction; // Défilement de 2 cartes
+    final double maxScroll = scrollController.position.maxScrollExtent;
+    final double currentScroll = scrollController.offset;
+    final double targetScroll = (currentScroll + scrollAmount).clamp(0.0, maxScroll);
+
+    scrollController.animateTo(
+      targetScroll,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
     );
   }
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
+        child: Row(
+          children: [
+            Icon(FluentIcons.arrow_right_24_filled, color: styles.bleu, size: 24),
+            const SizedBox(width: 8),
+            Text(
+              titre,
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 20,
+                letterSpacing: -0.5,
+              ),
+            ),
+          ],
+        ),
+      ),
+      Stack(
+        alignment: Alignment.center,
+        children: [
+          SizedBox(
+            height: isWideScreen ? 420 : 400,
+            child: ListView.builder(
+              controller: scrollController, 
+              scrollDirection: Axis.horizontal,
+              itemCount: produits.length,
+              itemBuilder: (context, index) => _carteArticle(produits[index], isWideScreen),
+            ),
+          ),
+          // Bouton de navigation gauche
+          if (produits.length >= 4) 
+            Positioned(
+              left: 0,
+              child: _navButton(
+                icon: Icons.arrow_back_ios_new,
+                onPressed: () => scrollCards(-1), 
+              ),
+            ),
+          // Bouton de navigation droite
+          if (produits.length >= 4)
+            Positioned(
+              right: 0,
+              child: _navButton(
+                icon: Icons.arrow_forward_ios,
+                onPressed: () => scrollCards(1),
+              ),
+            ),
+        ],
+      ),
+    ],
+  );
+}
+
+// Widget pour les boutons de navigation
+Widget _navButton({required IconData icon, required VoidCallback onPressed}) {
+  return Container(
+    margin: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      color: Colors.black.withOpacity(0.5),
+      shape: BoxShape.circle,
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.2),
+          blurRadius: 8,
+          offset: const Offset(0, 2),
+        ),
+      ],
+    ),
+    child: IconButton(
+      icon: Icon(icon, color: Colors.white, size: 18),
+      onPressed: onPressed,
+    ),
+  );
+}
 
   Widget _carteArticle(Produit produit, bool isWideScreen) {
     final bool isSouhait = _souhaits.contains(produit.idProduit);

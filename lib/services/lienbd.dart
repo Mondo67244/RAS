@@ -111,6 +111,10 @@ class FirestoreService {
     return snapshot.docs.map((doc) {
       Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       return Produit(
+        cash: data['cash'] ?? false,
+        electronique: data['electronique'] ?? false,
+        quantite: data['quantite'] ?? '',
+        livrable: data['livrable'] ?? true,
         createdAt: data['createdAt'] ?? Timestamp.now(),
         enStock: data['enStock'] ?? true,
         img1: data['img1'] ?? '',
@@ -221,6 +225,10 @@ class FirestoreService {
       List<Produit> produits =
           produitsData.map((produitData) {
             return Produit(
+              cash: produitData['cash'] ?? false,
+              electronique: produitData['electronique'] ?? false,
+              quantite: produitData['quantite'] ?? '',
+              livrable: produitData['livrable'] ?? true,
               createdAt: data['createdAt'] ?? Timestamp.now(),
               enStock: produitData['enStock'] ?? true,
               img1: produitData['img1'] ?? '',
@@ -325,6 +333,10 @@ class FirestoreService {
       List<Produit> produits =
           produitsData.map((produitData) {
             return Produit(
+              cash: produitData['cash'] ?? false,
+              electronique: produitData['electronique'] ?? false,
+              quantite: produitData['quantite'] ?? '',
+              livrable: produitData['livrable'] ?? true,
               createdAt: data['createdAt'] ?? Timestamp.now(),
               img1: produitData['img1'] ?? '',
               img2: produitData['img1'] ?? '',
@@ -392,6 +404,10 @@ class FirestoreService {
     return snapshot.docs.map((doc) {
       Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       return Produit(
+        cash: data['cash'] ?? false,
+        electronique: data['electronique'] ?? false,
+        quantite: data['quantite'] ?? '',
+        livrable: data['livrable'] ?? true,
         createdAt: data['createdAt'] ?? Timestamp.now(),
         enStock: data['enStock'] ?? true,
         img1: data['img1'] ?? '',
