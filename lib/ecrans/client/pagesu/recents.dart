@@ -146,17 +146,7 @@ class _RecentsState extends State<Recents> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
-      appBar: AppBar(
-        title: const Text(
-          'Articles récents',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-        ),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
-        elevation: 2,
-        shadowColor: Colors.black.withOpacity(0.1),
-      ),
+      
       body: FutureBuilder<List<Produit>>(
         future: _produitsFuture,
         builder: (context, snapshot) {
@@ -210,6 +200,9 @@ class _RecentsState extends State<Recents> {
 
   Widget _contenu(List<Produit> produits, {required bool isWideScreen}) {
     final produitsBureautique = produits.where((p) => p.type == 'Bureautique').toList();
+    final produitsReseau = produits.where((p) => p.type == 'Réseau').toList();
+    final produitsMobiles = produits.where((p) => p.type == 'Appareil Mobile').toList();
+    final produitDivers = produits.where((p) => p.type == 'Divers').toList();
     final produitsPopulaires = produits.where((p) => (int.tryParse(p.vues) ?? 0) > 15).toList();
 
     return SingleChildScrollView(
@@ -235,7 +228,19 @@ class _RecentsState extends State<Recents> {
             'https://wordpressthemes.live/WCG5/WCM116_kartpul/electronics/wp-content/uploads/2024/09/08.jpg',
             isWide: isWideScreen,
           ),
+          _sectionProduits('Appareils Réseau', produitsReseau, isWideScreen),
           const SizedBox(height: 24),
+          _imagesEntetes(
+            'https://wordpressthemes.live/WCG5/WCM116_kartpul/electronics/wp-content/uploads/2024/09/07.jpg',
+            isWide: isWideScreen,
+          ),
+          _sectionProduits('Appareils Mobiles', produitsMobiles, isWideScreen),
+          const SizedBox(height: 24),
+          _imagesEntetes(
+            'https://wordpressthemes.live/WCG5/WCM116_kartpul/electronics/wp-content/uploads/2024/09/06.jpg',
+            isWide: isWideScreen,
+          ),
+          _sectionProduits('Produit Divers', produitDivers, isWideScreen)
         ],
       ),
     );

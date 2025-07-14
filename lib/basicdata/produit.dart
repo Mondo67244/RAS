@@ -28,8 +28,10 @@ Timestamp createdAt;
 String quantite;
 //la quantité livrable du produit
 bool livrable;
+bool enPromo;
 
 Produit({
+required this.enPromo,
 required this.cash,
 required this.electronique,
 required this.quantite,

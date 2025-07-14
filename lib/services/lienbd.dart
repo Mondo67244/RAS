@@ -9,23 +9,23 @@ import 'package:ras_app/basicdata/produit.dart';
 
 class FirestoreService {
   // Collections references
-  final CollectionReference categoriesCollection =
-      FirebaseFirestore.instance.collection('Categories');
+  final CollectionReference categoriesCollection = FirebaseFirestore.instance
+      .collection('Categories');
 
-  final CollectionReference utilisateursCollection =
-      FirebaseFirestore.instance.collection('Utilisateurs');
+  final CollectionReference utilisateursCollection = FirebaseFirestore.instance
+      .collection('Utilisateurs');
 
-  final CollectionReference produitsCollection =
-      FirebaseFirestore.instance.collection('Produits');
+  final CollectionReference produitsCollection = FirebaseFirestore.instance
+      .collection('Produits');
 
-  final CollectionReference commandesCollection =
-      FirebaseFirestore.instance.collection('Commandes');
+  final CollectionReference commandesCollection = FirebaseFirestore.instance
+      .collection('Commandes');
 
-  final CollectionReference facturesCollection =
-      FirebaseFirestore.instance.collection('Factures');
+  final CollectionReference facturesCollection = FirebaseFirestore.instance
+      .collection('Factures');
 
-  final CollectionReference listesSouhaitCollection =
-      FirebaseFirestore.instance.collection('listesSouhait');
+  final CollectionReference listesSouhaitCollection = FirebaseFirestore.instance
+      .collection('listesSouhait');
 
   // =======================================================================
   // Opérations pour la collection catégorie
@@ -79,38 +79,14 @@ class FirestoreService {
     }).toList();
   }
 
-  // =======================================================================
-  // Opérations sur les produits
-  // =======================================================================
-
-  Future<void> addProduit(Produit produit, bool bool) {
-    return produitsCollection.add({
-      'enStock': produit.enStock,
-      'idProduit': '',
-      'nomProduit': produit.nomProduit,
-      'description': produit.description,
-      'prix': produit.prix,
-      'vues': produit.vues,
-      'modele': produit.modele,
-      'marque': produit.marque,
-      'categorie': produit.categorie,
-      'type': produit.type,
-      'jeVeut': produit.jeVeut,
-    });
-  }
-
-  Future<void> updateProduit(String id, bool enStock) {
-    return produitsCollection.doc(id).update({
-      'enStock': enStock,
-    });
-  }
-  
   /// Récupère la liste de tous les produits.
   Future<List<Produit>> getProduits() async {
-    QuerySnapshot snapshot = await produitsCollection.orderBy('createdAt', descending: true).get();
+    QuerySnapshot snapshot =
+        await produitsCollection.orderBy('createdAt', descending: true).get();
     return snapshot.docs.map((doc) {
       Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       return Produit(
+        enPromo: data['enPromo'] ?? false,
         cash: data['cash'] ?? false,
         electronique: data['electronique'] ?? false,
         quantite: data['quantite'] ?? '',
@@ -135,26 +111,26 @@ class FirestoreService {
     }).toList();
   }
 
-
-  
   Future<void> updateProductWishlist(String productId, bool newStatus) {
     return produitsCollection.doc(productId).update({
       'jeVeut': newStatus,
-      if (newStatus) 'auPanier': false, // Règle métier : un produit ne peut être aux souhaits et au panier en même temps
+      if (newStatus)
+        'auPanier':
+            false, // Un produit ne peut être aux souhaits et au panier en même temps
     });
   }
 
   Future<void> updateProductCart(String productId, bool newStatus) {
     return produitsCollection.doc(productId).update({
       'auPanier': newStatus,
-      if (newStatus) 'jeVeut': false, 
+      if (newStatus) 'jeVeut': false,
     });
   }
 
   // =======================================================================
   // Opérations sur les commandes
   // =======================================================================
-  
+
   // Opérations sur les commandes
   Future<void> addCommande(Commande commande) async {
     // Convert Utilisateur to Map
@@ -202,8 +178,7 @@ class FirestoreService {
     });
   }
 
-
-   Future<List<Commande>> getCommandes() async {
+  Future<List<Commande>> getCommandes() async {
     QuerySnapshot snapshot = await commandesCollection.get();
     return snapshot.docs.map((doc) {
       Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
@@ -225,6 +200,7 @@ class FirestoreService {
       List<Produit> produits =
           produitsData.map((produitData) {
             return Produit(
+              enPromo: produitData['enPromo'] ?? false,
               cash: produitData['cash'] ?? false,
               electronique: produitData['electronique'] ?? false,
               quantite: produitData['quantite'] ?? '',
@@ -269,8 +245,6 @@ class FirestoreService {
     }).toList();
   }
 
-
- 
   // Opérations sur les factures
   Future<void> addFacture(Facture facture) async {
     // Convert Utilisateur to Map
@@ -310,7 +284,6 @@ class FirestoreService {
     });
   }
 
-
   Future<List<Facture>> getFactures() async {
     QuerySnapshot snapshot = await facturesCollection.get();
     return snapshot.docs.map((doc) {
@@ -333,6 +306,7 @@ class FirestoreService {
       List<Produit> produits =
           produitsData.map((produitData) {
             return Produit(
+              enPromo: produitData['enPromo'] ?? false,
               cash: produitData['cash'] ?? false,
               electronique: produitData['electronique'] ?? false,
               quantite: produitData['quantite'] ?? '',
@@ -366,8 +340,6 @@ class FirestoreService {
       );
     }).toList();
   }
-
-
 
   // Opérations sur la liste de souhaits
   Future<void> ajoutListeSouhait(String userId, Produit produit) {
@@ -404,6 +376,7 @@ class FirestoreService {
     return snapshot.docs.map((doc) {
       Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       return Produit(
+        enPromo: data['enPromo'] ?? false,
         cash: data['cash'] ?? false,
         electronique: data['electronique'] ?? false,
         quantite: data['quantite'] ?? '',

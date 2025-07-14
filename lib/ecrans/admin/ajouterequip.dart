@@ -29,6 +29,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
   bool estChoisi = false;
   bool cash = false;
   bool electronique = false;
+  bool enPromo = false;
 
   // Données pour les menus déroulants
   final List<String> _categories = [
@@ -41,9 +42,9 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
 
   // Structure des types par catégorie
   final Map<String, List<String>> categoryTypes = {
-    'Informatique': ['Bureautique', 'Réseau', 'Accessoires'],
+    'Informatique': ['Bureautique', 'Réseau', 'Accessoire fixe'],
     'Électro Ménager': ['Divers'],
-    'Électronique': ['Appareils Mobiles', 'Accessoires'],
+    'Électronique': ['Appareil Mobile', 'Accessoire mobile'],
   };
 
   bool _isLoading = false;
@@ -133,6 +134,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
         'livrable': estChoisi,
         'cash': cash,
         'electronique': electronique,
+        'enPromo': enPromo,
         'jeVeut': false,
         'auPanier': false,
         'enStock': true,
@@ -378,6 +380,52 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
           ),
         ],
         const SizedBox(height: 16),
+        //Titre statut
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Text(
+              'Statut du produit :',
+              style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        //Boutons du statut du produit
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Row(
+              children: [
+                Text('Est livrable ', style: TextStyle(fontSize: 17)),
+                Switch(
+                  value: estChoisi,
+                  activeColor: styles.rouge,
+                  onChanged: (value) {
+                    setState(() {
+                      estChoisi = !estChoisi;
+                    });
+                  },
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Text('En Promo ', style: TextStyle(fontSize: 17)),
+                Switch(
+                  value: enPromo,
+                  activeColor: styles.rouge,
+                  onChanged: (value) {
+                    setState(() {
+                      enPromo = !enPromo;
+                    });
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
 
         //Champs de description
         TextFormField(
@@ -392,44 +440,30 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
         ),
 
         //Bouton de choix de livraison
+        const SizedBox(height: 16),
         Row(
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Text('Est livrable : ', style: TextStyle(fontSize: 17)),
-            Switch(
-              value: estChoisi,
-              activeColor: styles.rouge,
-              onChanged: (value) {
-                setState(() {
-                  estChoisi = !estChoisi;
-                });
-              },
-            ),
-            const SizedBox(width: 16),
             Text(
-              estChoisi ? 'Oui' : 'Non',
-              style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+              'Méthodes de paiement :',
+              style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
             ),
           ],
         ),
         const SizedBox(height: 16),
-        Text(
-          'Méthodes de paiement acceptées : ',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 16),
-        //Champs de choix de paiement
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+
+        //Boutons de choix de paiement
+        Wrap(
           children: [
             Row(
               children: [
-                Text('Cash : ', style: TextStyle(fontSize: 17)),
+                Text('MTN | Orange Money ', style: TextStyle(fontSize: 17)),
                 Switch(
-                  value: cash,
+                  value: electronique,
                   activeColor: styles.rouge,
                   onChanged: (value) {
                     setState(() {
-                      cash = !cash;
+                      electronique = !electronique;
                     });
                   },
                 ),
@@ -437,16 +471,13 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
             ),
             Row(
               children: [
-                Text(
-                  'Electronique (Mobile Money) : ',
-                  style: TextStyle(fontSize: 17),
-                ),
+                Text('Pendant la livraison ', style: TextStyle(fontSize: 17)),
                 Switch(
-                  value: electronique,
+                  value: cash,
                   activeColor: styles.rouge,
                   onChanged: (value) {
                     setState(() {
-                      electronique = !electronique;
+                      cash = !cash;
                     });
                   },
                 ),
