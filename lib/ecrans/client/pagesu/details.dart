@@ -22,6 +22,7 @@ class _DetailsState extends State<Details> {
   late PageController _pageController;
   int _currentPage = 0;
   List<String> _images = [];
+  String methode = '';
 
   @override
   void initState() {
@@ -294,8 +295,19 @@ class _DetailsState extends State<Details> {
             ],
           ),
           const SizedBox(height: 24),
+          Text(
+            'Caractéristiques du produit :',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          const SizedBox(height: 10),
+
           _carteDetails(),
           const SizedBox(height: 24),
+
           Text(
             'Description :',
             style: const TextStyle(
@@ -315,120 +327,6 @@ class _DetailsState extends State<Details> {
               color: Colors.grey.shade800,
             ),
           ),
-          Text(
-            'Caractéristiques du produit :',
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          Wrap(
-            children: [
-              Text('c\'est un matériel faisans partie de la catégorie '),
-              Text(
-                widget.produit.categorie,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: styles.bleu,
-                ),
-              ),
-              Text(' et est de type '),
-              Text(
-                widget.produit.type,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: styles.bleu,
-                ),
-              ),
-              Text('.'),
-            ],
-          ),
-          Row(
-            children: [
-              Text(
-                ' - Marque : ',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: styles.bleu,
-                ),
-              ),
-              Text(
-                widget.produit.marque,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              Text(
-                ' - Modele : ',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: styles.bleu,
-                ),
-              ),
-              Text(
-                widget.produit.modele,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          Text(
-            'Détails divers et Facturation : ',
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          Row(
-            children: [
-              Text(
-                ' - Quantité disponible : ',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: styles.bleu,
-                ),
-              ),
-              Text(
-                widget.produit.quantite,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-
-          Row(
-            children: [
-              Text(
-                ' - Livrable : ',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: styles.bleu,
-                ),
-              ),
-              Text(
-                widget.produit.livrable ? 'Oui' : 'Non',
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
           _methodePaiment(),
 
           if (MediaQuery.of(context).size.width > 600) ...[
@@ -445,6 +343,7 @@ class _DetailsState extends State<Details> {
     final cash = widget.produit.cash;
     final electro = widget.produit.electronique;
     String methode = '';
+
     if (cash == true && electro == true) {
       methode = 'Cash et Mobile Money (MTN/ORANGE)';
     } else if (cash == true && electro == false) {
@@ -458,12 +357,8 @@ class _DetailsState extends State<Details> {
     return Column(
       children: [
         Text(
-          '- Méthodes de paiement acceptées : ',
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: styles.bleu,
-          ),
+          'Méthodes de paiement acceptées : ',
+          style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
         ),
         Text(
           methode,
@@ -477,6 +372,7 @@ class _DetailsState extends State<Details> {
     );
   }
 
+  //Container contenant les détails de l'article
   Widget _carteDetails() {
     return Card(
       elevation: 2,
@@ -502,6 +398,21 @@ class _DetailsState extends State<Details> {
               FluentIcons.apps_list_detail_24_regular,
               'Type',
               widget.produit.type,
+            ),
+            const Divider(height: 24),
+
+            _detailsIndividuels(
+              FluentIcons.send_clock_20_regular,
+
+              'Livrable',
+              widget.produit.livrable ? 'Oui' : 'Non',
+            ),
+            const Divider(height: 24),
+
+            _detailsIndividuels(
+              FluentIcons.document_bullet_list_16_regular,
+              'Quantité',
+              widget.produit.quantite,
             ),
           ],
         ),
