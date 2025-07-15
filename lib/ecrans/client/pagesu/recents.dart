@@ -211,7 +211,7 @@ class _RecentsState extends State<Recents> {
         produits.where((p) => p.type == 'Bureautique').toList();
     final produitsReseau = produits.where((p) => p.type == 'Réseau').toList();
     final produitsMobiles =
-        produits.where((p) => p.type == 'Appareil Mobile').toList();
+        produits.where((p) => p.type == 'Téléphone').toList();
     final produitDivers = produits.where((p) => p.type == 'Divers').toList();
     final produitsPopulaires =
         produits.where((p) => (int.tryParse(p.vues) ?? 0) > 15).toList();

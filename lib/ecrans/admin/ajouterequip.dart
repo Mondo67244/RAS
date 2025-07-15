@@ -6,6 +6,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:ras_app/basicdata/style.dart';
+import 'package:dropdown_button2/dropdown_button2.dart'; // Importez le package
 
 class AjouterEquipPage extends StatefulWidget {
   const AjouterEquipPage({super.key});
@@ -37,11 +38,35 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
     'Électro Ménager',
     'Électronique',
   ];
-  
 
+  final List<String> _brands = [
+    'Apple',
+    'Dell',
+    'HP',
+    'Lenovo',
+    'Samsung',
+    'Sony',
+    'Toshiba',
+    'Acer',
+    'Asus',
+    'Microsoft',
+    'Google',
+    'Oracle',
+    'Cisco',
+    'Alcatel',
+    'Fujitsu',
+    'Huawei',
+    'Intel',
+    'LG',
+    'Nokia',
+    'Panasonic',
+    'ZTE',
+  ];
+  
   String? _selectedCategory;
   String? _selectedSousCat;
   String? _selectedType;
+  String? _selectedBrand;
 
   // Structure des types par catégorie
   final Map<String, List<String>> categoryTypes = {
@@ -49,9 +74,10 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
     'Électro Ménager': ['Divers'],
     'Électronique': ['Appareils Mobiles', 'Accessoires'],
   };
+
   // Structure des types par catégorie
   final Map<String, List<String>> typeAppareil = {
-    'Bureautique': ['Imprimante', 'Souris', 'Clavier', 'Ecran',	'Ordinateur','Scanner','Haut parleur'],
+    'Bureautique': ['Imprimante', 'Souris', 'Clavier', 'Ecran', 'Ordinateur','Scanner','Haut parleur'],
     'Réseau': ['Routeurs', 'Switch', 'Modem', 'Serveur'],
     'Appareils Mobiles': ['Téléphone', 'Tablette', 'Accessoire mobile'],
     'Divers': ['Téléviseur', 'Machine à laver', 'Cafetière','Fers à repasser'],
@@ -132,7 +158,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
       await FirebaseFirestore.instance.collection('Produits').add({
         'nomProduit': _nomController.text.trim(),
         'description': _descriptionController.text.trim(),
-        'marque': _marqueController.text.trim(),
+        'marque': _selectedBrand,
         'modele': _modeleController.text.trim(),
         'prix': _prixController.text.trim(),
         'categorie': _selectedCategory,
@@ -309,17 +335,39 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
           },
         ),
         const SizedBox(height: 16),
+        
         //Marque
-        TextFormField(
-          controller: _marqueController,
-          decoration: _titresChamps('Marque'),
-          validator:
-              (value) =>
-                  value == null || value.isEmpty
-                      ? 'Veuillez entrer la marque'
-                      : null,
+        DropdownButton2<String>(
+          value: _selectedBrand,
+          hint: Text('Marque'),
+          items: _brands.map((String brand) {
+            return DropdownMenuItem<String>(
+              value: brand,
+              child: Text(brand),
+            );
+          }).toList(),
+          onChanged: (newValue) => setState(() {
+            _selectedBrand = newValue;
+            _formKey.currentState?.validate();
+          }),
+          buttonStyleData: ButtonStyleData(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey[400]!),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            height: 56,
+            width: 500
+          ),
+          dropdownStyleData: DropdownStyleData(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          
         ),
         const SizedBox(height: 16),
+        
         //Modele
         TextFormField(
           maxLength: 13,
@@ -332,6 +380,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
                       : null,
         ),
         const SizedBox(height: 16),
+      
         //Prix
         TextFormField(
           controller: _prixController,
@@ -353,68 +402,111 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
         const SizedBox(height: 16),
 
         //List des catégories
-        DropdownButtonFormField<String>(
+        DropdownButton2<String>(
           value: _selectedCategory,
-          decoration: _titresChamps('Catégorie'),
-          items:
-              _categories.map((String category) {
-                return DropdownMenuItem<String>(
-                  value: category,
-                  child: Text(category),
-                );
-              }).toList(),
+          hint: Text('Catégorie'),
+        
+          items: _categories.map((String category) {
+            return DropdownMenuItem<String>(
+              value: category,
+              child: Text(category),
+            );
+          }).toList(),
           onChanged: (newValue) {
             setState(() {
               _selectedCategory = newValue;
               _selectedSousCat = null;
+              _formKey.currentState?.validate();
             });
           },
-          validator:
-              (value) =>
-                  value == null ? 'Veuillez choisir une catégorie' : null,
+          buttonStyleData: ButtonStyleData(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey[400]!),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            height: 56,
+            width: 500
+          ),
+          dropdownStyleData: DropdownStyleData(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          
         ),
         if (_selectedCategory != null) ...[
           const SizedBox(height: 16),
 
           //Liste des types
-          DropdownButtonFormField<String>(
+          DropdownButton2<String>(
             value: _selectedSousCat,
-            decoration: _titresChamps('Sous-catégorie'),
-            items:
-                categoryTypes[_selectedCategory!]!.map((String sous) {
-                  return DropdownMenuItem<String>(
-                    value: sous,
-                    child: Text(sous),
-                  );
-                }).toList(),
+            hint: Text('Sous-catégorie'),
+            items: categoryTypes[_selectedCategory!]!.map((String sous) {
+              return DropdownMenuItem<String>(
+                value: sous,
+                child: Text(sous),
+              );
+            }).toList(),
             onChanged: (newValue) => setState(() { 
               _selectedSousCat = newValue;
               _selectedType = null;
+              _formKey.currentState?.validate();
             }),
-            validator:
-                (value) => value == null ? 'Veuillez choisir un type' : null,
+            buttonStyleData: ButtonStyleData(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[400]!),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              height: 56,
+              width: 500,
+            ),
+            dropdownStyleData: DropdownStyleData(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            
           ),
           if (_selectedSousCat != null) ...[
             const SizedBox(height: 16),
+
             //Titre type
-            DropdownButtonFormField<String>(
-            value: _selectedType,
-            decoration: _titresChamps('Type'),
-            items:
-                typeAppareil[_selectedSousCat!]!.map((String type) {
+            Container(
+              constraints: BoxConstraints(maxWidth: 500),
+              child: DropdownButton2<String>(
+                
+                value: _selectedType,
+                hint: Text('Type d\'appareil'),
+                items: typeAppareil[_selectedSousCat!]!.map((String type) {
                   return DropdownMenuItem<String>(
                     value: type,
                     child: Text(type),
                   );
                 }).toList(),
-            onChanged: (newValue) => setState(() {
-              _selectedType = newValue;
-            }),
-            validator:
-                (value) => value == null ? 'Veuillez choisir un type' : null,
-          ),
+                onChanged: (newValue) => setState(() {
+                  _selectedType = newValue;
+                  _formKey.currentState?.validate();
+                }),
+                buttonStyleData: ButtonStyleData(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey[400]!),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  height: 56,
+                  width: 500
+                ),
+                dropdownStyleData: DropdownStyleData(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                
+              ),
+            ),
           ]
-
         ],
         
         const SizedBox(height: 16),
