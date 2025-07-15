@@ -258,17 +258,27 @@ class _PromoState extends State<Promo> {
 
   Widget _imagesEntetes(String path, {required bool isWide}) {
     return SizedBox(
-      height: isWide ? 120 : 100,
+      height: isWide ? 150 : 100,
       width: double.infinity,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
-        child: CachedNetworkImage(
-          imageUrl: path,
-          fit: BoxFit.cover,
-          placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-          errorWidget: (context, url, error) => Icon(Icons.error_outline, color: Colors.grey.shade400, size: 60),
-          fadeInDuration: const Duration(milliseconds: 300),
-        ),
+        child:
+            isWide
+                ? CachedNetworkImage(
+                  imageUrl: path,
+                  fit: BoxFit.cover,
+                  placeholder:
+                      (context, url) =>
+                          const Center(child: CircularProgressIndicator()),
+                  errorWidget:
+                      (context, url, error) => Icon(
+                        Icons.error_outline,
+                        color: Colors.grey.shade400,
+                        size: 60,
+                      ),
+                  fadeInDuration: const Duration(milliseconds: 300),
+                )
+                : Image.asset(path, fit: BoxFit.cover),
       ),
     );
   }
