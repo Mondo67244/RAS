@@ -11,6 +11,7 @@ String marque;
 //liste les Produits en catégories
 String categorie;
 String type;
+String sousCategorie;
 //si l'utilisateur choisi liste de souhait alors le produit est envoyé dans la collection listesouhait avec son id
 //l'utilisateur pourra ensuite voir tous les Produits qu'il a ajouté a la liste des souhaits
 bool jeVeut;
@@ -31,6 +32,7 @@ bool livrable;
 bool enPromo;
 
 Produit({
+required this.sousCategorie,
 required this.enPromo,
 required this.cash,
 required this.electronique,

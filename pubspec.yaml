@@ -32,4 +32,11 @@ flutter:
     - assets/images/08.jpg
     - assets/images/09.jpg
     - assets/images/10.jpg
+    - assets/images/AG.png
+    - assets/images/BG.png
+    - assets/images/EG.png
+    - assets/images/PG.png
+    - assets/images/RG.png
+    - assets/images/PG2.png
+    - assets/images/EG2.png
   uses-material-design: true

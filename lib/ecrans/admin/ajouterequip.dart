@@ -310,6 +310,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
         const SizedBox(height: 16),
         //Modele
         TextFormField(
+          maxLength: 13,
           controller: _modeleController,
           decoration: _titresChamps('Modèle'),
           validator:

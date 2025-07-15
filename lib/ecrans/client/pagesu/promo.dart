@@ -210,40 +210,45 @@ class _PromoState extends State<Promo> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _imagesEntetes(
-            'https://wordpressthemes.live/WCG5/WCM116_kartpul/electronics/wp-content/uploads/2024/09/10.jpg',
-            isWide: isWideScreen,
+          isWideScreen
+              ? Text('')
+              : _imagesEntetes('assets/images/PG2.png', isWide: isWideScreen),
+          _sectionProduits(
+            'Articles Populaires',
+            produitsPopulaires,
+            isWideScreen,
           ),
           const SizedBox(height: 24),
-          _sectionProduits('Articles Populaires', produitsPopulaires, isWideScreen),
+          isWideScreen
+              ? Text('')
+              : _imagesEntetes('assets/images/BG.png', isWide: isWideScreen),
           const SizedBox(height: 24),
-          _imagesEntetes(
-            'https://wordpressthemes.live/WCG5/WCM116_kartpul/electronics/wp-content/uploads/2024/09/09.jpg',
-            isWide: isWideScreen,
+          _sectionProduits(
+            'Appareils pour la Bureautique',
+            produitsBureautique,
+            isWideScreen,
           ),
           const SizedBox(height: 24),
-          _sectionProduits('Appareils pour la Bureautique', produitsBureautique, isWideScreen),
+          isWideScreen
+              ? Text('')
+              : _imagesEntetes('assets/images/RG.png', isWide: isWideScreen),
           const SizedBox(height: 24),
-          _imagesEntetes(
-            'https://wordpressthemes.live/WCG5/WCM116_kartpul/electronics/wp-content/uploads/2024/09/08.jpg',
-            isWide: isWideScreen,
-          ),
           _sectionProduits('Appareils Réseau', produitsReseau, isWideScreen),
           const SizedBox(height: 24),
-          _imagesEntetes(
-            'https://wordpressthemes.live/WCG5/WCM116_kartpul/electronics/wp-content/uploads/2024/09/07.jpg',
-            isWide: isWideScreen,
-          ),
+          isWideScreen
+              ? Text('')
+              : _imagesEntetes('assets/images/EG2.png', isWide: isWideScreen),
+          //Section appareils mobiles
           _sectionProduits('Appareils Mobiles', produitsMobiles, isWideScreen),
           const SizedBox(height: 24),
-          _imagesEntetes(
-            'https://wordpressthemes.live/WCG5/WCM116_kartpul/electronics/wp-content/uploads/2024/09/06.jpg',
-            isWide: isWideScreen,
-          ),
-          _sectionProduits('Produit Divers', produitDivers, isWideScreen)
+          isWideScreen
+              ? Text('')
+              : _imagesEntetes('assets/images/AG.png', isWide: isWideScreen),
+          _sectionProduits('Produit Divers', produitDivers, isWideScreen),
         ],
       ),
     );
+ 
   }
 
   Widget _imagesEntetes(String path, {required bool isWide}) {

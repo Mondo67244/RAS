@@ -345,9 +345,9 @@ class _DetailsState extends State<Details> {
     String methode = '';
 
     if (cash == true && electro == true) {
-      methode = 'Cash et Mobile Money (MTN/ORANGE)';
+      methode = 'En Espece ou Mobile Money (MTN/ORANGE)';
     } else if (cash == true && electro == false) {
-      methode = 'Cash';
+      methode = 'Espece';
     } else if (cash == false && electro == true) {
       methode = 'Mobile Money (MTN/ORANGE)';
     } else {
