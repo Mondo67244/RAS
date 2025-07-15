@@ -40,8 +40,11 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
   ];
 
   final List<String> _brands = [
+    '- Autre -',
     'Apple',
     'Dell',
+    'D-link',
+    'Tp-Link',
     'HP',
     'Lenovo',
     'Samsung',
@@ -51,7 +54,6 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
     'Asus',
     'Microsoft',
     'Google',
-    'Oracle',
     'Cisco',
     'Alcatel',
     'Fujitsu',
@@ -61,6 +63,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
     'Nokia',
     'Panasonic',
     'ZTE',
+    'NetGear'
   ];
   
   String? _selectedCategory;

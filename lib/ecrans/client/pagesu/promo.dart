@@ -199,11 +199,16 @@ class _PromoState extends State<Promo> {
   }
 
   Widget _contenu(List<Produit> produits, {required bool isWideScreen}) {
-    final produitsBureautique = produits.where((p) => p.type == 'Bureautique' && p.enPromo == true).toList();
-    final produitsReseau = produits.where((p) => p.type == 'Réseau' && p.enPromo == true).toList();
-    final produitsMobiles = produits.where((p) => p.type == 'Appareil Mobile'&& p.enPromo == true).toList();
-    final produitDivers = produits.where((p) => p.type == 'Divers' && p.enPromo == true).toList();
-    final produitsPopulaires = produits.where((p) => (int.tryParse(p.vues) ?? 0) > 15 && p.enPromo == true).toList();
+    final produitsBureautique =
+        produits.where((p) => p.sousCategorie == 'Bureautique' && p.enPromo == true).toList();
+    final produitsReseau =
+        produits.where((p) => p.sousCategorie == 'Réseau' && p.enPromo == true).toList();
+    final produitsMobiles =
+        produits.where((p) => p.sousCategorie == 'Appareils Mobiles' && p.enPromo == true).toList();
+    final produitDivers = produits.where((p) => p.sousCategorie == 'Divers' && p.enPromo == true).toList();
+    final produitsPopulaires =
+        produits.where((p) => (int.tryParse(p.vues) ?? 0) > 15 && p.enPromo == true).toList();
+
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),

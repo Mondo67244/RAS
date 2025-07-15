@@ -208,11 +208,11 @@ class _RecentsState extends State<Recents> {
 
   Widget _contenu(List<Produit> produits, {required bool isWideScreen}) {
     final produitsBureautique =
-        produits.where((p) => p.type == 'Bureautique').toList();
-    final produitsReseau = produits.where((p) => p.type == 'Réseau').toList();
+        produits.where((p) => p.sousCategorie == 'Bureautique').toList();
+    final produitsReseau = produits.where((p) => p.sousCategorie == 'Réseau').toList();
     final produitsMobiles =
-        produits.where((p) => p.type == 'Téléphone').toList();
-    final produitDivers = produits.where((p) => p.type == 'Divers').toList();
+        produits.where((p) => p.sousCategorie == 'Appareils Mobiles').toList();
+    final produitDivers = produits.where((p) => p.sousCategorie == 'Divers').toList();
     final produitsPopulaires =
         produits.where((p) => (int.tryParse(p.vues) ?? 0) > 15).toList();
 

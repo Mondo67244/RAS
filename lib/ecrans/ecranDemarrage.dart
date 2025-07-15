@@ -45,7 +45,7 @@ class _EcranDemarrageState extends State<EcranDemarrage> {
       body: Center(
         child: Column(
           children: [
-            const SizedBox(height: 350),
+            const SizedBox(height: 300),
             SizedBox(
               width: 180,
               height: 100,
