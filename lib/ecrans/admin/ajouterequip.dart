@@ -37,14 +37,25 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
     'Électro Ménager',
     'Électronique',
   ];
+  
+
   String? _selectedCategory;
+  String? _selectedSousCat;
   String? _selectedType;
 
   // Structure des types par catégorie
   final Map<String, List<String>> categoryTypes = {
-    'Informatique': ['Bureautique', 'Réseau', 'Accessoire fixe'],
+    'Informatique': ['Bureautique', 'Réseau',],
     'Électro Ménager': ['Divers'],
-    'Électronique': ['Appareil Mobile', 'Accessoire mobile'],
+    'Électronique': ['Appareils Mobiles', 'Accessoires'],
+  };
+  // Structure des types par catégorie
+  final Map<String, List<String>> typeAppareil = {
+    'Bureautique': ['Imprimante', 'Souris', 'Clavier', 'Ecran',	'Ordinateur','Scanner','Haut parleur'],
+    'Réseau': ['Routeurs', 'Switch', 'Modem', 'Serveur'],
+    'Appareils Mobiles': ['Téléphone', 'Tablette', 'Accessoire mobile'],
+    'Divers': ['Téléviseur', 'Machine à laver', 'Cafetière','Fers à repasser'],
+    'Accessoires': ['Montres connectées','Casques','Chaussures'],
   };
 
   bool _isLoading = false;
@@ -125,7 +136,8 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
         'modele': _modeleController.text.trim(),
         'prix': _prixController.text.trim(),
         'categorie': _selectedCategory,
-        'type': _selectedType,
+        'type' : _selectedType,
+        'sousCategorie': _selectedSousCat,
         'img1': base64Images[0],
         'img2': base64Images[1],
         'img3': base64Images[2],
@@ -354,7 +366,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
           onChanged: (newValue) {
             setState(() {
               _selectedCategory = newValue;
-              _selectedType = null;
+              _selectedSousCat = null;
             });
           },
           validator:
@@ -366,20 +378,45 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
 
           //Liste des types
           DropdownButtonFormField<String>(
+            value: _selectedSousCat,
+            decoration: _titresChamps('Sous-catégorie'),
+            items:
+                categoryTypes[_selectedCategory!]!.map((String sous) {
+                  return DropdownMenuItem<String>(
+                    value: sous,
+                    child: Text(sous),
+                  );
+                }).toList(),
+            onChanged: (newValue) => setState(() { 
+              _selectedSousCat = newValue;
+              _selectedType = null;
+            }),
+            validator:
+                (value) => value == null ? 'Veuillez choisir un type' : null,
+          ),
+          if (_selectedSousCat != null) ...[
+            const SizedBox(height: 16),
+            //Titre type
+            DropdownButtonFormField<String>(
             value: _selectedType,
             decoration: _titresChamps('Type'),
             items:
-                categoryTypes[_selectedCategory!]!.map((String type) {
+                typeAppareil[_selectedSousCat!]!.map((String type) {
                   return DropdownMenuItem<String>(
                     value: type,
                     child: Text(type),
                   );
                 }).toList(),
-            onChanged: (newValue) => setState(() => _selectedType = newValue),
+            onChanged: (newValue) => setState(() {
+              _selectedType = newValue;
+            }),
             validator:
                 (value) => value == null ? 'Veuillez choisir un type' : null,
           ),
+          ]
+
         ],
+        
         const SizedBox(height: 16),
         //Titre statut
         Row(
