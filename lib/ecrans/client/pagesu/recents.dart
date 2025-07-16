@@ -1,11 +1,14 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:ras_app/basicdata/produit.dart';
 import 'package:ras_app/basicdata/style.dart';
 import 'package:ras_app/services/lienbd.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class Recents extends StatefulWidget {
   const Recents({super.key});
@@ -21,12 +24,19 @@ class _RecentsState extends State<Recents> {
   final Set<String> _paniers = {};
   final ScrollController _populairesScrollController = ScrollController();
   final ScrollController _bureautiqueScrollController = ScrollController();
+  String? _userId;
 
   @override
   void initState() {
     super.initState();
     _produitsFuture = _firestoreService.getProduits();
-    _chargerDonneesInitiales();
+    _initializeData();
+    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      setState(() {
+        _userId = user?.uid;
+        _initializeData();
+      });
+    });
   }
 
   @override
@@ -36,48 +46,161 @@ class _RecentsState extends State<Recents> {
     super.dispose();
   }
 
-  Future<void> _chargerDonneesInitiales() async {
+  Future<void> _initializeData() async {
     try {
-      final produits = await _produitsFuture;
-      if (!mounted) return;
-      setState(() {
-        for (var produit in produits) {
-          if (produit.jeVeut) _souhaits.add(produit.idProduit);
-          if (produit.auPanier) _paniers.add(produit.idProduit);
-        }
-      });
+      if (_userId != null) {
+        await _syncLocalWishlistToFirestore();
+        await _syncLocalCartToFirestore();
+        final produits = await _produitsFuture;
+        setState(() {
+          _souhaits.clear();
+          _paniers.clear();
+          for (var produit in produits) {
+            if (produit.jeVeut) _souhaits.add(produit.idProduit);
+            if (produit.auPanier) _paniers.add(produit.idProduit);
+          }
+        });
+      } else {
+        final localWishlist = await _getLocalWishlist();
+        final localCart = await _getLocalCart();
+        setState(() {
+          _souhaits.clear();
+          _paniers.clear();
+          for (var produit in localWishlist) {
+            if (produit.jeVeut) _souhaits.add(produit.idProduit);
+          }
+          for (var produit in localCart) {
+            if (produit.auPanier) _paniers.add(produit.idProduit);
+          }
+        });
+      }
     } catch (e) {
-      print('Erreur lors du chargement des données initiales: $e');
+      print('Erreur lors de l\'initialisation des données: $e');
       _messageReponse('Erreur de chargement des données.', isSuccess: false);
+    }
+  }
+
+  Future<List<Produit>> _getLocalWishlist() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final wishlistJson = prefs.getString('local_wishlist');
+      debugPrint('Contenu de local_wishlist: $wishlistJson');
+      if (wishlistJson != null) {
+        final List<dynamic> jsonList = jsonDecode(wishlistJson);
+        return jsonList
+            .where((item) => item is Map<String, dynamic>)
+            .map((json) => Produit.fromJson(json as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Erreur lors de la récupération des souhaits locaux: $e');
+      return [];
+    }
+  }
+
+  Future<void> _saveLocalWishlist(List<Produit> produits) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonList = produits.map((produit) => produit.toJson()).toList();
+      await prefs.setString('local_wishlist', jsonEncode(jsonList));
+      debugPrint('Synchronisation locale des souhaits réussie');
+    } catch (e) {
+      debugPrint('Erreur lors de la sauvegarde des souhaits locaux: $e');
+    }
+  }
+
+  Future<List<Produit>> _getLocalCart() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cartJson = prefs.getString('local_cart');
+      debugPrint('Contenu de local_cart: $cartJson');
+      if (cartJson != null) {
+        final List<dynamic> jsonList = jsonDecode(cartJson);
+        return jsonList
+            .where((item) => item is Map<String, dynamic>)
+            .map((json) => Produit.fromJson(json as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Erreur lors de la récupération du panier local: $e');
+      return [];
+    }
+  }
+
+  Future<void> _saveLocalCart(List<Produit> produits) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonList = produits.map((produit) => produit.toJson()).toList();
+      await prefs.setString('local_cart', jsonEncode(jsonList));
+      debugPrint('Synchronisation locale du panier réussie');
+    } catch (e) {
+      debugPrint('Erreur lors de la sauvegarde du panier local: $e');
+    }
+  }
+
+  Future<void> _syncLocalWishlistToFirestore() async {
+    if (_userId == null) return;
+    try {
+      final localWishlist = await _getLocalWishlist();
+      await _firestoreService.syncLocalWishlistToFirestore(_userId!, localWishlist);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('local_wishlist');
+      debugPrint('Synchronisation des souhaits vers Firestore réussie');
+    } catch (e) {
+      debugPrint('Erreur lors de la synchronisation des souhaits: $e');
+    }
+  }
+
+  Future<void> _syncLocalCartToFirestore() async {
+    if (_userId == null) return;
+    try {
+      final localCart = await _getLocalCart();
+      await _firestoreService.syncLocalCartToFirestore(_userId!, localCart);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('local_cart');
+      debugPrint('Synchronisation du panier vers Firestore réussie');
+    } catch (e) {
+      debugPrint('Erreur lors de la synchronisation du panier: $e');
     }
   }
 
   Future<void> _toggleJeVeut(Produit produit) async {
     final bool nouvelEtat = !_souhaits.contains(produit.idProduit);
-    setState(() {
-      if (nouvelEtat) {
-        _souhaits.add(produit.idProduit);
-        _paniers.remove(produit.idProduit);
-      } else {
-        _souhaits.remove(produit.idProduit);
-      }
-    });
-    _messageReponse(
-      nouvelEtat
-          ? '${produit.nomProduit} ajouté à vos souhaits'
-          : '${produit.nomProduit} retiré de vos souhaits',
-      isSuccess: nouvelEtat,
-    );
     try {
-      await _firestoreService.updateProductWishlist(
-        produit.idProduit,
-        nouvelEtat,
-      );
-      if (nouvelEtat) {
-        await _firestoreService.updateProductCart(produit.idProduit, false);
+      if (_userId != null) {
+        await _firestoreService.updateProductWishlist(produit.idProduit, nouvelEtat);
+        if (nouvelEtat) {
+          await _firestoreService.updateProductCart(produit.idProduit, false);
+        }
+      } else {
+        final localWishlist = await _getLocalWishlist();
+        if (nouvelEtat) {
+          if (!localWishlist.any((p) => p.idProduit == produit.idProduit)) {
+            localWishlist.add(produit.copyWith(jeVeut: true, auPanier: false));
+          }
+        } else {
+          localWishlist.removeWhere((p) => p.idProduit == produit.idProduit);
+        }
+        await _saveLocalWishlist(localWishlist);
       }
+      setState(() {
+        if (nouvelEtat) {
+          _souhaits.add(produit.idProduit);
+          _paniers.remove(produit.idProduit);
+        } else {
+          _souhaits.remove(produit.idProduit);
+        }
+      });
+      _messageReponse(
+        nouvelEtat
+            ? '${produit.nomProduit} ajouté à vos souhaits'
+            : '${produit.nomProduit} retiré de vos souhaits',
+        isSuccess: nouvelEtat,
+      );
     } catch (e) {
-      print('Erreur Firestore pour JeVeut: $e');
+      print('Erreur lors de la mise à jour de JeVeut: $e');
       _messageReponse('Erreur de mise à jour du souhait.', isSuccess: false);
       setState(() {
         if (nouvelEtat) {
@@ -91,31 +214,42 @@ class _RecentsState extends State<Recents> {
 
   Future<void> _toggleAuPanier(Produit produit) async {
     final bool nouvelEtat = !_paniers.contains(produit.idProduit);
-    setState(() {
-      if (nouvelEtat) {
-        _paniers.add(produit.idProduit);
-        _souhaits.remove(produit.idProduit);
-      } else {
-        _paniers.remove(produit.idProduit);
-      }
-    });
-    _messageReponse(
-      nouvelEtat
-          ? '${produit.nomProduit} ajouté au panier'
-          : '${produit.nomProduit} retiré du panier',
-      isSuccess: nouvelEtat,
-      icon:
-          nouvelEtat
-              ? Icons.add_shopping_cart_outlined
-              : Icons.remove_shopping_cart_outlined,
-    );
     try {
-      await _firestoreService.updateProductCart(produit.idProduit, nouvelEtat);
-      if (nouvelEtat) {
-        await _firestoreService.updateProductWishlist(produit.idProduit, false);
+      if (_userId != null) {
+        await _firestoreService.updateProductCart(produit.idProduit, nouvelEtat);
+      } else {
+        final localCart = await _getLocalCart();
+        final localWishlist = await _getLocalWishlist();
+        if (nouvelEtat) {
+          if (!localCart.any((p) => p.idProduit == produit.idProduit)) {
+            localCart.add(produit.copyWith(auPanier: true, jeVeut: false));
+            localWishlist.removeWhere((p) => p.idProduit == produit.idProduit);
+          }
+        } else {
+          localCart.removeWhere((p) => p.idProduit == produit.idProduit);
+        }
+        await _saveLocalCart(localCart);
+        await _saveLocalWishlist(localWishlist);
       }
+      setState(() {
+        if (nouvelEtat) {
+          _paniers.add(produit.idProduit);
+          _souhaits.remove(produit.idProduit);
+        } else {
+          _paniers.remove(produit.idProduit);
+        }
+      });
+      _messageReponse(
+        nouvelEtat
+            ? '${produit.nomProduit} ajouté au panier'
+            : '${produit.nomProduit} retiré du panier',
+        isSuccess: nouvelEtat,
+        icon: nouvelEtat
+            ? Icons.add_shopping_cart_outlined
+            : Icons.remove_shopping_cart_outlined,
+      );
     } catch (e) {
-      print('Erreur Firestore pour AuPanier: $e');
+      print('Erreur lors de la mise à jour du panier: $e');
       _messageReponse('Erreur de mise à jour du panier.', isSuccess: false);
       setState(() {
         if (nouvelEtat) {
@@ -249,7 +383,6 @@ class _RecentsState extends State<Recents> {
           isWideScreen
               ? Text('')
               : _imagesEntetes('assets/images/EG2.png', isWide: isWideScreen),
-          //Section appareils mobiles
           _sectionProduits('Appareils Mobiles', produitsMobiles, isWideScreen),
           const SizedBox(height: 24),
           isWideScreen
@@ -259,7 +392,6 @@ class _RecentsState extends State<Recents> {
         ],
       ),
     );
- 
   }
 
   Widget _imagesEntetes(String path, {required bool isWide}) {
@@ -268,23 +400,19 @@ class _RecentsState extends State<Recents> {
       width: double.infinity,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
-        child:
-            isWide
-                ? CachedNetworkImage(
-                  imageUrl: path,
-                  fit: BoxFit.cover,
-                  placeholder:
-                      (context, url) =>
-                          const Center(child: CircularProgressIndicator()),
-                  errorWidget:
-                      (context, url, error) => Icon(
-                        Icons.error_outline,
-                        color: Colors.grey.shade400,
-                        size: 60,
-                      ),
-                  fadeInDuration: const Duration(milliseconds: 300),
-                )
-                : Image.asset(path, fit: BoxFit.cover),
+        child: isWide
+            ? CachedNetworkImage(
+                imageUrl: path,
+                fit: BoxFit.cover,
+                placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                errorWidget: (context, url, error) => Icon(
+                  Icons.error_outline,
+                  color: Colors.grey.shade400,
+                  size: 60,
+                ),
+                fadeInDuration: const Duration(milliseconds: 300),
+              )
+            : Image.asset(path, fit: BoxFit.cover),
       ),
     );
   }
@@ -296,22 +424,14 @@ class _RecentsState extends State<Recents> {
   ) {
     if (produits.isEmpty) return const SizedBox.shrink();
 
-    // Créer un ScrollController pour cette section
     final ScrollController scrollController = ScrollController();
-
-    // Largeur d'une carte (incluant les marges)
     final double cardWidth = isWideScreen ? 320 : 300;
 
-    // Fonction pour faire défiler de deux cartes
     void scrollCards(int direction) {
-      final double scrollAmount =
-          cardWidth * 2 * direction; // Défilement de 2 cartes
+      final double scrollAmount = cardWidth * 2 * direction;
       final double maxScroll = scrollController.position.maxScrollExtent;
       final double currentScroll = scrollController.offset;
-      final double targetScroll = (currentScroll + scrollAmount).clamp(
-        0.0,
-        maxScroll,
-      );
+      final double targetScroll = (currentScroll + scrollAmount).clamp(0.0, maxScroll);
 
       scrollController.animateTo(
         targetScroll,
@@ -353,12 +473,9 @@ class _RecentsState extends State<Recents> {
                 controller: scrollController,
                 scrollDirection: Axis.horizontal,
                 itemCount: produits.length,
-                itemBuilder:
-                    (context, index) =>
-                        _carteArticle(produits[index], isWideScreen),
+                itemBuilder: (context, index) => _carteArticle(produits[index], isWideScreen),
               ),
             ),
-            // Bouton de navigation gauche
             if (produits.length >= 4)
               Positioned(
                 left: 0,
@@ -367,7 +484,6 @@ class _RecentsState extends State<Recents> {
                   onPressed: () => scrollCards(-1),
                 ),
               ),
-            // Bouton de navigation droite
             if (produits.length >= 4)
               Positioned(
                 right: 0,
@@ -382,7 +498,6 @@ class _RecentsState extends State<Recents> {
     );
   }
 
-  // Widget pour les boutons de navigation
   Widget _navButton({required IconData icon, required VoidCallback onPressed}) {
     return Container(
       margin: const EdgeInsets.all(12),
@@ -407,20 +522,13 @@ class _RecentsState extends State<Recents> {
   Widget _carteArticle(Produit produit, bool isWideScreen) {
     final bool isSouhait = _souhaits.contains(produit.idProduit);
     final bool isPanier = _paniers.contains(produit.idProduit);
-    final List<String> images =
-        [
-          produit.img1,
-          produit.img2,
-          produit.img3,
-        ].where((img) => img.isNotEmpty).toList();
+    final List<String> images = [produit.img1, produit.img2, produit.img3].where((img) => img.isNotEmpty).toList();
     final PageController pageController = PageController();
 
     return SizedBox(
       width: isWideScreen ? 300 : 280,
-
       child: InkWell(
-        onTap:
-            () => Navigator.pushNamed(context, '/details', arguments: produit),
+        onTap: () => Navigator.pushNamed(context, '/details', arguments: produit),
         child: Card(
           margin: const EdgeInsets.all(10),
           elevation: 2,
@@ -437,96 +545,68 @@ class _RecentsState extends State<Recents> {
                 ),
                 child: SizedBox(
                   height: isWideScreen ? 230 : 230,
-                  child:
-                      images.isEmpty
-                          ? Center(
-                            child: Icon(
-                              Icons.image_not_supported_outlined,
-                              color: Colors.grey.shade400,
-                              size: 60,
+                  child: images.isEmpty
+                      ? Center(
+                          child: Icon(
+                            Icons.image_not_supported_outlined,
+                            color: Colors.grey.shade400,
+                            size: 60,
+                          ),
+                        )
+                      : Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            PageView.builder(
+                              controller: pageController,
+                              itemCount: images.length,
+                              itemBuilder: (context, index) => _appelImages(images[index]),
                             ),
-                          )
-                          : Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              PageView.builder(
-                                controller: pageController,
-                                itemCount: images.length,
-                                itemBuilder:
-                                    (context, index) =>
-                                        _appelImages(images[index]),
+                            if (images.length > 1) ...[
+                              Positioned(
+                                bottom: 12,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: List.generate(images.length, (index) {
+                                    return AnimatedContainer(
+                                      duration: const Duration(milliseconds: 300),
+                                      width: pageController.hasClients && pageController.page?.round() == index ? 12 : 8,
+                                      height: 8,
+                                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: pageController.hasClients && pageController.page?.round() == index
+                                            ? styles.rouge
+                                            : Colors.grey.shade300,
+                                      ),
+                                    );
+                                  }),
+                                ),
                               ),
-                              if (images.length > 1) ...[
-                                Positioned(
-                                  bottom: 12,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: List.generate(images.length, (
-                                      index,
-                                    ) {
-                                      return AnimatedContainer(
-                                        duration: const Duration(
-                                          milliseconds: 300,
-                                        ),
-                                        width:
-                                            pageController.hasClients &&
-                                                    pageController.page
-                                                            ?.round() ==
-                                                        index
-                                                ? 12
-                                                : 8,
-                                        height: 8,
-                                        margin: const EdgeInsets.symmetric(
-                                          horizontal: 4,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color:
-                                              pageController.hasClients &&
-                                                      pageController.page
-                                                              ?.round() ==
-                                                          index
-                                                  ? styles.rouge
-                                                  : Colors.grey.shade300,
-                                        ),
-                                      );
-                                    }),
+                              if (pageController.hasClients && (pageController.page?.round() ?? 0) > 0)
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: _fleche(
+                                    icon: Icons.arrow_back_ios_new,
+                                    onPressed: () => pageController.previousPage(
+                                      duration: const Duration(milliseconds: 300),
+                                      curve: Curves.easeInOut,
+                                    ),
                                   ),
                                 ),
-                                if (pageController.hasClients &&
-                                    (pageController.page?.round() ?? 0) > 0)
-                                  Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: _fleche(
-                                      icon: Icons.arrow_back_ios_new,
-                                      onPressed:
-                                          () => pageController.previousPage(
-                                            duration: const Duration(
-                                              milliseconds: 300,
-                                            ),
-                                            curve: Curves.easeInOut,
-                                          ),
+                              if (pageController.hasClients && (pageController.page?.round() ?? 0) < images.length - 1)
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: _fleche(
+                                    icon: Icons.arrow_forward_ios,
+                                    onPressed: () => pageController.nextPage(
+                                      duration: const Duration(milliseconds: 300),
+                                      curve: Curves.easeInOut,
                                     ),
                                   ),
-                                if (pageController.hasClients &&
-                                    (pageController.page?.round() ?? 0) <
-                                        images.length - 1)
-                                  Align(
-                                    alignment: Alignment.centerRight,
-                                    child: _fleche(
-                                      icon: Icons.arrow_forward_ios,
-                                      onPressed:
-                                          () => pageController.nextPage(
-                                            duration: const Duration(
-                                              milliseconds: 300,
-                                            ),
-                                            curve: Curves.easeInOut,
-                                          ),
-                                    ),
-                                  ),
-                              ],
+                                ),
                             ],
-                          ),
+                          ],
+                        ),
                 ),
               ),
               Expanded(
@@ -550,7 +630,6 @@ class _RecentsState extends State<Recents> {
                             ),
                           ),
                           const SizedBox(height: 6),
-                          //Prix et chip
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -563,28 +642,17 @@ class _RecentsState extends State<Recents> {
                                 ),
                               ),
                               Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color:
-                                      produit.enStock
-                                          ? styles.vert.withOpacity(0.1)
-                                          : styles.erreur.withOpacity(0.1),
+                                  color: produit.enStock ? styles.vert.withOpacity(0.1) : styles.erreur.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
-                                  produit.enStock
-                                      ? 'En stock'
-                                      : 'Rupture de stock',
+                                  produit.enStock ? 'En stock' : 'Rupture de stock',
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
-                                    color:
-                                        produit.enStock
-                                            ? styles.vert
-                                            : styles.erreur,
+                                    color: produit.enStock ? styles.vert : styles.erreur,
                                   ),
                                 ),
                               ),
@@ -595,67 +663,38 @@ class _RecentsState extends State<Recents> {
                       ),
                       Row(
                         children: [
-                          //Bouton souhait
                           Expanded(
                             child: ElevatedButton.icon(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.white,
                                 foregroundColor: styles.rouge,
-                                side: BorderSide(
-                                  color: styles.rouge,
-                                  width: 1.2,
-                                ),
+                                side: BorderSide(color: styles.rouge, width: 1.2),
                                 elevation: 0,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 10,
-                                  horizontal: 8,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
+                                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                               ),
-                              onPressed:
-                                  produit.enStock
-                                      ? () => _toggleJeVeut(produit)
-                                      : null,
+                              onPressed: produit.enStock ? () => _toggleJeVeut(produit) : null,
                               icon: Icon(
-                                isSouhait
-                                    ? FluentIcons.book_star_24_filled
-                                    : FluentIcons.book_star_24_regular,
+                                isSouhait ? FluentIcons.book_star_24_filled : FluentIcons.book_star_24_regular,
                                 size: 18,
                               ),
                               label: Text(
                                 isSouhait ? 'Souhaité' : 'Souhait',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                               ),
                             ),
                           ),
                           const SizedBox(width: 12),
-                          //Bouton Panier
                           Expanded(
                             child: ElevatedButton.icon(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    produit.enStock
-                                        ? styles.bleu
-                                        : Colors.grey.shade400,
+                                backgroundColor: produit.enStock ? styles.bleu : Colors.grey.shade400,
                                 foregroundColor: Colors.white,
                                 elevation: 1,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 10,
-                                  horizontal: 8,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
+                                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                               ),
-                              onPressed:
-                                  produit.enStock
-                                      ? () => _toggleAuPanier(produit)
-                                      : null,
+                              onPressed: produit.enStock ? () => _toggleAuPanier(produit) : null,
                               icon: Icon(
                                 isPanier
                                     ? FluentIcons.shopping_bag_tag_24_filled
@@ -664,10 +703,7 @@ class _RecentsState extends State<Recents> {
                               ),
                               label: Text(
                                 isPanier ? 'Ajouté' : 'Panier',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                               ),
                             ),
                           ),
@@ -724,11 +760,8 @@ class _RecentsState extends State<Recents> {
         imageUrl: imageData,
         fit: BoxFit.contain,
         width: MediaQuery.of(context).size.width > 400 ? 300 : 280,
-        placeholder:
-            (context, url) => const Center(child: CircularProgressIndicator()),
-        errorWidget:
-            (context, url, error) =>
-                const Icon(Icons.error_outline, color: Colors.grey, size: 60),
+        placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+        errorWidget: (context, url, error) => const Icon(Icons.error_outline, color: Colors.grey, size: 60),
         fadeInDuration: const Duration(milliseconds: 300),
       );
     }
@@ -744,12 +777,11 @@ class _RecentsState extends State<Recents> {
         imageBytes,
         fit: BoxFit.contain,
         width: MediaQuery.of(context).size.width > 400 ? 300 : 280,
-        errorBuilder:
-            (context, error, stackTrace) => const Icon(
-              Icons.broken_image_outlined,
-              color: Colors.red,
-              size: 60,
-            ),
+        errorBuilder: (context, error, stackTrace) => const Icon(
+          Icons.broken_image_outlined,
+          color: Colors.red,
+          size: 60,
+        ),
       );
     } catch (e) {
       print('Erreur de décodage Base64: $e');
@@ -760,5 +792,59 @@ class _RecentsState extends State<Recents> {
         ),
       );
     }
+  }
+}
+
+extension ProduitExtension on Produit {
+  Produit copyWith({
+    String? descriptionCourte,
+    String? sousCategorie,
+    bool? enPromo,
+    bool? cash,
+    bool? electronique,
+    String? quantite,
+    bool? livrable,
+    Timestamp? createdAt,
+    bool? enStock,
+    String? img1,
+    String? img2,
+    String? img3,
+    bool? auPanier,
+    bool? jeVeut,
+    String? idProduit,
+    String? nomProduit,
+    String? description,
+    String? prix,
+    String? vues,
+    String? modele,
+    String? marque,
+    String? categorie,
+    String? type,
+  }) {
+    return Produit(
+      descriptionCourte: descriptionCourte ?? this.descriptionCourte,
+      sousCategorie: sousCategorie ?? this.sousCategorie,
+      enPromo: enPromo ?? this.enPromo,
+      cash: cash ?? this.cash,
+      electronique: electronique ?? this.electronique,
+      quantite: quantite ?? this.quantite,
+      livrable: livrable ?? this.livrable,
+      createdAt: createdAt ?? this.createdAt,
+      enStock: enStock ?? this.enStock,
+      img1: img1 ?? this.img1,
+      img2: img2 ?? this.img2,
+      img3: img3 ?? this.img3,
+      auPanier: auPanier ?? this.auPanier,
+      jeVeut: jeVeut ?? this.jeVeut,
+      idProduit: idProduit ?? this.idProduit,
+      nomProduit: nomProduit ?? this.nomProduit,
+      description: description ?? this.description,
+      prix: prix ?? this.prix,
+      vues: vues ?? this.vues,
+      modele: modele ?? this.modele,
+      marque: marque ?? this.marque,
+      categorie: categorie ?? this.categorie,
+      type: type ?? this.type,
+    );
   }
 }

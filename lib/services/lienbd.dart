@@ -1,5 +1,3 @@
-// Fichier : services/lienbd.dart
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ras_app/basicdata/categorie.dart';
 import 'package:ras_app/basicdata/utilisateur.dart';
@@ -9,23 +7,11 @@ import 'package:ras_app/basicdata/produit.dart';
 
 class FirestoreService {
   // Collections references
-  final CollectionReference categoriesCollection = FirebaseFirestore.instance
-      .collection('Categories');
-
-  final CollectionReference utilisateursCollection = FirebaseFirestore.instance
-      .collection('Utilisateurs');
-
-  final CollectionReference produitsCollection = FirebaseFirestore.instance
-      .collection('Produits');
-
-  final CollectionReference commandesCollection = FirebaseFirestore.instance
-      .collection('Commandes');
-
-  final CollectionReference facturesCollection = FirebaseFirestore.instance
-      .collection('Factures');
-
-  final CollectionReference listesSouhaitCollection = FirebaseFirestore.instance
-      .collection('listesSouhait');
+  final CollectionReference categoriesCollection = FirebaseFirestore.instance.collection('Categories');
+  final CollectionReference utilisateursCollection = FirebaseFirestore.instance.collection('Utilisateurs');
+  final CollectionReference produitsCollection = FirebaseFirestore.instance.collection('Produits');
+  final CollectionReference commandesCollection = FirebaseFirestore.instance.collection('Commandes');
+  final CollectionReference facturesCollection = FirebaseFirestore.instance.collection('Factures');
 
   // =======================================================================
   // Opérations pour la collection catégorie
@@ -79,13 +65,16 @@ class FirestoreService {
     }).toList();
   }
 
-  /// Récupère la liste de tous les produits.
+  // =======================================================================
+  // Opérations pour les produits
+  // =======================================================================
+
   Future<List<Produit>> getProduits() async {
-    QuerySnapshot snapshot =
-        await produitsCollection.orderBy('createdAt', descending: true).get();
+    QuerySnapshot snapshot = await produitsCollection.orderBy('createdAt', descending: true).get();
     return snapshot.docs.map((doc) {
       Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       return Produit(
+        descriptionCourte: data['descriptionCourte'] ?? '',
         sousCategorie: data['sousCategorie'] ?? '',
         enPromo: data['enPromo'] ?? false,
         cash: data['cash'] ?? false,
@@ -115,16 +104,14 @@ class FirestoreService {
   Future<void> updateProductWishlist(String productId, bool newStatus) {
     return produitsCollection.doc(productId).update({
       'jeVeut': newStatus,
-      if (newStatus)
-        'auPanier':
-            false, // Un produit ne peut être aux souhaits et au panier en même temps
+      if (newStatus) 'auPanier': false, // Un produit ne peut être aux souhaits et au panier en même temps
     });
   }
 
   Future<void> updateProductCart(String productId, bool newStatus) {
     return produitsCollection.doc(productId).update({
       'auPanier': newStatus,
-      if (newStatus) 'jeVeut': false,
+      if (newStatus) 'jeVeut': false, // Retirer des souhaits si ajouté au panier
     });
   }
 
@@ -132,9 +119,7 @@ class FirestoreService {
   // Opérations sur les commandes
   // =======================================================================
 
-  // Opérations sur les commandes
   Future<void> addCommande(Commande commande) async {
-    // Convert Utilisateur to Map
     Map<String, dynamic> utilisateurMap = {
       'idUtilisateur': commande.utilisateur.idUtilisateur,
       'nomUtilisateur': commande.utilisateur.nomUtilisateur,
@@ -144,24 +129,30 @@ class FirestoreService {
       'villeUtilisateur': commande.utilisateur.villeUtilisateur,
     };
 
-    // Convert List<Produit> to List<Map>
-    List<Map<String, dynamic>> produitsMap =
-        commande.produit
-            .map(
-              (produit) => {
-                'idProduit': produit.idProduit,
-                'nomProduit': produit.nomProduit,
-                'description': produit.description,
-                'prix': produit.prix,
-                'vues': produit.vues,
-                'modele': produit.modele,
-                'marque': produit.marque,
-                'categorie': produit.categorie,
-                'type': produit.type,
-                'jeVeut': produit.jeVeut,
-              },
-            )
-            .toList();
+    List<Map<String, dynamic>> produitsMap = commande.produit.map((produit) => {
+          'idProduit': produit.idProduit,
+          'nomProduit': produit.nomProduit,
+          'description': produit.description,
+          'descriptionCourte': produit.descriptionCourte,
+          'prix': produit.prix,
+          'vues': produit.vues,
+          'modele': produit.modele,
+          'marque': produit.marque,
+          'categorie': produit.categorie,
+          'type': produit.type,
+          'jeVeut': produit.jeVeut,
+          'auPanier': produit.auPanier,
+          'sousCategorie': produit.sousCategorie,
+          'cash': produit.cash,
+          'electronique': produit.electronique,
+          'quantite': produit.quantite,
+          'livrable': produit.livrable,
+          'createdAt': produit.createdAt,
+          'enStock': produit.enStock,
+          'img1': produit.img1,
+          'img2': produit.img2,
+          'img3': produit.img3,
+        }).toList();
 
     return commandesCollection.doc(commande.idCommande).set({
       'idCommande': commande.idCommande,
@@ -184,9 +175,7 @@ class FirestoreService {
     return snapshot.docs.map((doc) {
       Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
 
-      // Convert Map to Utilisateur
-      Map<String, dynamic> utilisateurData =
-          data['Utilisateur'] as Map<String, dynamic>;
+      Map<String, dynamic> utilisateurData = data['Utilisateur'] as Map<String, dynamic>;
       Utilisateur utilisateur = Utilisateur(
         idUtilisateur: utilisateurData['idUtilisateur'] ?? '',
         nomUtilisateur: utilisateurData['nomUtilisateur'] ?? '',
@@ -196,35 +185,34 @@ class FirestoreService {
         villeUtilisateur: utilisateurData['villeUtilisateur'] ?? '',
       );
 
-      // Convert List<Map> to List<Produit>
       List<dynamic> produitsData = data['produit'] as List<dynamic>;
-      List<Produit> produits =
-          produitsData.map((produitData) {
-            return Produit(
-              sousCategorie: produitData['sousCategorie'] ?? '',
-              enPromo: produitData['enPromo'] ?? false,
-              cash: produitData['cash'] ?? false,
-              electronique: produitData['electronique'] ?? false,
-              quantite: produitData['quantite'] ?? '',
-              livrable: produitData['livrable'] ?? true,
-              createdAt: data['createdAt'] ?? Timestamp.now(),
-              enStock: produitData['enStock'] ?? true,
-              img1: produitData['img1'] ?? '',
-              img2: produitData['img1'] ?? '',
-              img3: produitData['img1'] ?? '',
-              auPanier: produitData['auPanier'] ?? false,
-              idProduit: produitData['idProduit'] ?? '',
-              nomProduit: produitData['nomProduit'] ?? '',
-              description: produitData['description'] ?? '',
-              prix: produitData['prix'] ?? '',
-              vues: produitData['vues'] ?? '',
-              modele: produitData['modele'] ?? '',
-              marque: produitData['marque'] ?? '',
-              categorie: produitData['categorie'] ?? '',
-              type: produitData['type'] ?? '',
-              jeVeut: produitData['jeVeut'] ?? false,
-            );
-          }).toList();
+      List<Produit> produits = produitsData.map((produitData) {
+        return Produit(
+          descriptionCourte: produitData['descriptionCourte'] ?? '',
+          sousCategorie: produitData['sousCategorie'] ?? '',
+          enPromo: produitData['enPromo'] ?? false,
+          cash: produitData['cash'] ?? false,
+          electronique: produitData['electronique'] ?? false,
+          quantite: produitData['quantite'] ?? '',
+          livrable: produitData['livrable'] ?? true,
+          createdAt: produitData['createdAt'] ?? Timestamp.now(),
+          enStock: produitData['enStock'] ?? true,
+          img1: produitData['img1'] ?? '',
+          img2: produitData['img2'] ?? '',
+          img3: produitData['img3'] ?? '',
+          idProduit: produitData['idProduit'] ?? '',
+          nomProduit: produitData['nomProduit'] ?? '',
+          description: produitData['description'] ?? '',
+          prix: produitData['prix'] ?? '',
+          vues: produitData['vues']?.toString() ?? '0',
+          modele: produitData['modele'] ?? '',
+          marque: produitData['marque'] ?? '',
+          categorie: produitData['categorie'] ?? '',
+          type: produitData['type'] ?? '',
+          jeVeut: produitData['jeVeut'] ?? false,
+          auPanier: produitData['auPanier'] ?? false,
+        );
+      }).toList();
 
       return Commande(
         auPanier: false,
@@ -240,16 +228,17 @@ class FirestoreService {
         utilisateur: utilisateur,
         produit: produits,
         enPromo: false,
-
         methodePaiment: data['methodePaiment'] ?? false,
         choixLivraison: data['choixLivraison'] ?? false,
       );
     }).toList();
   }
 
+  // =======================================================================
   // Opérations sur les factures
+  // =======================================================================
+
   Future<void> addFacture(Facture facture) async {
-    // Convert Utilisateur to Map
     Map<String, dynamic> utilisateurMap = {
       'idUtilisateur': facture.utilisateur.idUtilisateur,
       'nomUtilisateur': facture.utilisateur.nomUtilisateur,
@@ -259,22 +248,30 @@ class FirestoreService {
       'villeUtilisateur': facture.utilisateur.villeUtilisateur,
     };
 
-    // Convert List<Produit> to List<Map>
-    List<Map<String, dynamic>> produitsMap =
-        facture.Produits.map(
-          (produit) => {
-            'idProduit': produit.idProduit,
-            'nomProduit': produit.nomProduit,
-            'description': produit.description,
-            'prix': produit.prix,
-            'vues': produit.vues,
-            'modele': produit.modele,
-            'marque': produit.marque,
-            'categorie': produit.categorie,
-            'type': produit.type,
-            'jeVeut': produit.jeVeut,
-          },
-        ).toList();
+    List<Map<String, dynamic>> produitsMap = facture.Produits.map((produit) => {
+          'idProduit': produit.idProduit,
+          'nomProduit': produit.nomProduit,
+          'description': produit.description,
+          'descriptionCourte': produit.descriptionCourte,
+          'prix': produit.prix,
+          'vues': produit.vues,
+          'modele': produit.modele,
+          'marque': produit.marque,
+          'categorie': produit.categorie,
+          'type': produit.type,
+          'jeVeut': produit.jeVeut,
+          'auPanier': produit.auPanier,
+          'sousCategorie': produit.sousCategorie,
+          'cash': produit.cash,
+          'electronique': produit.electronique,
+          'quantite': produit.quantite,
+          'livrable': produit.livrable,
+          'createdAt': produit.createdAt,
+          'enStock': produit.enStock,
+          'img1': produit.img1,
+          'img2': produit.img2,
+          'img3': produit.img3,
+        }).toList();
 
     return facturesCollection.doc(facture.idFacture).set({
       'idFacture': facture.idFacture,
@@ -291,9 +288,7 @@ class FirestoreService {
     return snapshot.docs.map((doc) {
       Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
 
-      // Convert Map to Utilisateur
-      Map<String, dynamic> utilisateurData =
-          data['Utilisateur'] as Map<String, dynamic>;
+      Map<String, dynamic> utilisateurData = data['Utilisateur'] as Map<String, dynamic>;
       Utilisateur utilisateur = Utilisateur(
         idUtilisateur: utilisateurData['idUtilisateur'] ?? '',
         nomUtilisateur: utilisateurData['nomUtilisateur'] ?? '',
@@ -303,35 +298,34 @@ class FirestoreService {
         villeUtilisateur: utilisateurData['villeUtilisateur'] ?? '',
       );
 
-      // Convert List<Map> to List<Produit>
       List<dynamic> produitsData = data['Produits'] as List<dynamic>;
-      List<Produit> produits =
-          produitsData.map((produitData) {
-            return Produit(
-              sousCategorie: produitData['sousCategorie'] ?? '',
-              enPromo: produitData['enPromo'] ?? false,
-              cash: produitData['cash'] ?? false,
-              electronique: produitData['electronique'] ?? false,
-              quantite: produitData['quantite'] ?? '',
-              livrable: produitData['livrable'] ?? true,
-              createdAt: data['createdAt'] ?? Timestamp.now(),
-              img1: produitData['img1'] ?? '',
-              img2: produitData['img1'] ?? '',
-              img3: produitData['img1'] ?? '',
-              enStock: produitData['enStock'] ?? true,
-              auPanier: produitData['auPanier'] ?? false,
-              idProduit: produitData['idProduit'] ?? '',
-              nomProduit: produitData['nomProduit'] ?? '',
-              description: produitData['description'] ?? '',
-              prix: produitData['prix'] ?? '',
-              vues: produitData['vues'] ?? '',
-              modele: produitData['modele'] ?? '',
-              marque: produitData['marque'] ?? '',
-              categorie: produitData['categorie'] ?? '',
-              type: produitData['type'] ?? '',
-              jeVeut: produitData['jeVeut'] ?? false,
-            );
-          }).toList();
+      List<Produit> produits = produitsData.map((produitData) {
+        return Produit(
+          descriptionCourte: produitData['descriptionCourte'] ?? '',
+          sousCategorie: produitData['sousCategorie'] ?? '',
+          enPromo: produitData['enPromo'] ?? false,
+          cash: produitData['cash'] ?? false,
+          electronique: produitData['electronique'] ?? false,
+          quantite: produitData['quantite'] ?? '',
+          livrable: produitData['livrable'] ?? true,
+          createdAt: produitData['createdAt'] ?? Timestamp.now(),
+          enStock: produitData['enStock'] ?? true,
+          img1: produitData['img1'] ?? '',
+          img2: produitData['img2'] ?? '',
+          img3: produitData['img3'] ?? '',
+          idProduit: produitData['idProduit'] ?? '',
+          nomProduit: produitData['nomProduit'] ?? '',
+          description: produitData['description'] ?? '',
+          prix: produitData['prix'] ?? '',
+          vues: produitData['vues']?.toString() ?? '0',
+          modele: produitData['modele'] ?? '',
+          marque: produitData['marque'] ?? '',
+          categorie: produitData['categorie'] ?? '',
+          type: produitData['type'] ?? '',
+          jeVeut: produitData['jeVeut'] ?? false,
+          auPanier: produitData['auPanier'] ?? false,
+        );
+      }).toList();
 
       return Facture(
         idFacture: data['idFacture'] ?? '',
@@ -344,41 +338,29 @@ class FirestoreService {
     }).toList();
   }
 
+  // =======================================================================
   // Opérations sur la liste de souhaits
-  Future<void> ajoutListeSouhait(String userId, Produit produit) {
-    return listesSouhaitCollection
-        .doc(userId)
-        .collection('Produits')
-        .doc(produit.idProduit)
-        .set({
-          'idProduit': produit.idProduit,
-          'nomProduit': produit.nomProduit,
-          'description': produit.description,
-          'prix': produit.prix,
-          'vues': produit.vues,
-          'modele': produit.modele,
-          'marque': produit.marque,
-          'categorie': produit.categorie,
-          'type': produit.type,
-          'jeVeut': true,
-          'dateAjout': FieldValue.serverTimestamp(),
-        });
+  // =======================================================================
+
+  Future<void> ajoutListeSouhait(String userId, Produit produit) async {
+    await produitsCollection.doc(produit.idProduit).update({
+      'jeVeut': true,
+      'auPanier': false, // Un produit ne peut être aux souhaits et au panier en même temps
+    });
   }
 
-  Future<void> removeFromWishlist(String userId, String produitId) {
-    return listesSouhaitCollection
-        .doc(userId)
-        .collection('Produits')
-        .doc(produitId)
-        .delete();
+  Future<void> removeFromWishlist(String userId, String produitId) async {
+    await produitsCollection.doc(produitId).update({
+      'jeVeut': false,
+    });
   }
 
   Future<List<Produit>> listeSouhait(String userId) async {
-    QuerySnapshot snapshot =
-        await listesSouhaitCollection.doc(userId).collection('Produits').get();
+    QuerySnapshot snapshot = await produitsCollection.where('jeVeut', isEqualTo: true).get();
     return snapshot.docs.map((doc) {
       Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       return Produit(
+        descriptionCourte: data['descriptionCourte'] ?? '',
         sousCategorie: data['sousCategorie'] ?? '',
         enPromo: data['enPromo'] ?? false,
         cash: data['cash'] ?? false,
@@ -388,20 +370,85 @@ class FirestoreService {
         createdAt: data['createdAt'] ?? Timestamp.now(),
         enStock: data['enStock'] ?? true,
         img1: data['img1'] ?? '',
-        img2: data['img1'] ?? '',
-        img3: data['img1'] ?? '',
-        auPanier: data['auPanier'] ?? false,
-        idProduit: data['idProduit'] ?? '',
+        img2: data['img2'] ?? '',
+        img3: data['img3'] ?? '',
+        idProduit: doc.id,
         nomProduit: data['nomProduit'] ?? '',
         description: data['description'] ?? '',
         prix: data['prix'] ?? '',
-        vues: data['vues'] ?? '',
+        vues: data['vues']?.toString() ?? '0',
         modele: data['modele'] ?? '',
         marque: data['marque'] ?? '',
         categorie: data['categorie'] ?? '',
         type: data['type'] ?? '',
         jeVeut: data['jeVeut'] ?? true,
+        auPanier: data['auPanier'] ?? false,
       );
     }).toList();
+  }
+
+  Future<void> syncLocalWishlistToFirestore(String userId, List<Produit> localWishlist) async {
+    for (var produit in localWishlist) {
+      if (produit.jeVeut) {
+        await ajoutListeSouhait(userId, produit);
+      }
+    }
+  }
+
+  // =======================================================================
+  // Opérations sur le panier
+  // =======================================================================
+
+  Future<void> addToCart(String userId, Produit produit) async {
+    await produitsCollection.doc(produit.idProduit).update({
+      'auPanier': true,
+      'jeVeut': false, // Retirer des souhaits si ajouté au panier
+    });
+  }
+
+  Future<void> removeFromCart(String userId, String produitId) async {
+    await produitsCollection.doc(produitId).update({
+      'auPanier': false,
+    });
+  }
+
+  Future<List<Produit>> getCart(String userId) async {
+    QuerySnapshot snapshot = await produitsCollection.where('auPanier', isEqualTo: true).get();
+    return snapshot.docs.map((doc) {
+      Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      return Produit(
+        descriptionCourte: data['descriptionCourte'] ?? '',
+        sousCategorie: data['sousCategorie'] ?? '',
+        enPromo: data['enPromo'] ?? false,
+        cash: data['cash'] ?? false,
+        electronique: data['electronique'] ?? false,
+        quantite: data['quantite'] ?? '',
+        livrable: data['livrable'] ?? true,
+        createdAt: data['createdAt'] ?? Timestamp.now(),
+        enStock: data['enStock'] ?? true,
+        img1: data['img1'] ?? '',
+        img2: data['img2'] ?? '',
+        img3: data['img3'] ?? '',
+        idProduit: doc.id,
+        nomProduit: data['nomProduit'] ?? '',
+        description: data['description'] ?? '',
+        prix: data['prix'] ?? '',
+        vues: data['vues']?.toString() ?? '0',
+        modele: data['modele'] ?? '',
+        marque: data['marque'] ?? '',
+        categorie: data['categorie'] ?? '',
+        type: data['type'] ?? '',
+        jeVeut: data['jeVeut'] ?? false,
+        auPanier: data['auPanier'] ?? true,
+      );
+    }).toList();
+  }
+
+  Future<void> syncLocalCartToFirestore(String userId, List<Produit> localCart) async {
+    for (var produit in localCart) {
+      if (produit.auPanier) {
+        await addToCart(userId, produit);
+      }
+    }
   }
 }

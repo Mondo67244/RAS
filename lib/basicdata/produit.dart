@@ -1,58 +1,123 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-class Produit {
-String idProduit;
-String nomProduit;
-String description;
-//le pric du produit lors de son ajout a la base de donnée
-String prix;
-String vues;
-String modele;
-String marque;
-//liste les Produits en catégories
-String categorie;
-String type;
-String sousCategorie;
-//si l'utilisateur choisi liste de souhait alors le produit est envoyé dans la collection listesouhait avec son id
-//l'utilisateur pourra ensuite voir tous les Produits qu'il a ajouté a la liste des souhaits
-bool jeVeut;
-bool auPanier;
-String img1;
-String img2;
-String img3;
-//methode de paiement acceptée
-bool cash;
-bool electronique;
-bool enStock;
-//la date a laquelle le produit a été ajouté a la base de donnée
-Timestamp createdAt;
-//la quantité disponible du produit
-String quantite;
-//la quantité livrable du produit
-bool livrable;
-bool enPromo;
 
-Produit({
-required this.sousCategorie,
-required this.enPromo,
-required this.cash,
-required this.electronique,
-required this.quantite,
-required this.livrable,
-required this.createdAt,
-required this.enStock,
-required this.img1,
-required this.img2,
-required this.img3,
-required this.auPanier,
-required this.jeVeut,
-required this.idProduit,
-required this.nomProduit,
-required this.description,
-required this.prix,
-required this.vues,
-required this.modele,
-required this.marque,
-required this.categorie,
-required this.type,
-});
+class Produit {
+  String idProduit;
+  String nomProduit;
+  String description;
+  String descriptionCourte;
+  String prix;
+  String vues;
+  String modele;
+  String marque;
+  String categorie;
+  String type;
+  String sousCategorie;
+  bool jeVeut;
+  bool auPanier;
+  String img1;
+  String img2;
+  String img3;
+  bool cash;
+  bool electronique;
+  bool enStock;
+  Timestamp createdAt;
+  String quantite;
+  bool livrable;
+  bool enPromo;
+
+  Produit({
+    required this.descriptionCourte,
+    required this.sousCategorie,
+    required this.enPromo,
+    required this.cash,
+    required this.electronique,
+    required this.quantite,
+    required this.livrable,
+    required this.createdAt,
+    required this.enStock,
+    required this.img1,
+    required this.img2,
+    required this.img3,
+    required this.auPanier,
+    required this.jeVeut,
+    required this.idProduit,
+    required this.nomProduit,
+    required this.description,
+    required this.prix,
+    required this.vues,
+    required this.modele,
+    required this.marque,
+    required this.categorie,
+    required this.type,
+  });
+
+  factory Produit.fromJson(Map<String, dynamic> json) {
+    return Produit(
+      descriptionCourte: json['descriptionCourte'] ?? '',
+      sousCategorie: json['sousCategorie'] ?? '',
+      enPromo: json['enPromo'] ?? false,
+      cash: json['cash'] ?? false,
+      electronique: json['electronique'] ?? false,
+      quantite: json['quantite'] ?? '',
+      livrable: json['livrable'] ?? true,
+      createdAt: _parseTimestamp(json['createdAt']),
+      enStock: json['enStock'] ?? true,
+      img1: json['img1'] ?? '',
+      img2: json['img2'] ?? '',
+      img3: json['img3'] ?? '',
+      auPanier: json['auPanier'] ?? false,
+      jeVeut: json['jeVeut'] ?? false,
+      idProduit: json['idProduit'] ?? '',
+      nomProduit: json['nomProduit'] ?? '',
+      description: json['description'] ?? '',
+      prix: json['prix'] ?? '',
+      vues: json['vues']?.toString() ?? '0',
+      modele: json['modele'] ?? '',
+      marque: json['marque'] ?? '',
+      categorie: json['categorie'] ?? '',
+      type: json['type'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'descriptionCourte': descriptionCourte,
+      'sousCategorie': sousCategorie,
+      'enPromo': enPromo,
+      'cash': cash,
+      'electronique': electronique,
+      'quantite': quantite,
+      'livrable': livrable,
+      'createdAt': createdAt.toDate().toIso8601String(),
+      'enStock': enStock,
+      'img1': img1,
+      'img2': img2,
+      'img3': img3,
+      'auPanier': auPanier,
+      'jeVeut': jeVeut,
+      'idProduit': idProduit,
+      'nomProduit': nomProduit,
+      'description': description,
+      'prix': prix,
+      'vues': vues,
+      'modele': modele,
+      'marque': marque,
+      'categorie': categorie,
+      'type': type,
+    };
+  }
+
+  static Timestamp _parseTimestamp(dynamic value) {
+    if (value is Timestamp) {
+      return value;
+    } else if (value is String) {
+      try {
+        return Timestamp.fromDate(DateTime.parse(value));
+      } catch (e) {
+        print('Erreur de parsing de la date: $e');
+        return Timestamp.now();
+      }
+    }
+    return Timestamp.now();
+  }
 }

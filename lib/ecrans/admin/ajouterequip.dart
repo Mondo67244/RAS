@@ -21,8 +21,10 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
   // Contrôleurs pour les champs de texte
   final _nomController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _descriptionBreveController = TextEditingController();
   final _marqueController = TextEditingController();
   final _modeleController = TextEditingController();
+
   final _prixController = TextEditingController();
   final _quantiteController = TextEditingController();
   final List<File?> _imageFiles = [null, null, null];
@@ -99,6 +101,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
   void dispose() {
     _nomController.dispose();
     _descriptionController.dispose();
+    _descriptionBreveController.dispose();
     _marqueController.dispose();
     _modeleController.dispose();
     _prixController.dispose();
@@ -161,6 +164,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
       await FirebaseFirestore.instance.collection('Produits').add({
         'nomProduit': _nomController.text.trim(),
         'description': _descriptionController.text.trim(),
+        'descriptionCourte': _descriptionBreveController.text.trim(),
         'marque': _selectedBrand,
         'modele': _modeleController.text.trim(),
         'prix': _prixController.text.trim(),
@@ -560,10 +564,23 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
         ),
         const SizedBox(height: 16),
 
+        //Champ description courte
+        TextFormField(
+          controller: _descriptionBreveController,
+          decoration: _titresChamps('Description Courte'),
+          maxLines: 3,
+          validator:
+              (value) =>
+                  value == null || value.isEmpty
+                      ? 'Veuillez entrer une description courte'
+                      : null,
+        ),
+
+        const SizedBox(height: 16),
         //Champs de description
         TextFormField(
           controller: _descriptionController,
-          decoration: _titresChamps('Description'),
+          decoration: _titresChamps('Description Longue'),
           maxLines: 4,
           validator:
               (value) =>
