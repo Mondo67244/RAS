@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:ras_app/basicdata/produit.dart';
-import 'package:ras_app/ecrans/client/pagesu/recents.dart';
+import 'package:ras_app/basicdata/produit_extension.dart';
 import 'package:ras_app/services/lienbd.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -301,6 +301,205 @@ class _SouhaitsState extends State<Souhaits> {
     );
   }
 
+  Widget _buildProductCard(Produit produit) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isWideScreen = screenWidth > 1298;
+
+    if (produit.idProduit.isEmpty) {
+      debugPrint('Produit ignoré dans _buildProductCard: idProduit vide');
+      return const SizedBox.shrink();
+    }
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+      elevation: 3,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: isWideScreen ? _carteOrdi(produit) : _carteMobile(produit),
+    );
+  }
+
+  Widget _carteOrdi(Produit produit) {
+    return InkWell(
+      onTap: () => Navigator.pushNamed(context, '/details', arguments: produit),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              
+              _buildImageContainer(produit.img1, 120.0, 120.0),
+              const SizedBox(width: 12),
+              Expanded(
+                child: SizedBox(
+                  height: 250,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        produit.nomProduit.isNotEmpty
+                            ? produit.nomProduit
+                            : 'Produit sans nom',
+                        style: const TextStyle(
+                          fontSize: 14.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      SizedBox(
+                        width: 250,
+                        child: Text(
+                          produit.descriptionCourte.isNotEmpty
+                              ? produit.descriptionCourte
+                              : 'Aucune description',
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 14.0,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      SizedBox(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [_buildActionButtons(produit, 10.0)],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+      ),
+    );
+  }
+
+  Widget _carteMobile(Produit produit) {
+    return InkWell(
+      onTap: () => Navigator.pushNamed(context, '/details', arguments: produit),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildImageContainer(produit.img1, 110.0, 110.0),
+            const SizedBox(width: 12),
+            Expanded(
+              child: SizedBox(
+                height: 124,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      produit.nomProduit.isNotEmpty
+                          ? produit.nomProduit
+                          : 'Produit sans nom',
+                      style: const TextStyle(
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    SizedBox(
+                      width: 250,
+                      child: Text(
+                        produit.descriptionCourte.isNotEmpty
+                            ? produit.descriptionCourte
+                            : 'Aucune description',
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 14.0,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    SizedBox(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [_buildActionButtons(produit, 10.0)],
+                      ),
+                    ),
+                    Spacer()
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButtons(Produit produit, double fontSize) {
+    return SizedBox(
+      width: 170,
+      child: Row(
+        children: [
+          Expanded(
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: styles.erreur,
+                side: BorderSide(color: styles.erreur, width: 1.2),
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              onPressed: produit.enStock ? () => _toggleJeVeut(produit) : null,
+              icon: const Icon(FluentIcons.delete_24_regular, size: 16),
+              label: Text(
+                'Supprimer',
+                style: TextStyle(
+                  fontSize: fontSize,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 5),
+          Expanded(
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    produit.enStock ? styles.bleu : Colors.grey.shade400,
+                foregroundColor: Colors.white,
+                elevation: 1,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              onPressed: produit.enStock ? () => _addToCart(produit) : null,
+              icon: const Icon(
+                FluentIcons.shopping_bag_tag_24_regular,
+                size: 16,
+              ),
+              label: Text(
+                'Panier',
+                style: TextStyle(
+                  fontSize: fontSize,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildImageContainer(String? imageData, double width, double height) {
     if (imageData == null || imageData.isEmpty) {
       return SizedBox(
@@ -371,212 +570,9 @@ class _SouhaitsState extends State<Souhaits> {
     }
   }
 
-  Widget _buildActionButtons(Produit produit, double fontSize) {
-    return SizedBox(
-      width: 170,
-      child: Row(
-        children: [
-          Expanded(
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: styles.erreur,
-                side: BorderSide(color: styles.erreur, width: 1.2),
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              onPressed: produit.enStock ? () => _toggleJeVeut(produit) : null,
-              icon: const Icon(FluentIcons.delete_24_regular, size: 16),
-              label: Text(
-                'Supprimer',
-                style: TextStyle(
-                  fontSize: fontSize,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 3),
-          Expanded(
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    produit.enStock ? styles.bleu : Colors.grey.shade400,
-                foregroundColor: Colors.white,
-                elevation: 1,
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              onPressed: produit.enStock ? () => _addToCart(produit) : null,
-              icon: const Icon(
-                FluentIcons.shopping_bag_tag_24_regular,
-                size: 16,
-              ),
-              label: Text(
-                'Panier',
-                style: TextStyle(
-                  fontSize: fontSize,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _carteOrdi(Produit produit) {
-    return InkWell(
-      onTap: () => Navigator.pushNamed(context, '/details', arguments: produit),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              
-              _buildImageContainer(produit.img1, 120.0, 120.0),
-              const SizedBox(width: 12),
-              Expanded(
-                child: SizedBox(
-                  height: 250,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        produit.nomProduit.isNotEmpty
-                            ? produit.nomProduit
-                            : 'Produit sans nom',
-                        style: const TextStyle(
-                          fontSize: 14.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      SizedBox(
-                        width: 250,
-                        child: Text(
-                          produit.descriptionCourte.isNotEmpty
-                              ? produit.descriptionCourte
-                              : 'Aucune description',
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 14.0,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      SizedBox(
-                        // width: 200,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [_buildActionButtons(produit, 10.0)],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-      ),
-    );
-  }
-
-  Widget _carteMobile(Produit produit) {
-    return InkWell(
-      onTap: () => Navigator.pushNamed(context, '/details', arguments: produit),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildImageContainer(produit.img1, 100.0, 100.0),
-            const SizedBox(width: 12),
-            Expanded(
-              child: SizedBox(
-                height: 128,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      produit.nomProduit.isNotEmpty
-                          ? produit.nomProduit
-                          : 'Produit sans nom',
-                      style: const TextStyle(
-                        fontSize: 14.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    SizedBox(
-                      width: 250,
-                      child: Text(
-                        produit.descriptionCourte.isNotEmpty
-                            ? produit.descriptionCourte
-                            : 'Aucune description',
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 14.0,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    SizedBox(
-                      // width: 200,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [_buildActionButtons(produit, 10.0)],
-                      ),
-                    ),
-                    Spacer()
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProductCard(Produit produit) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isWideScreen = screenWidth > 1298;
-
-    // final bool isWideScreen =
-    if (produit.idProduit.isEmpty) {
-      debugPrint('Produit ignoré dans _buildProductCard: idProduit vide');
-      return const SizedBox.shrink();
-    }
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
-      elevation: 3,
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: isWideScreen ? _carteOrdi(produit) : _carteMobile(produit),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    // Utiliser un breakpoint plus grand pour la GridView pour une meilleure lisibilité
     final isWideScreen = screenWidth > 1298;
 
     return Scaffold(
@@ -614,7 +610,6 @@ class _SouhaitsState extends State<Souhaits> {
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 3,
-                          // Ratio ajusté pour un layout horizontal
                           childAspectRatio: 1.9,
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,
@@ -637,5 +632,4 @@ class _SouhaitsState extends State<Souhaits> {
       ),
     );
   }
-  
 }
