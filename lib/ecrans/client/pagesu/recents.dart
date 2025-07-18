@@ -48,17 +48,21 @@ class _RecentsState extends State<Recents> {
 
   Future<void> _initializeData() async {
     try {
-      if (_userId != null) {
+      if (_userId != null && _userId!.isNotEmpty) {
         await _syncLocalWishlistToFirestore();
         await _syncLocalCartToFirestore();
-        final produits = await _produitsFuture;
+        final souhaits = await _firestoreService.listeSouhait(_userId!);
+        final panier = await _firestoreService.getCart(_userId!);
         setState(() {
           _souhaits.clear();
           _paniers.clear();
-          for (var produit in produits) {
-            if (produit.jeVeut) _souhaits.add(produit.idProduit);
-            if (produit.auPanier) _paniers.add(produit.idProduit);
+          for (var produit in souhaits) {
+            _souhaits.add(produit.idProduit);
           }
+          for (var produit in panier) {
+            _paniers.add(produit.idProduit);
+          }
+          debugPrint('Souhaits chargés: ${_souhaits.length}, Panier chargé: ${_paniers.length}');
         });
       } else {
         final localWishlist = await _getLocalWishlist();
@@ -67,15 +71,20 @@ class _RecentsState extends State<Recents> {
           _souhaits.clear();
           _paniers.clear();
           for (var produit in localWishlist) {
-            if (produit.jeVeut) _souhaits.add(produit.idProduit);
+            if (produit.jeVeut && produit.idProduit.isNotEmpty) {
+              _souhaits.add(produit.idProduit);
+            }
           }
           for (var produit in localCart) {
-            if (produit.auPanier) _paniers.add(produit.idProduit);
+            if (produit.auPanier && produit.idProduit.isNotEmpty) {
+              _paniers.add(produit.idProduit);
+            }
           }
+          debugPrint('Souhaits locaux: ${_souhaits.length}, Panier local: ${_paniers.length}');
         });
       }
     } catch (e) {
-      print('Erreur lors de l\'initialisation des données: $e');
+      debugPrint('Erreur lors de l\'initialisation des données: $e');
       _messageReponse('Erreur de chargement des données.', isSuccess: false);
     }
   }
@@ -90,6 +99,7 @@ class _RecentsState extends State<Recents> {
         return jsonList
             .where((item) => item is Map<String, dynamic>)
             .map((json) => Produit.fromJson(json as Map<String, dynamic>))
+            .where((produit) => produit.idProduit.isNotEmpty)
             .toList();
       }
       return [];
@@ -102,9 +112,12 @@ class _RecentsState extends State<Recents> {
   Future<void> _saveLocalWishlist(List<Produit> produits) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final jsonList = produits.map((produit) => produit.toJson()).toList();
+      final jsonList = produits
+          .where((produit) => produit.idProduit.isNotEmpty)
+          .map((produit) => produit.toJson())
+          .toList();
       await prefs.setString('local_wishlist', jsonEncode(jsonList));
-      debugPrint('Synchronisation locale des souhaits réussie');
+      debugPrint('Synchronisation locale des souhaits réussie: ${jsonList.length} produits');
     } catch (e) {
       debugPrint('Erreur lors de la sauvegarde des souhaits locaux: $e');
     }
@@ -120,6 +133,7 @@ class _RecentsState extends State<Recents> {
         return jsonList
             .where((item) => item is Map<String, dynamic>)
             .map((json) => Produit.fromJson(json as Map<String, dynamic>))
+            .where((produit) => produit.idProduit.isNotEmpty)
             .toList();
       }
       return [];
@@ -132,16 +146,22 @@ class _RecentsState extends State<Recents> {
   Future<void> _saveLocalCart(List<Produit> produits) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final jsonList = produits.map((produit) => produit.toJson()).toList();
+      final jsonList = produits
+          .where((produit) => produit.idProduit.isNotEmpty)
+          .map((produit) => produit.toJson())
+          .toList();
       await prefs.setString('local_cart', jsonEncode(jsonList));
-      debugPrint('Synchronisation locale du panier réussie');
+      debugPrint('Synchronisation locale du panier réussie: ${jsonList.length} produits');
     } catch (e) {
       debugPrint('Erreur lors de la sauvegarde du panier local: $e');
     }
   }
 
   Future<void> _syncLocalWishlistToFirestore() async {
-    if (_userId == null) return;
+    if (_userId == null || _userId!.isEmpty) {
+      debugPrint('Synchronisation des souhaits ignorée: userId null ou vide');
+      return;
+    }
     try {
       final localWishlist = await _getLocalWishlist();
       await _firestoreService.syncLocalWishlistToFirestore(_userId!, localWishlist);
@@ -150,11 +170,15 @@ class _RecentsState extends State<Recents> {
       debugPrint('Synchronisation des souhaits vers Firestore réussie');
     } catch (e) {
       debugPrint('Erreur lors de la synchronisation des souhaits: $e');
+      _messageReponse('Erreur lors de la synchronisation des souhaits.', isSuccess: false);
     }
   }
 
   Future<void> _syncLocalCartToFirestore() async {
-    if (_userId == null) return;
+    if (_userId == null || _userId!.isEmpty) {
+      debugPrint('Synchronisation du panier ignorée: userId null ou vide');
+      return;
+    }
     try {
       final localCart = await _getLocalCart();
       await _firestoreService.syncLocalCartToFirestore(_userId!, localCart);
@@ -163,27 +187,38 @@ class _RecentsState extends State<Recents> {
       debugPrint('Synchronisation du panier vers Firestore réussie');
     } catch (e) {
       debugPrint('Erreur lors de la synchronisation du panier: $e');
+      _messageReponse('Erreur lors de la synchronisation du panier.', isSuccess: false);
     }
   }
 
   Future<void> _toggleJeVeut(Produit produit) async {
+    if (produit.idProduit.isEmpty) {
+      debugPrint('Erreur: produit.idProduit est vide');
+      _messageReponse('Produit invalide.', isSuccess: false);
+      return;
+    }
     final bool nouvelEtat = !_souhaits.contains(produit.idProduit);
     try {
-      if (_userId != null) {
-        await _firestoreService.updateProductWishlist(produit.idProduit, nouvelEtat);
+      if (_userId != null && _userId!.isNotEmpty) {
         if (nouvelEtat) {
-          await _firestoreService.updateProductCart(produit.idProduit, false);
+          await _firestoreService.ajoutListeSouhait(_userId!, produit);
+          await _firestoreService.removeFromCart(_userId!, produit.idProduit);
+        } else {
+          await _firestoreService.removeFromWishlist(_userId!, produit.idProduit);
         }
       } else {
         final localWishlist = await _getLocalWishlist();
+        final localCart = await _getLocalCart();
         if (nouvelEtat) {
           if (!localWishlist.any((p) => p.idProduit == produit.idProduit)) {
             localWishlist.add(produit.copyWith(jeVeut: true, auPanier: false));
           }
+          localCart.removeWhere((p) => p.idProduit == produit.idProduit);
         } else {
           localWishlist.removeWhere((p) => p.idProduit == produit.idProduit);
         }
         await _saveLocalWishlist(localWishlist);
+        await _saveLocalCart(localCart);
       }
       setState(() {
         if (nouvelEtat) {
@@ -200,7 +235,7 @@ class _RecentsState extends State<Recents> {
         isSuccess: nouvelEtat,
       );
     } catch (e) {
-      print('Erreur lors de la mise à jour de JeVeut: $e');
+      debugPrint('Erreur lors de la mise à jour de JeVeut: $e');
       _messageReponse('Erreur de mise à jour du souhait.', isSuccess: false);
       setState(() {
         if (nouvelEtat) {
@@ -213,10 +248,19 @@ class _RecentsState extends State<Recents> {
   }
 
   Future<void> _toggleAuPanier(Produit produit) async {
+    if (produit.idProduit.isEmpty) {
+      debugPrint('Erreur: produit.idProduit est vide');
+      _messageReponse('Produit invalide.', isSuccess: false);
+      return;
+    }
     final bool nouvelEtat = !_paniers.contains(produit.idProduit);
     try {
-      if (_userId != null) {
-        await _firestoreService.updateProductCart(produit.idProduit, nouvelEtat);
+      if (_userId != null && _userId!.isNotEmpty) {
+        if (nouvelEtat) {
+          await _firestoreService.addToCart(_userId!, produit);
+        } else {
+          await _firestoreService.removeFromCart(_userId!, produit.idProduit);
+        }
       } else {
         final localCart = await _getLocalCart();
         final localWishlist = await _getLocalWishlist();
@@ -249,7 +293,7 @@ class _RecentsState extends State<Recents> {
             : Icons.remove_shopping_cart_outlined,
       );
     } catch (e) {
-      print('Erreur lors de la mise à jour du panier: $e');
+      debugPrint('Erreur lors de la mise à jour du panier: $e');
       _messageReponse('Erreur de mise à jour du panier.', isSuccess: false);
       setState(() {
         if (nouvelEtat) {
@@ -292,12 +336,14 @@ class _RecentsState extends State<Recents> {
       body: FutureBuilder<List<Produit>>(
         future: _produitsFuture,
         builder: (context, snapshot) {
+          debugPrint('État du FutureBuilder: ${snapshot.connectionState}, Données: ${snapshot.data?.length ?? 0}');
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
               child: CircularProgressIndicator(color: styles.rouge),
             );
           }
           if (snapshot.hasError) {
+            debugPrint('Erreur FutureBuilder: ${snapshot.error}');
             return Center(
               child: Text(
                 'Erreur: ${snapshot.error}',
@@ -306,6 +352,7 @@ class _RecentsState extends State<Recents> {
             );
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            debugPrint('Aucun produit dans snapshot.data');
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -332,6 +379,7 @@ class _RecentsState extends State<Recents> {
           return LayoutBuilder(
             builder: (context, constraints) {
               final bool isWideScreen = constraints.maxWidth > 600;
+              debugPrint('isWideScreen: $isWideScreen, screenWidth: ${constraints.maxWidth}');
               return _contenu(produits, isWideScreen: isWideScreen);
             },
           );
@@ -356,7 +404,7 @@ class _RecentsState extends State<Recents> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           isWideScreen
-              ? Text('')
+              ? const Text('')
               : _imagesEntetes('assets/images/PG2.png', isWide: isWideScreen),
           _sectionProduits(
             'Articles Populaires',
@@ -365,7 +413,7 @@ class _RecentsState extends State<Recents> {
           ),
           const SizedBox(height: 24),
           isWideScreen
-              ? Text('')
+              ? const Text('')
               : _imagesEntetes('assets/images/BG.png', isWide: isWideScreen),
           const SizedBox(height: 24),
           _sectionProduits(
@@ -375,18 +423,18 @@ class _RecentsState extends State<Recents> {
           ),
           const SizedBox(height: 24),
           isWideScreen
-              ? Text('')
+              ? const Text('')
               : _imagesEntetes('assets/images/RG.png', isWide: isWideScreen),
           const SizedBox(height: 24),
           _sectionProduits('Appareils Réseau', produitsReseau, isWideScreen),
           const SizedBox(height: 24),
           isWideScreen
-              ? Text('')
+              ? const Text('')
               : _imagesEntetes('assets/images/EG2.png', isWide: isWideScreen),
           _sectionProduits('Appareils Mobiles', produitsMobiles, isWideScreen),
           const SizedBox(height: 24),
           isWideScreen
-              ? Text('')
+              ? const Text('')
               : _imagesEntetes('assets/images/AG.png', isWide: isWideScreen),
           _sectionProduits('Produit Divers', produitDivers, isWideScreen),
         ],
@@ -520,6 +568,10 @@ class _RecentsState extends State<Recents> {
   }
 
   Widget _carteArticle(Produit produit, bool isWideScreen) {
+    if (produit.idProduit.isEmpty) {
+      debugPrint('Produit ignoré: idProduit vide');
+      return const SizedBox.shrink();
+    }
     final bool isSouhait = _souhaits.contains(produit.idProduit);
     final bool isPanier = _paniers.contains(produit.idProduit);
     final List<String> images = [produit.img1, produit.img2, produit.img3].where((img) => img.isNotEmpty).toList();
@@ -620,7 +672,7 @@ class _RecentsState extends State<Recents> {
                         children: [
                           const SizedBox(height: 8),
                           Text(
-                            produit.nomProduit,
+                            produit.nomProduit.isNotEmpty ? produit.nomProduit : 'Produit sans nom',
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
@@ -634,7 +686,7 @@ class _RecentsState extends State<Recents> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                '${produit.prix} CFA',
+                                produit.prix.isNotEmpty ? '${produit.prix} CFA' : 'Prix indisponible',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
@@ -784,7 +836,7 @@ class _RecentsState extends State<Recents> {
         ),
       );
     } catch (e) {
-      print('Erreur de décodage Base64: $e');
+      debugPrint('Erreur de décodage Base64: $e');
       return SizedBox(
         width: MediaQuery.of(context).size.width > 400 ? 300 : 280,
         child: const Center(

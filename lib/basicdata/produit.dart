@@ -52,30 +52,34 @@ class Produit {
   });
 
   factory Produit.fromJson(Map<String, dynamic> json) {
+    final idProduit = json['idProduit']?.toString() ?? '';
+    if (idProduit.isEmpty) {
+      print('Avertissement: idProduit vide dans Produit.fromJson');
+    }
     return Produit(
-      descriptionCourte: json['descriptionCourte'] ?? '',
-      sousCategorie: json['sousCategorie'] ?? '',
+      descriptionCourte: json['descriptionCourte']?.toString() ?? '',
+      sousCategorie: json['sousCategorie']?.toString() ?? '',
       enPromo: json['enPromo'] ?? false,
       cash: json['cash'] ?? false,
       electronique: json['electronique'] ?? false,
-      quantite: json['quantite'] ?? '',
+      quantite: json['quantite']?.toString() ?? '',
       livrable: json['livrable'] ?? true,
       createdAt: _parseTimestamp(json['createdAt']),
       enStock: json['enStock'] ?? true,
-      img1: json['img1'] ?? '',
-      img2: json['img2'] ?? '',
-      img3: json['img3'] ?? '',
+      img1: json['img1']?.toString() ?? '',
+      img2: json['img2']?.toString() ?? '',
+      img3: json['img3']?.toString() ?? '',
       auPanier: json['auPanier'] ?? false,
       jeVeut: json['jeVeut'] ?? false,
-      idProduit: json['idProduit'] ?? '',
-      nomProduit: json['nomProduit'] ?? '',
-      description: json['description'] ?? '',
-      prix: json['prix'] ?? '',
+      idProduit: idProduit,
+      nomProduit: json['nomProduit']?.toString() ?? '',
+      description: json['description']?.toString() ?? '',
+      prix: json['prix']?.toString() ?? '',
       vues: json['vues']?.toString() ?? '0',
-      modele: json['modele'] ?? '',
-      marque: json['marque'] ?? '',
-      categorie: json['categorie'] ?? '',
-      type: json['type'] ?? '',
+      modele: json['modele']?.toString() ?? '',
+      marque: json['marque']?.toString() ?? '',
+      categorie: json['categorie']?.toString() ?? '',
+      type: json['type']?.toString() ?? '',
     );
   }
 
@@ -118,6 +122,7 @@ class Produit {
         return Timestamp.now();
       }
     }
+    print('Valeur createdAt invalide, utilisation de Timestamp.now()');
     return Timestamp.now();
   }
 }
