@@ -1,14 +1,13 @@
-import 'dart:convert';
-import 'package:ras_app/widgets/product_section.dart';
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:ras_app/widgets/SectionProduit.dart';
 import 'package:flutter/material.dart';
 import 'package:ras_app/basicdata/produit.dart';
 import 'package:ras_app/basicdata/style.dart';
-import 'package:ras_app/services/lienbd.dart';
+import 'package:ras_app/services/base%20de%20donn%C3%A9es/lienbd.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:ras_app/basicdata/produit_extension.dart';
+import 'package:ras_app/services/ponts/pontSouhaitLocal.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ras_app/services/ponts/pontPanierLocal.dart';
 
 class Recents extends StatefulWidget {
   const Recents({super.key});
@@ -46,9 +45,11 @@ class _RecentsState extends State<Recents> {
     super.dispose();
   }
 
+  /// Initialise les données de souhaits et panier, localement ou via Firestore
   Future<void> _initializeData() async {
     try {
       if (_userId != null && _userId!.isNotEmpty) {
+        // Utilisateur connecté : synchronisation avec Firestore
         await _syncLocalWishlistToFirestore();
         await _syncLocalCartToFirestore();
         final souhaits = await _firestoreService.listeSouhait(_userId!);
@@ -65,20 +66,18 @@ class _RecentsState extends State<Recents> {
           debugPrint('Souhaits chargés: ${_souhaits.length}, Panier chargé: ${_paniers.length}');
         });
       } else {
-        final localWishlist = await _getLocalWishlist();
-        final localCart = await _getLocalCart();
+        // Utilisateur non connecté : récupération des souhaits et panier locaux
+        final wishlistIds = await LocalWishlistService.getProductIds();
+        final cartIds = await LocalCartService.getProductIds();
+        final produits = await _getLocalWishlistProducts(wishlistIds);
         setState(() {
           _souhaits.clear();
           _paniers.clear();
-          for (var produit in localWishlist) {
-            if (produit.jeVeut && produit.idProduit.isNotEmpty) {
-              _souhaits.add(produit.idProduit);
-            }
+          for (var produit in produits) {
+            _souhaits.add(produit.idProduit);
           }
-          for (var produit in localCart) {
-            if (produit.auPanier && produit.idProduit.isNotEmpty) {
-              _paniers.add(produit.idProduit);
-            }
+          for (var id in cartIds) {
+            _paniers.add(id);
           }
           debugPrint('Souhaits locaux: ${_souhaits.length}, Panier local: ${_paniers.length}');
         });
@@ -89,84 +88,57 @@ class _RecentsState extends State<Recents> {
     }
   }
 
-  Future<List<Produit>> _getLocalWishlist() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final wishlistJson = prefs.getString('local_wishlist');
-      debugPrint('Contenu de local_wishlist: $wishlistJson');
-      if (wishlistJson != null) {
-        final List<dynamic> jsonList = jsonDecode(wishlistJson);
-        return jsonList
-            .where((item) => item is Map<String, dynamic>)
-            .map((json) => Produit.fromJson(json as Map<String, dynamic>))
-            .where((produit) => produit.idProduit.isNotEmpty)
-            .toList();
-      }
-      return [];
-    } catch (e) {
-      debugPrint('Erreur lors de la récupération des souhaits locaux: $e');
-      return [];
+  /// Récupère les produits de la liste de souhaits locale depuis Firestore
+  Future<List<Produit>> _getLocalWishlistProducts(List<String> ids) async {
+    if (ids.isEmpty) return [];
+    List<Produit> produits = [];
+    for (var i = 0; i < ids.length; i += 10) {
+      final batch = ids.skip(i).take(10).toList();
+      final snapshot = await _firestoreService.produitsCollection
+          .where(FieldPath.documentId, whereIn: batch)
+          .get();
+      produits.addAll(snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        return Produit(
+          descriptionCourte: data['descriptionCourte'] ?? '',
+          sousCategorie: data['sousCategorie'] ?? '',
+          enPromo: data['enPromo'] ?? false,
+          cash: data['cash'] ?? false,
+          electronique: data['electronique'] ?? false,
+          quantite: data['quantite'] ?? '',
+          livrable: data['livrable'] ?? true,
+          createdAt: data['createdAt'] ?? Timestamp.now(),
+          enStock: data['enStock'] ?? true,
+          img1: data['img1'] ?? '',
+          img2: data['img2'] ?? '',
+          img3: data['img3'] ?? '',
+          idProduit: doc.id,
+          nomProduit: data['nomProduit'] ?? '',
+          description: data['description'] ?? '',
+          prix: data['prix'] ?? '',
+          vues: data['vues']?.toString() ?? '0',
+          modele: data['modele'] ?? '',
+          marque: data['marque'] ?? '',
+          categorie: data['categorie'] ?? '',
+          type: data['type'] ?? '',
+          jeVeut: true,
+          auPanier: false,
+        );
+      }));
     }
+    return produits;
   }
 
-  Future<void> _saveLocalWishlist(List<Produit> produits) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final jsonList = produits
-          .where((produit) => produit.idProduit.isNotEmpty)
-          .map((produit) => produit.toJson())
-          .toList();
-      await prefs.setString('local_wishlist', jsonEncode(jsonList));
-      debugPrint('Synchronisation locale des souhaits réussie: ${jsonList.length} produits');
-    } catch (e) {
-      debugPrint('Erreur lors de la sauvegarde des souhaits locaux: $e');
-    }
-  }
-
-  Future<List<Produit>> _getLocalCart() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final cartJson = prefs.getString('local_cart');
-      debugPrint('Contenu de local_cart: $cartJson');
-      if (cartJson != null) {
-        final List<dynamic> jsonList = jsonDecode(cartJson);
-        return jsonList
-            .where((item) => item is Map<String, dynamic>)
-            .map((json) => Produit.fromJson(json as Map<String, dynamic>))
-            .where((produit) => produit.idProduit.isNotEmpty)
-            .toList();
-      }
-      return [];
-    } catch (e) {
-      debugPrint('Erreur lors de la récupération du panier local: $e');
-      return [];
-    }
-  }
-
-  Future<void> _saveLocalCart(List<Produit> produits) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final jsonList = produits
-          .where((produit) => produit.idProduit.isNotEmpty)
-          .map((produit) => produit.toJson())
-          .toList();
-      await prefs.setString('local_cart', jsonEncode(jsonList));
-      debugPrint('Synchronisation locale du panier réussie: ${jsonList.length} produits');
-    } catch (e) {
-      debugPrint('Erreur lors de la sauvegarde du panier local: $e');
-    }
-  }
-
+  /// Synchronise la liste de souhaits locale avec Firestore
   Future<void> _syncLocalWishlistToFirestore() async {
     if (_userId == null || _userId!.isEmpty) {
       debugPrint('Synchronisation des souhaits ignorée: userId null ou vide');
       return;
     }
     try {
-      final localWishlist = await _getLocalWishlist();
-      await _firestoreService.syncLocalWishlistToFirestore(_userId!, localWishlist);
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('local_wishlist');
+      final localWishlist = await LocalWishlistService.getProductIds();
+      await _firestoreService.syncLocalWishlistToFirestore(_userId!, localWishlist.cast<Produit>());
+      await LocalWishlistService.clear();
       debugPrint('Synchronisation des souhaits vers Firestore réussie');
     } catch (e) {
       debugPrint('Erreur lors de la synchronisation des souhaits: $e');
@@ -174,16 +146,16 @@ class _RecentsState extends State<Recents> {
     }
   }
 
+  /// Synchronise le panier local avec Firestore
   Future<void> _syncLocalCartToFirestore() async {
     if (_userId == null || _userId!.isEmpty) {
       debugPrint('Synchronisation du panier ignorée: userId null ou vide');
       return;
     }
     try {
-      final localCart = await _getLocalCart();
-      await _firestoreService.syncLocalCartToFirestore(_userId!, localCart);
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('local_cart');
+      final localCart = await LocalCartService.getProductIds();
+      await _firestoreService.syncLocalCartToFirestore(_userId!, localCart.cast<Produit>());
+      await LocalCartService.clear();
       debugPrint('Synchronisation du panier vers Firestore réussie');
     } catch (e) {
       debugPrint('Erreur lors de la synchronisation du panier: $e');
@@ -191,6 +163,7 @@ class _RecentsState extends State<Recents> {
     }
   }
 
+  /// Bascule l'état d'un produit dans la liste de souhaits (ajoute/retire)
   Future<void> _toggleJeVeut(Produit produit) async {
     if (produit.idProduit.isEmpty) {
       debugPrint('Erreur: produit.idProduit est vide');
@@ -201,24 +174,21 @@ class _RecentsState extends State<Recents> {
     try {
       if (_userId != null && _userId!.isNotEmpty) {
         if (nouvelEtat) {
+          // Ajout à la liste de souhaits et retrait du panier
           await _firestoreService.ajoutListeSouhait(_userId!, produit);
           await _firestoreService.removeFromCart(_userId!, produit.idProduit);
         } else {
+          // Retrait de la liste de souhaits
           await _firestoreService.removeFromWishlist(_userId!, produit.idProduit);
         }
       } else {
-        final localWishlist = await _getLocalWishlist();
-        final localCart = await _getLocalCart();
+        // Gestion locale
         if (nouvelEtat) {
-          if (!localWishlist.any((p) => p.idProduit == produit.idProduit)) {
-            localWishlist.add(produit.copyWith(jeVeut: true, auPanier: false));
-          }
-          localCart.removeWhere((p) => p.idProduit == produit.idProduit);
+          await LocalWishlistService.addProductId(produit.idProduit);
+          await LocalCartService.removeProductId(produit.idProduit);
         } else {
-          localWishlist.removeWhere((p) => p.idProduit == produit.idProduit);
+          await LocalWishlistService.removeProductId(produit.idProduit);
         }
-        await _saveLocalWishlist(localWishlist);
-        await _saveLocalCart(localCart);
       }
       setState(() {
         if (nouvelEtat) {
@@ -247,6 +217,7 @@ class _RecentsState extends State<Recents> {
     }
   }
 
+  /// Bascule l'état d'un produit dans le panier (ajoute/retire)
   Future<void> _toggleAuPanier(Produit produit) async {
     if (produit.idProduit.isEmpty) {
       debugPrint('Erreur: produit.idProduit est vide');
@@ -257,29 +228,26 @@ class _RecentsState extends State<Recents> {
     try {
       if (_userId != null && _userId!.isNotEmpty) {
         if (nouvelEtat) {
+          // Ajout au panier et retrait de la liste de souhaits
           await _firestoreService.addToCart(_userId!, produit);
+          await _firestoreService.removeFromWishlist(_userId!, produit.idProduit);
         } else {
+          // Retrait du panier
           await _firestoreService.removeFromCart(_userId!, produit.idProduit);
         }
-      }
-      else {
-        final localCart = await _getLocalCart();
-        final localWishlist = await _getLocalWishlist();
+      } else {
+        // Gestion locale
         if (nouvelEtat) {
-          if (!localCart.any((p) => p.idProduit == produit.idProduit)) {
-            localCart.add(produit.copyWith(auPanier: true, jeVeut: false));
-            localWishlist.removeWhere((p) => p.idProduit == produit.idProduit);
-          }
+          await LocalCartService.addProductId(produit.idProduit);
+          await LocalWishlistService.removeProductId(produit.idProduit); // Retire de la liste de souhaits
         } else {
-          localCart.removeWhere((p) => p.idProduit == produit.idProduit);
+          await LocalCartService.removeProductId(produit.idProduit);
         }
-        await _saveLocalCart(localCart);
-        await _saveLocalWishlist(localWishlist);
       }
       setState(() {
         if (nouvelEtat) {
           _paniers.add(produit.idProduit);
-          _souhaits.remove(produit.idProduit);
+          _souhaits.remove(produit.idProduit); // Retire de la liste de souhaits localement
         } else {
           _paniers.remove(produit.idProduit);
         }
@@ -306,6 +274,7 @@ class _RecentsState extends State<Recents> {
     }
   }
 
+  /// Affiche un message de confirmation ou d'erreur
   void _messageReponse(
     String message, {
     bool isSuccess = true,
@@ -334,6 +303,7 @@ class _RecentsState extends State<Recents> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: FutureBuilder<List<Produit>>(
         future: _produitsFuture,
         builder: (context, snapshot) {
@@ -389,6 +359,7 @@ class _RecentsState extends State<Recents> {
     );
   }
 
+  /// Construit l'en-tête avec des images (locales ou réseau)
   Widget _imagesEntetes(String path, {required bool isWide}) {
     return SizedBox(
       height: isWide ? 150 : 100,
@@ -412,6 +383,7 @@ class _RecentsState extends State<Recents> {
     );
   }
 
+  /// Construit le contenu principal avec les  sections de produits
   Widget _contenu(List<Produit> produits, {required bool isWideScreen}) {
     final produitsBureautique =
         produits.where((p) => p.sousCategorie == 'Bureautique').toList();

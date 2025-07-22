@@ -3,7 +3,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:ras_app/basicdata/produit.dart';
 import 'package:ras_app/basicdata/style.dart';
-import 'package:ras_app/widgets/product_card.dart';
+import 'package:ras_app/widgets/carteProduit.dart';
 
 class ProductSection extends StatelessWidget {
   final String title;

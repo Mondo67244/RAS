@@ -5,7 +5,7 @@ import 'package:ras_app/ecrans/admin/accueila.dart';
 import 'package:ras_app/ecrans/client/accueilu.dart';
 import 'package:ras_app/ecrans/admin/ajouterequip.dart';
 import 'package:ras_app/ecrans/client/pagesu/details.dart';
-import 'package:ras_app/ecrans/ecranDemarrage.dart';
+import 'package:ras_app/ecrans/ecrandemarrage.dart';
 import 'package:ras_app/firebase_options.dart';
 
 void main() async {

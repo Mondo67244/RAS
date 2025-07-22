@@ -4,7 +4,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:io';
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:ras_app/basicdata/style.dart';
 import 'package:dropdown_button2/dropdown_button2.dart'; // Importez le package
 
@@ -686,7 +685,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: styles.rouge!, width: 2),
+        borderSide: BorderSide(color: styles.rouge, width: 2),
       ),
     );
   }

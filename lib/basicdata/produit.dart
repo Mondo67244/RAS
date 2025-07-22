@@ -64,7 +64,9 @@ class Produit {
       electronique: json['electronique'] ?? false,
       quantite: json['quantite']?.toString() ?? '',
       livrable: json['livrable'] ?? true,
-      createdAt: _parseTimestamp(json['createdAt']),
+      createdAt: json['createdAt'] != null
+          ? Timestamp.fromMillisecondsSinceEpoch(json['createdAt'] as int)
+          : Timestamp.now(),
       enStock: json['enStock'] ?? true,
       img1: json['img1']?.toString() ?? '',
       img2: json['img2']?.toString() ?? '',
@@ -92,7 +94,7 @@ class Produit {
       'electronique': electronique,
       'quantite': quantite,
       'livrable': livrable,
-      'createdAt': createdAt.toDate().toIso8601String(),
+      'createdAt': createdAt.millisecondsSinceEpoch,
       'enStock': enStock,
       'img1': img1,
       'img2': img2,
@@ -109,20 +111,5 @@ class Produit {
       'categorie': categorie,
       'type': type,
     };
-  }
-
-  static Timestamp _parseTimestamp(dynamic value) {
-    if (value is Timestamp) {
-      return value;
-    } else if (value is String) {
-      try {
-        return Timestamp.fromDate(DateTime.parse(value));
-      } catch (e) {
-        print('Erreur de parsing de la date: $e');
-        return Timestamp.now();
-      }
-    }
-    print('Valeur createdAt invalide, utilisation de Timestamp.now()');
-    return Timestamp.now();
   }
 }

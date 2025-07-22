@@ -5,7 +5,7 @@ class Facture {
   String idFacture;
   String dateFacture;
   final Utilisateur utilisateur;
-  final List<Produit> Produits;
+  final List<Produit> produits;
   int prixFacture;
   int quantite;
   Facture({
@@ -14,6 +14,6 @@ class Facture {
     required this.idFacture,
     required this.dateFacture,
     required this.utilisateur,
-    required this.Produits,
+    required this.produits,
   });
 }

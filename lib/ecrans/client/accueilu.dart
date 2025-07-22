@@ -35,6 +35,7 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.pushNamed(context, '/admin/nouveau produit');

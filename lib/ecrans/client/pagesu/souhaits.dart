@@ -3,12 +3,14 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:ras_app/basicdata/produit.dart';
 import 'package:ras_app/basicdata/produit_extension.dart';
-import 'package:ras_app/services/lienbd.dart';
+import 'package:ras_app/services/base%20de%20donn%C3%A9es/lienbd.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:ras_app/basicdata/style.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:ras_app/services/ponts/pontSouhaitLocal.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Souhaits extends StatefulWidget {
   const Souhaits({super.key});
@@ -26,95 +28,103 @@ class _SouhaitsState extends State<Souhaits> {
   void initState() {
     super.initState();
     _userId = FirebaseAuth.instance.currentUser?.uid;
-    debugPrint('Initialisation de Souhaits, userId: $_userId');
+    debugPrint('Initialisation de Souhaits, userId:  [4m_userId [0m');
     _initializeWishlist();
   }
 
   Future<void> _initializeWishlist() async {
-    debugPrint('Initialisation de la liste de souhaits, userId: $_userId');
+    debugPrint('Initialisation de la liste de souhaits, userId:  [4m_userId [0m');
     if (_userId != null && _userId!.isNotEmpty) {
       await _syncLocalWishlistToFirestore();
       setState(() {
         _obtenirProduits = _firestoreService
             .listeSouhait(_userId!)
             .then((produits) {
-              debugPrint('Produits depuis Firestore: ${produits.length}');
+              debugPrint('Produits depuis Firestore:  [4mproduits.length [0m');
               return produits;
             })
             .catchError((e) {
-              debugPrint('Erreur dans listeSouhait: $e');
+              debugPrint('Erreur dans listeSouhait:  [4me [0m');
               return <Produit>[];
             });
       });
     } else {
       setState(() {
-        _obtenirProduits = _getLocalWishlist()
-            .then((produits) {
-              debugPrint(
-                'Produits depuis SharedPreferences: ${produits.length}',
-              );
-              return produits;
-            })
-            .catchError((e) {
-              debugPrint('Erreur dans _getLocalWishlist: $e');
-              return <Produit>[];
-            });
+        _obtenirProduits = _getLocalWishlistProducts();
       });
     }
   }
 
-  Future<List<Produit>> _getLocalWishlist() async {
+  // Récupère les produits souhaités locaux via LocalWishlistService
+  Future<List<Produit>> _getLocalWishlistProducts() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final wishlistJson = prefs.getString('local_wishlist');
-      debugPrint('Contenu de local_wishlist: $wishlistJson');
-      if (wishlistJson != null) {
-        final List<dynamic> jsonList = jsonDecode(wishlistJson);
-        return jsonList
-            .where((item) => item is Map<String, dynamic>)
-            .map((json) {
-              try {
-                final produit = Produit.fromJson(json as Map<String, dynamic>);
-                debugPrint(
-                  'Produit parsé: ${produit.nomProduit}, id: ${produit.idProduit}',
-                );
-                return produit;
-              } catch (e) {
-                debugPrint('Erreur lors du parsing du produit: $e');
-                return null;
-              }
-            })
-            .where((produit) => produit != null && produit.idProduit.isNotEmpty)
-            .cast<Produit>()
-            .toList();
+      final ids = await LocalWishlistService.getProductIds();
+      if (ids.isEmpty) return [];
+      List<Produit> produits = [];
+      for (var i = 0; i < ids.length; i += 10) {
+        final batch = ids.skip(i).take(10).toList();
+        final snapshot = await _firestoreService.produitsCollection
+            .where(FieldPath.documentId, whereIn: batch)
+            .get();
+        produits.addAll(snapshot.docs.map((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          return Produit(
+            descriptionCourte: data['descriptionCourte'] ?? '',
+            sousCategorie: data['sousCategorie'] ?? '',
+            enPromo: data['enPromo'] ?? false,
+            cash: data['cash'] ?? false,
+            electronique: data['electronique'] ?? false,
+            quantite: data['quantite'] ?? '',
+            livrable: data['livrable'] ?? true,
+            createdAt: data['createdAt'] ?? Timestamp.now(),
+            enStock: data['enStock'] ?? true,
+            img1: data['img1'] ?? '',
+            img2: data['img2'] ?? '',
+            img3: data['img3'] ?? '',
+            idProduit: doc.id,
+            nomProduit: data['nomProduit'] ?? '',
+            description: data['description'] ?? '',
+            prix: data['prix'] ?? '',
+            vues: data['vues']?.toString() ?? '0',
+            modele: data['modele'] ?? '',
+            marque: data['marque'] ?? '',
+            categorie: data['categorie'] ?? '',
+            type: data['type'] ?? '',
+            jeVeut: true,
+            auPanier: false,
+          );
+        }));
       }
-      debugPrint('Aucun produit dans local_wishlist');
-      return [];
+      return produits;
     } catch (e) {
-      debugPrint('Erreur lors de la récupération des souhaits locaux: $e');
+      debugPrint('Erreur lors de la récupération des produits souhaités locaux: $e');
       return [];
     }
   }
 
+  // Synchronise la wishlist locale (IDs) vers Firestore si l'utilisateur se connecte
   Future<void> _syncLocalWishlistToFirestore() async {
     if (_userId == null || _userId!.isEmpty) {
       debugPrint('Synchronisation ignorée: userId null ou vide');
       return;
     }
     try {
-      final localWishlist = await _getLocalWishlist();
+      final ids = await LocalWishlistService.getProductIds();
+      if (ids.isEmpty) return;
+      List<Produit> produits = await _getLocalWishlistProducts();
       await _firestoreService.syncLocalWishlistToFirestore(
         _userId!,
-        localWishlist,
+        produits,
       );
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('local_wishlist');
+      // Nettoie la liste locale après synchronisation
+      await LocalWishlistService.clear();
       debugPrint('Synchronisation des souhaits locaux vers Firestore terminée');
     } catch (e) {
       debugPrint('Erreur lors de la synchronisation des souhaits: $e');
     }
   }
 
+  // Ajoute ou retire un produit des souhaits (local ou Firestore)
   Future<void> _toggleJeVeut(Produit produit) async {
     if (produit.idProduit.isEmpty) {
       debugPrint('Erreur: produit.idProduit est vide');
@@ -125,52 +135,29 @@ class _SouhaitsState extends State<Souhaits> {
       if (_userId != null && _userId!.isNotEmpty) {
         await _firestoreService.removeFromWishlist(_userId!, produit.idProduit);
       } else {
-        final localWishlist = await _getLocalWishlist();
-        localWishlist.removeWhere((p) => p.idProduit == produit.idProduit);
-        final prefs = await SharedPreferences.getInstance();
-        final jsonList =
-            localWishlist
-                .where((p) => p.idProduit.isNotEmpty)
-                .map((p) => p.toJson())
-                .toList();
-        await prefs.setString('local_wishlist', jsonEncode(jsonList));
-        debugPrint('Produit retiré des souhaits locaux');
+        final ids = await LocalWishlistService.getProductIds();
+        final isAlreadyInWishlist = ids.contains(produit.idProduit);
+        if (isAlreadyInWishlist) {
+          await LocalWishlistService.removeProductId(produit.idProduit);
+          debugPrint('Produit retiré des souhaits locaux');
+          _messageReponse(
+            '${produit.nomProduit} retiré de vos souhaits',
+            isSuccess: true,
+          );
+        } else {
+          await LocalWishlistService.addProductId(produit.idProduit);
+          debugPrint('Produit ajouté aux souhaits locaux');
+          _messageReponse(
+            '${produit.nomProduit} ajouté à vos souhaits',
+            isSuccess: true,
+          );
+        }
       }
       setState(() {
-        _obtenirProduits =
-            _userId != null && _userId!.isNotEmpty
-                ? _firestoreService
-                    .listeSouhait(_userId!)
-                    .then((produits) {
-                      debugPrint(
-                        'Produits depuis Firestore après suppression: ${produits.length}',
-                      );
-                      return produits;
-                    })
-                    .catchError((e) {
-                      debugPrint(
-                        'Erreur dans listeSouhait après suppression: $e',
-                      );
-                      return <Produit>[];
-                    })
-                : _getLocalWishlist()
-                    .then((produits) {
-                      debugPrint(
-                        'Produits depuis SharedPreferences après suppression: ${produits.length}',
-                      );
-                      return produits;
-                    })
-                    .catchError((e) {
-                      debugPrint(
-                        'Erreur dans _getLocalWishlist après suppression: $e',
-                      );
-                      return <Produit>[];
-                    });
+        _obtenirProduits = _userId != null && _userId!.isNotEmpty
+            ? _firestoreService.listeSouhait(_userId!)
+            : _getLocalWishlistProducts();
       });
-      _messageReponse(
-        '${produit.nomProduit} retiré de vos souhaits',
-        isSuccess: true,
-      );
     } catch (e) {
       debugPrint('Erreur lors de la suppression du souhait: $e');
       _messageReponse(
@@ -180,6 +167,7 @@ class _SouhaitsState extends State<Souhaits> {
     }
   }
 
+  // Ajoute au panier (pour les non connectés, ne touche plus à la wishlist locale)
   Future<void> _addToCart(Produit produit) async {
     if (produit.idProduit.isEmpty) {
       debugPrint('Erreur: produit.idProduit est vide');
@@ -191,28 +179,9 @@ class _SouhaitsState extends State<Souhaits> {
         await _firestoreService.addToCart(_userId!, produit);
         await _firestoreService.removeFromWishlist(_userId!, produit.idProduit);
       } else {
-        final localCart = await _getLocalCart();
-        final localWishlist = await _getLocalWishlist();
-        if (!localCart.any((p) => p.idProduit == produit.idProduit)) {
-          localCart.add(produit.copyWith(auPanier: true, jeVeut: false));
-          localWishlist.removeWhere((p) => p.idProduit == produit.idProduit);
-        }
-        final prefs = await SharedPreferences.getInstance();
-        final cartJsonList =
-            localCart
-                .where((p) => p.idProduit.isNotEmpty)
-                .map((p) => p.toJson())
-                .toList();
-        final wishlistJsonList =
-            localWishlist
-                .where((p) => p.idProduit.isNotEmpty)
-                .map((p) => p.toJson())
-                .toList();
-        await prefs.setString('local_cart', jsonEncode(cartJsonList));
-        await prefs.setString('local_wishlist', jsonEncode(wishlistJsonList));
-        debugPrint(
-          'Produit ajouté au panier local et retiré des souhaits locaux',
-        );
+        // Ici, tu peux implémenter une logique similaire pour le panier local si besoin
+        // (ex: LocalCartService), mais on ne touche plus à la wishlist locale
+        debugPrint('Ajout au panier local à implémenter si besoin');
       }
       setState(() {
         _obtenirProduits =
@@ -221,26 +190,26 @@ class _SouhaitsState extends State<Souhaits> {
                     .listeSouhait(_userId!)
                     .then((produits) {
                       debugPrint(
-                        'Produits depuis Firestore après ajout au panier: ${produits.length}',
+                        'Produits depuis Firestore après ajout au panier:  [4mproduits.length [0m',
                       );
                       return produits;
                     })
                     .catchError((e) {
                       debugPrint(
-                        'Erreur dans listeSouhait après ajout au panier: $e',
+                        'Erreur dans listeSouhait après ajout au panier:  [4me [0m',
                       );
                       return <Produit>[];
                     })
-                : _getLocalWishlist()
+                : _getLocalWishlistProducts()
                     .then((produits) {
                       debugPrint(
-                        'Produits depuis SharedPreferences après ajout au panier: ${produits.length}',
+                        'Produits depuis LocalWishlistService après ajout au panier:  [4mproduits.length [0m',
                       );
                       return produits;
                     })
                     .catchError((e) {
                       debugPrint(
-                        'Erreur dans _getLocalWishlist après ajout au panier: $e',
+                        'Erreur dans _getLocalWishlist après ajout au panier:  [4me [0m',
                       );
                       return <Produit>[];
                     });
@@ -324,57 +293,56 @@ class _SouhaitsState extends State<Souhaits> {
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              
-              _buildImageContainer(produit.img1, 120.0, 120.0),
-              const SizedBox(width: 12),
-              Expanded(
-                child: SizedBox(
-                  height: 250,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        produit.nomProduit.isNotEmpty
-                            ? produit.nomProduit
-                            : 'Produit sans nom',
-                        style: const TextStyle(
-                          fontSize: 14.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        maxLines: 2,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildImageContainer(produit.img1, 120.0, 120.0),
+            const SizedBox(width: 12),
+            Expanded(
+              child: SizedBox(
+                height: 250,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      produit.nomProduit.isNotEmpty
+                          ? produit.nomProduit
+                          : 'Produit sans nom',
+                      style: const TextStyle(
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    SizedBox(
+                      width: 250,
+                      child: Text(
+                        produit.descriptionCourte.isNotEmpty
+                            ? produit.descriptionCourte
+                            : 'Aucune description',
+                        maxLines: 3,
                         overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      SizedBox(
-                        width: 250,
-                        child: Text(
-                          produit.descriptionCourte.isNotEmpty
-                              ? produit.descriptionCourte
-                              : 'Aucune description',
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 14.0,
-                            color: Colors.grey[600],
-                          ),
+                        style: TextStyle(
+                          fontSize: 14.0,
+                          color: Colors.grey[600],
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      SizedBox(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [_buildActionButtons(produit, 10.0)],
-                        ),
+                    ),
+                    const SizedBox(height: 4),
+                    SizedBox(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [_buildActionButtons(produit, 10.0)],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -387,7 +355,7 @@ class _SouhaitsState extends State<Souhaits> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildImageContainer(produit.img1, 110.0, 110.0),
+            _buildImageContainer(produit.img1, 100.0, 100.0),
             const SizedBox(width: 12),
             Expanded(
               child: SizedBox(
@@ -429,7 +397,7 @@ class _SouhaitsState extends State<Souhaits> {
                         children: [_buildActionButtons(produit, 10.0)],
                       ),
                     ),
-                    Spacer()
+                    Spacer(),
                   ],
                 ),
               ),
@@ -578,7 +546,10 @@ class _SouhaitsState extends State<Souhaits> {
     return Scaffold(
       body: Center(
         child: ConstrainedBox(
-          constraints: isWideScreen ? BoxConstraints(maxWidth: 1200) : BoxConstraints(maxWidth: 400),
+          constraints:
+              isWideScreen
+                  ? BoxConstraints(maxWidth: 1200)
+                  : BoxConstraints(maxWidth: 400),
           child: FutureBuilder<List<Produit>>(
             future: _obtenirProduits,
             builder: (context, snapshot) {

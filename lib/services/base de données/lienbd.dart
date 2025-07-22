@@ -276,7 +276,7 @@ class FirestoreService {
       };
 
       List<Map<String, dynamic>> produitsMap =
-          facture.Produits.map(
+          facture.produits.map(
             (produit) => {
               'idProduit': produit.idProduit,
               'nomProduit': produit.nomProduit,
@@ -368,7 +368,7 @@ class FirestoreService {
           idFacture: data['idFacture'] ?? '',
           dateFacture: data['dateFacture'] ?? '',
           utilisateur: utilisateur,
-          Produits: produits,
+          produits: produits,
           prixFacture: data['prixFacture'] ?? 0,
           quantite: data['quantite'] ?? 0,
         );
