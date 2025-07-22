@@ -85,6 +85,35 @@ class Produit {
     );
   }
 
+  factory Produit.fromFirestore(DocumentSnapshot doc) {
+    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    return Produit(
+      idProduit: doc.id,
+      
+      nomProduit: data['nomProduit'] ?? '',
+      description: data['description'] ?? '',
+      prix: data['prix'] ?? '0',
+      categorie: data['categorie'] ?? '',
+      sousCategorie: data['sousCategorie'] ?? '',
+      img1: data['img1'] ?? '', 
+      descriptionCourte: '', 
+      enPromo: false, 
+      cash: false, 
+      electronique: false, 
+      quantite: '', 
+      livrable: false, 
+      createdAt: Timestamp.now(), enStock: true, 
+      img2: '', 
+      img3: '', 
+      auPanier: false, 
+      jeVeut: false, 
+      vues: '', 
+      modele: '', 
+      marque: '', 
+      type: '',
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'descriptionCourte': descriptionCourte,

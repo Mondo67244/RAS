@@ -9,15 +9,19 @@ import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class Panier extends StatefulWidget {
-  const Panier({super.key});
+  const Panier({Key? key}) : super(key: key);
 
   @override
-  State<Panier> createState() => _PanierState();
+  State<Panier> createState() => PanierState();
 }
 
-class _PanierState extends State<Panier> {
+class PanierState extends State<Panier> {
   late Future<List<Produit>> _cartProductsFuture;
   final FirestoreService _firestoreService = FirestoreService();
+
+  // Liste des produits affichés (pour la recherche contextuelle)
+  List<Produit> _produits = [];
+  List<Produit> get produits => _produits;
 
   @override
   void initState() {
@@ -318,11 +322,13 @@ class _PanierState extends State<Panier> {
                 );
               }
               if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                _produits = [];
                 return const Center(
                   child: Text('Votre panier est vide.'),
                 );
               }
               final produitsPanier = snapshot.data!;
+              _produits = produitsPanier;
               return isWideScreen
                   ? GridView.builder(
                       padding: const EdgeInsets.all(16),

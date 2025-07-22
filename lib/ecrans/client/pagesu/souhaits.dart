@@ -13,16 +13,20 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Souhaits extends StatefulWidget {
-  const Souhaits({super.key});
+  const Souhaits({Key? key}) : super(key: key);
 
   @override
-  State<Souhaits> createState() => _SouhaitsState();
+  State<Souhaits> createState() => SouhaitsState();
 }
 
-class _SouhaitsState extends State<Souhaits> {
+class SouhaitsState extends State<Souhaits> {
   final FirestoreService _firestoreService = FirestoreService();
   late Future<List<Produit>> _obtenirProduits;
   String? _userId;
+
+  // Liste des produits affichés (pour la recherche contextuelle)
+  List<Produit> _produits = [];
+  List<Produit> get produits => _produits;
 
   @override
   void initState() {
@@ -569,11 +573,13 @@ class _SouhaitsState extends State<Souhaits> {
               }
               if (!snapshot.hasData || snapshot.data!.isEmpty) {
                 debugPrint('Aucun produit dans snapshot.data');
+                _produits = [];
                 return const Center(
                   child: Text('Aucun produit dans vos souhaits.'),
                 );
               }
               final produitsSouhaites = snapshot.data!;
+              _produits = produitsSouhaites;
               debugPrint('Produits affichés: ${produitsSouhaites.length}');
               return isWideScreen
                   ? GridView.builder(

@@ -10,13 +10,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ras_app/services/ponts/pontPanierLocal.dart';
 
 class Recents extends StatefulWidget {
-  const Recents({super.key});
+  const Recents({Key? key}) : super(key: key);
 
   @override
-  State<Recents> createState() => _RecentsState();
+  State<Recents> createState() => RecentsState();
 }
 
-class _RecentsState extends State<Recents> {
+class RecentsState extends State<Recents> {
   late Future<List<Produit>> _produitsFuture;
   final FirestoreService _firestoreService = FirestoreService();
   final Set<String> _souhaits = {};
@@ -24,6 +24,10 @@ class _RecentsState extends State<Recents> {
   final ScrollController _populairesScrollController = ScrollController();
   final ScrollController _bureautiqueScrollController = ScrollController();
   String? _userId;
+
+  // Liste des produits affichés (pour la recherche contextuelle)
+  List<Produit> _produits = [];
+  List<Produit> get produits => _produits;
 
   @override
   void initState() {
@@ -324,6 +328,7 @@ class _RecentsState extends State<Recents> {
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
             debugPrint('Aucun produit dans snapshot.data');
+            _produits = [];
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -347,6 +352,7 @@ class _RecentsState extends State<Recents> {
             );
           }
           final produits = snapshot.data!;
+          _produits = produits;
           return LayoutBuilder(
             builder: (context, constraints) {
               final bool isWideScreen = constraints.maxWidth > 600;

@@ -6,19 +6,23 @@ import 'package:ras_app/services/base%20de%20donn%C3%A9es/lienbd.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class Promo extends StatefulWidget {
-  const Promo({super.key});
+  const Promo({Key? key}) : super(key: key);
 
   @override
-  State<Promo> createState() => _PromoState();
+  State<Promo> createState() => PromoState();
 }
 
-class _PromoState extends State<Promo> {
+class PromoState extends State<Promo> {
   late Future<List<Produit>> _produitsFuture;
   final FirestoreService _firestoreService = FirestoreService();
   final Set<String> _souhaits = {};
   final Set<String> _paniers = {};
   final ScrollController _populairesScrollController = ScrollController();
   final ScrollController _bureautiqueScrollController = ScrollController();
+
+  // Liste des produits affichés (pour la recherche contextuelle)
+  List<Produit> _produits = [];
+  List<Produit> get produits => _produits;
   
 
   @override
@@ -162,6 +166,7 @@ class _PromoState extends State<Promo> {
             );
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            _produits = [];
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -185,6 +190,7 @@ class _PromoState extends State<Promo> {
             );
           }
           final produits = snapshot.data!;
+          _produits = produits;
           return LayoutBuilder(
             builder: (context, constraints) {
               final bool isWideScreen = constraints.maxWidth > 600;
