@@ -182,8 +182,7 @@ class SouhaitsState extends State<Souhaits> {
         await _firestoreService.addToCart(_userId!, produit);
         await _firestoreService.removeFromWishlist(_userId!, produit.idProduit);
       } else {
-        // Ici, tu peux implémenter une logique similaire pour le panier local si besoin
-        // (ex: LocalCartService), mais on ne touche plus à la wishlist locale
+        
         debugPrint('Ajout au panier local à implémenter si besoin');
       }
       setState(() {
@@ -273,12 +272,12 @@ class SouhaitsState extends State<Souhaits> {
     );
   }
 
-  Widget _buildProductCard(Produit produit) {
+  Widget _carteEquipement(Produit produit) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isWideScreen = screenWidth > 1298;
 
     if (produit.idProduit.isEmpty) {
-      debugPrint('Produit ignoré dans _buildProductCard: idProduit vide');
+      debugPrint('Produit ignoré dans _carteEquipement: idProduit vide');
       return const SizedBox.shrink();
     }
     return Card(
@@ -298,7 +297,7 @@ class SouhaitsState extends State<Souhaits> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildImageContainer(produit.img1, 120.0, 120.0),
+            _buildImageContainer(produit.img1, 150.0, 150.0),
             const SizedBox(width: 12),
             Expanded(
               child: SizedBox(
@@ -593,14 +592,14 @@ class SouhaitsState extends State<Souhaits> {
                     itemCount: produitsSouhaites.length,
                     itemBuilder:
                         (context, index) =>
-                            _buildProductCard(produitsSouhaites[index]),
+                            _carteEquipement(produitsSouhaites[index]),
                   )
                   : ListView.builder(
                     padding: const EdgeInsets.all(8),
                     itemCount: produitsSouhaites.length,
                     itemBuilder:
                         (context, index) =>
-                            _buildProductCard(produitsSouhaites[index]),
+                            _carteEquipement(produitsSouhaites[index]),
                   );
             },
           ),

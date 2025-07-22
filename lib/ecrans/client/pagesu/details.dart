@@ -247,7 +247,8 @@ class _DetailsState extends State<Details> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [
+          Row(
+            children: [
             ],
           ),
           const SizedBox(height: 16),
@@ -280,7 +281,7 @@ class _DetailsState extends State<Details> {
                   color:
                       widget.produit.enStock
                           ? styles.vert.withOpacity(0.1)
-                          : styles.erreur.withOpacity(0.1),
+                          : styles.rouge.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -445,31 +446,32 @@ class _DetailsState extends State<Details> {
   Widget _boutons() {
     return Row(
       children: [
-        Expanded(
-          child: ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: styles.rouge,
-              side: BorderSide(color: styles.rouge, width: 1.5),
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            onPressed: widget.produit.enStock ? _toggleJeVeut : null,
-            icon: Icon(
-              _isSouhait
-                  ? FluentIcons.book_star_24_filled
-                  : FluentIcons.book_star_24_regular,
-              size: 20,
-            ),
-            label: Text(
-              _isSouhait ? 'Souhaité' : 'Souhaits',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ),
-        ),
+        // Expanded(
+        //   child: ElevatedButton.icon(
+        //     style: ElevatedButton.styleFrom(
+        //       backgroundColor: Colors.white,
+        //       foregroundColor: styles.rouge,
+        //       side: BorderSide(color: styles.rouge, width: 1.5),
+        //       elevation: 0,
+        //       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+        //       shape: RoundedRectangleBorder(
+        //         borderRadius: BorderRadius.circular(12),
+        //       ),
+        //     ),
+        //     onPressed: widget.produit.enStock ? _toggleJeVeut : null,
+        //     icon: Icon(
+        //       _isSouhait
+        //           ? FluentIcons.class_20_filled
+        //           : FluentIcons.book_star_24_regular,
+        //       size: 20,
+        //     ),
+        //     label: Text(
+        //       _isSouhait ? 'Souhaité' : 'Souhaits',
+        //       style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        //     ),
+        //   ),
+        // ),
+        
         const SizedBox(width: 16),
         Expanded(
           child: ElevatedButton.icon(
@@ -491,7 +493,7 @@ class _DetailsState extends State<Details> {
               size: 20,
             ),
             label: Text(
-              _isPanier ? 'Ajouté' : 'Panier',
+              _isPanier ? 'Ajouté au Panier ' : 'Ajouter au Panier',
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),

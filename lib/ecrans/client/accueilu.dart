@@ -29,53 +29,51 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
   ];
 
   final List<Tab> _tabs = const [
-    
     Tab(
       child: Row(
         children: [
-          Icon(FluentIcons.home_checkmark_16_filled),
-          const SizedBox(width: 3,),
-          Text('Accueil')
+          Icon(FluentIcons.home_more_20_filled),
+          const SizedBox(width: 3),
+          Text('Accueil'),
         ],
       ),
-      ),
-      Tab(
+    ),
+    Tab(
       child: Row(
         children: [
           Icon(FluentIcons.gift_card_24_filled),
-          const SizedBox(width: 3,),
-          Text('Promotions')
+          const SizedBox(width: 3),
+          Text('Promotions'),
         ],
       ),
-      ),
-      Tab(
+    ),
+    Tab(
       child: Row(
         children: [
           Icon(FluentIcons.shopping_bag_tag_24_filled),
-          const SizedBox(width: 3,),
-          Text('Mon Panier')
+          const SizedBox(width: 3),
+          Text('Mon Panier'),
         ],
       ),
-      ),
-      Tab(
+    ),
+    Tab(
       child: Row(
         children: [
-          Icon(FluentIcons.book_star_24_filled),
-          const SizedBox(width: 3,),
-          Text('Ma Liste de Souhaits')
+          Icon(FluentIcons.class_20_filled),
+          const SizedBox(width: 3),
+          Text('Liste de Souhaits'),
         ],
       ),
-      ),
-      Tab(
+    ),
+    Tab(
       child: Row(
         children: [
           Icon(FluentIcons.receipt_bag_24_filled),
-          const SizedBox(width: 3,),
-          Text('Mon Historique Commandes')
+          const SizedBox(width: 3),
+          Text('Commandes'),
         ],
       ),
-      ),
-    
+    ),
   ];
 
   void _onTapNav(int index) {
@@ -94,7 +92,7 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final isLargeScreen = screenWidth > 600;
+    final isLargeScreen = screenWidth > 700;
 
     // Initialisation conditionnelle du TabController
     if (isLargeScreen && _tabController == null) {
@@ -103,7 +101,6 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
 
     return Scaffold(
       backgroundColor: Colors.white,
-
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.pushNamed(context, '/admin/nouveau produit');
@@ -129,31 +126,35 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
               ),
             );
           },
-          child: _isClick
-              ? Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      'assets/images/kanjad.png',
-                      key: const ValueKey('logo'),
-                      width: 140,
-                      height: 50,
-                    ),
-                    Transform.translate(
-                      offset: const Offset(-20, 12),
-                      child: const Text(
-                        'Recherche',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+          child:
+              _isClick
+                  ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset(
+                        'assets/images/kanjad.png',
+                        key: const ValueKey('logo'),
+                        width: 140,
+                        height: 50,
                       ),
-                    )
-                  ],
-                )
-              : Image.asset(
-                  'assets/images/kanjad.png',
-                  key: const ValueKey('logo'),
-                  width: 140,
-                  height: 50,
-                ),
+                      Transform.translate(
+                        offset: const Offset(-20, 12),
+                        child: const Text(
+                          'Recherche',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                  : Image.asset(
+                    'assets/images/kanjad.png',
+                    key: const ValueKey('logo'),
+                    width: 140,
+                    height: 50,
+                  ),
         ),
         actions: [
           IconButton(
@@ -167,62 +168,75 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
           ),
         ],
         centerTitle: true,
-        bottom: isLargeScreen
-            ? PreferredSize(
-                preferredSize: const Size.fromHeight(kToolbarHeight),
-                child: Container(
-                  color: Colors.white,
-                  width: double.infinity,
-                  child: Center(
-                    child: TabBar(
-                      controller: _tabController,
-                      isScrollable: true,
-                      indicatorColor: const Color.fromARGB(255, 141, 13, 4),
-                      labelColor: const Color.fromARGB(255, 163, 14, 3),
-                      unselectedLabelColor: Colors.grey[600],
-                      tabs: _tabs,
+        bottom:
+            isLargeScreen
+                ? PreferredSize(
+                  preferredSize: const Size.fromHeight(kToolbarHeight),
+                  child: Container(
+                    
+                    color: Colors.white,
+                    width: double.infinity,
+                    child: Center(
+                      child: SizedBox(
+                        width: 755,
+                        child: TabBar(
+                          dividerHeight: 0,
+                          controller: _tabController,
+                          isScrollable: false,
+                          
+                          indicatorColor: styles.rouge,
+                          labelColor: styles.rouge,
+                          unselectedLabelColor: Colors.grey[600],
+                          tabs: _tabs,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              )
-            : null,
+                )
+                : null,
       ),
 
       drawer: const Drawer(),
 
-      body: _isClick
-          ? Resultats()
-          : isLargeScreen
-              ? TabBarView(
-                  controller: _tabController!,
-                  children: _pages,
-                )
-              : IndexedStack(
-                  index: _selectedIndex,
-                  children: _pages,
-                ),
+      body:
+          _isClick
+              ? Resultats()
+              : isLargeScreen
+              ? TabBarView(controller: _tabController!, children: _pages)
+              : IndexedStack(index: _selectedIndex, children: _pages),
 
-      bottomNavigationBar: isLargeScreen
-          ? null
-          : BottomNavigationBar(
-              currentIndex: _selectedIndex,
-              onTap: _onTapNav,
-              selectedItemColor: const Color.fromARGB(255, 163, 14, 3),
-              unselectedItemColor: Colors.grey,
-              type: BottomNavigationBarType.fixed,
-              items: const [
-                BottomNavigationBarItem(
-                    icon: Icon(FluentIcons.home_more_20_filled), label: 'Accueil'),
-                BottomNavigationBarItem(
-                    icon: Icon(FluentIcons.gift_card_24_filled), label: 'Promos'),
-                BottomNavigationBarItem(
-                    icon: Icon(FluentIcons.shopping_bag_tag_24_filled), label: 'Panier'),
-                BottomNavigationBarItem(
-                    icon: Icon(FluentIcons.class_20_filled), label: 'Souhaits'),
-                BottomNavigationBarItem(
-                    icon: Icon(FluentIcons.receipt_bag_24_filled), label: 'Passés'),
-              ],
-            ),
+      bottomNavigationBar:
+          isLargeScreen
+              ? null
+              : BottomNavigationBar(
+                currentIndex: _selectedIndex,
+                onTap: _onTapNav,
+                selectedItemColor: const Color.fromARGB(255, 163, 14, 3),
+                unselectedItemColor: Colors.grey,
+                type: BottomNavigationBarType.fixed,
+                items: const [
+                  BottomNavigationBarItem(
+                    icon: Icon(FluentIcons.home_more_20_filled),
+                    label: 'Accueil',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(FluentIcons.gift_card_24_filled),
+                    label: 'Promos',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(FluentIcons.shopping_bag_tag_24_filled),
+                    label: 'Panier',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(FluentIcons.class_20_filled),
+                    label: 'Souhaits',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(FluentIcons.receipt_bag_24_filled),
+                    label: 'Passés',
+                  ),
+                ],
+              ),
     );
   }
 }

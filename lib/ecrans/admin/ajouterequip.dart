@@ -85,7 +85,9 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
     'Réseau': ['Routeurs', 'Switch', 'Modem', 'Serveur'],
     'Appareils Mobiles': ['Téléphone', 'Tablette', 'Accessoire mobile'],
     'Divers': ['Téléviseur', 'Machine à laver', 'Cafetière','Fers à repasser'],
-    'Accessoires': ['Montres connectées','Casques','Chaussures'],
+    'Accessoires': ['Montres connectées','Casques','Chaussures',
+    'Barette mémoire','Adaptateur','Cables Usb',
+        'Clé USB','Chargeur'],
   };
 
   bool _isLoading = false;
@@ -314,9 +316,10 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
   Widget _zonesTextes() {
     return Column(
       children: [
+
         //Nom du produit
         TextFormField(
-          maxLength: 32,
+          maxLength: 24,
           controller: _nomController,
           decoration: _titresChamps('Nom du produit'),
           validator:
@@ -326,6 +329,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
                       : null,
         ),
         const SizedBox(height: 16),
+
         //Quantité
         TextFormField(
           controller: _quantiteController,

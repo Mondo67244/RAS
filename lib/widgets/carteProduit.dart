@@ -49,7 +49,7 @@ class ProductCard extends StatelessWidget {
                 borderRadius:
                     const BorderRadius.vertical(top: Radius.circular(8)),
                 child: SizedBox(
-                  height: isWideScreen ? 270 : 260,
+                  height: isWideScreen ? 290 : 265,
                   width: double.infinity,
                   child: Stack(
                     fit: StackFit.expand,
@@ -81,7 +81,7 @@ class ProductCard extends StatelessWidget {
                               label: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.local_offer,
+                                  Icon(Icons.whatshot_outlined,
                                       size: 16, color: styles.rouge),
                                   const SizedBox(width: 4),
                                   Text(
@@ -97,12 +97,13 @@ class ProductCard extends StatelessWidget {
                             ),
                           ),
                         ),
+                        
                     ],
                   ),
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+                padding: const EdgeInsets.fromLTRB(8, 7, 8, 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -115,7 +116,6 @@ class ProductCard extends StatelessWidget {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(height: 8),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -140,7 +140,7 @@ class ProductCard extends StatelessWidget {
                             produit.enStock ? 'En stock' : 'Rupture',
                             style: TextStyle(
                               fontSize: 12,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.bold,
                               color: produit.enStock ? styles.vert : styles.erreur,
                             ),
                           ),
@@ -150,31 +150,31 @@ class ProductCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: produit.enStock ? onToggleSouhait : null,
-                            icon: Icon(
-                              isSouhait
-                                  ? FluentIcons.book_star_24_filled
-                                  : FluentIcons.book_star_24_regular,
-                              size: 18,
-                            ),
-                            label: Text(
-                              isSouhait ? 'Souhaité' : 'Souhait',
-                              style: const TextStyle(fontWeight: FontWeight.w600),
-                            ),
-                            style: OutlinedButton.styleFrom(
-                              backgroundColor: isSouhait ? styles.blanc : styles.rouge,
-                              foregroundColor: isSouhait ? styles.rouge : styles.blanc,
-                              side: BorderSide(color: styles.rouge, width: 1.2),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
+                        // Expanded(
+                        //   child: OutlinedButton.icon(
+                        //     onPressed: produit.enStock ? onToggleSouhait : null,
+                        //     icon: Icon(
+                        //       isSouhait
+                        //           ? FluentIcons.class_20_filled
+                        //           : FluentIcons.book_star_24_regular,
+                        //       size: 18,
+                        //     ),
+                        //     label: Text(
+                        //       isSouhait ? 'Souhaité' : 'Souhait',
+                        //       style: const TextStyle(fontWeight: FontWeight.w600),
+                        //     ),
+                        //     style: OutlinedButton.styleFrom(
+                        //       backgroundColor: isSouhait ? Colors.red.shade50 : styles.rouge,
+                        //       foregroundColor: isSouhait ? styles.rouge : styles.blanc,
+                        //       side: BorderSide(color: styles.rouge, width: 1.2),
+                        //       shape: RoundedRectangleBorder(
+                        //         borderRadius: BorderRadius.circular(10),
+                        //       ),
+                        //       padding: const EdgeInsets.symmetric(vertical: 10),
+                        //     ),
+                        //   ),
+                        // ),
+                       
                         Expanded(
                           child: ElevatedButton.icon(
                             onPressed: produit.enStock ? onTogglePanier : null,
@@ -185,16 +185,17 @@ class ProductCard extends StatelessWidget {
                               size: 18,
                             ),
                             label: Text(
-                              isPanier ? 'Ajouté' : 'Panier',
+                              isPanier ? 'Ajouté' : 'Ajouter au Panier',
                               style: const TextStyle(fontWeight: FontWeight.w600),
                             ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  isSouhait ? styles.bleu : styles.blanc,
-                              foregroundColor: isSouhait ? styles.blanc : styles.bleu,
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: isPanier ? Colors.blue.shade50 : styles.bleu,
+                              foregroundColor: isPanier ? styles.bleu : styles.blanc,
+                              side: BorderSide(color: const Color.fromARGB(255, 11, 7, 115), width: 1.2),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
                             ),
                           ),
                         ),
