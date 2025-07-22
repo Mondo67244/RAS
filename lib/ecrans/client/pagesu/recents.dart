@@ -409,7 +409,7 @@ class RecentsState extends State<Recents> {
               ? const Text('')
               : _imagesEntetes('assets/images/PG2.png', isWide: isWideScreen),
           ProductSection(
-            title: 'Articles Populaires',
+            title: 'Les Articles Populaires',
             produits: produitsPopulaires,
             isWideScreen: isWideScreen,
             souhaits: _souhaits,
@@ -423,7 +423,7 @@ class RecentsState extends State<Recents> {
               : _imagesEntetes('assets/images/BG.png', isWide: isWideScreen),
           const SizedBox(height: 24),
           ProductSection(
-            title: 'Appareils pour la Bureautique',
+            title: 'Appareils de Bureautique',
             produits: produitsBureautique,
             isWideScreen: isWideScreen,
             souhaits: _souhaits,
@@ -475,4 +475,5 @@ class RecentsState extends State<Recents> {
       ),
     );
   }
+
 }

@@ -57,6 +57,7 @@ class _ResultatsState extends State<Resultats> {
   }
 
   @override
+  //Pour disposer les champs 
   void dispose() {
     _searchController.dispose();
     _minPriceController.dispose();
@@ -65,21 +66,25 @@ class _ResultatsState extends State<Resultats> {
     super.dispose();
   }
 
+//Quand le texte de la barre de recherche change
   void _onSearchTextChanged() {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), _performSearch);
   }
 
+//Quand le prix change
   void _onPriceChanged() {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), _performSearch);
   }
 
+//Lorsque la valeur des dropdownchange
   void _onDropdownChanged() {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 300), _performSearch);
   }
 
+//StreamBuilder pour récupérer les données de Firestore
   Stream<List<Produit>> _buildSearchStream() {
     Query<Map<String, dynamic>> query = FirebaseFirestore.instance.collection('Produits');
 
@@ -121,6 +126,7 @@ class _ResultatsState extends State<Resultats> {
     });
   }
 
+//Méthode pour lancer les recherches
   Future<void> _performSearch() async {
     if (_isLoading) return;
 
@@ -156,6 +162,7 @@ class _ResultatsState extends State<Resultats> {
     );
   }
 
+//le formulaire de recherche
   Widget _buildSearchForm() {
     return Form(
       key: _formKey,
@@ -246,6 +253,7 @@ class _ResultatsState extends State<Resultats> {
     );
   }
 
+//Les listes déroulantes
   Widget _buildDropdown(
     List<String> items,
     String hint,
@@ -272,6 +280,7 @@ class _ResultatsState extends State<Resultats> {
     );
   }
 
+//L'endroit dans lequel on affiche les résultats
   Widget _buildResultsSection() {
     if (!_hasSearched) {
       return const Center(
@@ -327,6 +336,7 @@ class _ResultatsState extends State<Resultats> {
     );
   }
 
+//Méthode pour récupérer les images et les décoder
   Widget _buildImage(String imageData) {
     try {
       if (imageData.startsWith('http')) {
@@ -345,6 +355,7 @@ class _ResultatsState extends State<Resultats> {
     }
   }
 
+// Le style des zones de textes
   InputDecoration _inputDecoration(String label, IconData icon) {
     return InputDecoration(
       labelText: label,

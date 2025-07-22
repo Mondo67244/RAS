@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:ras_app/basicdata/produit.dart';
-import 'package:ras_app/basicdata/produit_extension.dart';
 import 'package:ras_app/services/base%20de%20donn%C3%A9es/lienbd.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';

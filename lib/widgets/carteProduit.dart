@@ -36,251 +36,176 @@ class ProductCard extends StatelessWidget {
       child: InkWell(
         onTap: () =>
             Navigator.pushNamed(context, '/details', arguments: produit),
+        borderRadius: BorderRadius.circular(16),
         child: Card(
           margin: const EdgeInsets.all(10),
-          elevation: 2,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          elevation: 3,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           clipBehavior: Clip.antiAlias,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ClipRRect(
                 borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(16)),
+                    const BorderRadius.vertical(top: Radius.circular(8)),
                 child: SizedBox(
-                  height: isWideScreen ? 250 : 230,
-                  child: images.isEmpty
-                      ? Center(
-                          child: Icon(
-                            Icons.image_not_supported_outlined,
-                            color: Colors.grey.shade400,
-                            size: 60,
-                          ),
-                        )
-                      : Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            PageView.builder(
+                  height: isWideScreen ? 270 : 260,
+                  width: double.infinity,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      images.isEmpty
+                          ? Center(
+                              child: Icon(Icons.image_not_supported_outlined,
+                                  color: Colors.grey.shade400, size: 60),
+                            )
+                          : PageView.builder(
                               controller: pageController,
                               itemCount: images.length,
                               itemBuilder: (context, index) =>
                                   _appelImages(images[index], context),
                             ),
-                            if (images.length > 1) ...[
-                              Positioned(
-                                bottom: 12,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children:
-                                      List.generate(images.length, (index) {
-                                    return AnimatedContainer(
-                                      duration:
-                                          const Duration(milliseconds: 300),
-                                      width: pageController.hasClients &&
-                                              pageController.page?.round() ==
-                                                  index
-                                          ? 12
-                                          : 8,
-                                      height: 8,
-                                      margin: const EdgeInsets.symmetric(
-                                          horizontal: 4),
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: pageController.hasClients &&
-                                                pageController.page?.round() ==
-                                                    index
-                                            ? styles.rouge
-                                            : Colors.grey.shade300,
-                                      ),
-                                    );
-                                  }),
-                                ),
+                      if (produit.enPromo)
+                        Positioned(
+                          top: 10,
+                          left: 10,
+                          child: AnimatedOpacity(
+                            opacity: produit.enPromo ? 1.0 : 0.0,
+                            duration: const Duration(milliseconds: 400),
+                            child: Chip(
+                              backgroundColor: Colors.red.shade50,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                side: BorderSide(color: styles.rouge, width: 1),
                               ),
-                              if (pageController.hasClients &&
-                                  (pageController.page?.round() ?? 0) > 0)
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: _fleche(
-                                    icon: Icons.arrow_back_ios_new,
-                                    onPressed: () =>
-                                        pageController.previousPage(
-                                      duration:
-                                          const Duration(milliseconds: 300),
-                                      curve: Curves.easeInOut,
+                              label: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.local_offer,
+                                      size: 16, color: styles.rouge),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'En Promo!',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: styles.rouge,
+                                      fontSize: 12,
                                     ),
                                   ),
-                                ),
-                              if (pageController.hasClients &&
-                                  (pageController.page?.round() ?? 0) <
-                                      images.length - 1)
-                                Align(
-                                  alignment: Alignment.centerRight,
-                                  child: _fleche(
-                                    icon: Icons.arrow_forward_ios,
-                                    onPressed: () => pageController.nextPage(
-                                      duration:
-                                          const Duration(milliseconds: 300),
-                                      curve: Curves.easeInOut,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ],
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
-                ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 8),
-                          Text(
-                            produit.nomProduit,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: -0.2,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                '${produit.prix} CFA',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: styles.rouge,
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: produit.enStock
-                                      ? styles.vert.withOpacity(0.1)
-                                      : styles.erreur.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  produit.enStock
-                                      ? 'En stock'
-                                      : 'Rupture de stock',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: produit.enStock
-                                        ? styles.vert
-                                        : styles.erreur,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white,
-                                foregroundColor: styles.rouge,
-                                side: BorderSide(
-                                    color: styles.rouge, width: 1.2),
-                                elevation: 0,
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 10, horizontal: 8),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10)),
-                              ),
-                              onPressed: produit.enStock
-                                  ? onToggleSouhait
-                                  : null,
-                              icon: Icon(
-                                isSouhait
-                                    ? FluentIcons.book_star_24_filled
-                                    : FluentIcons.book_star_24_regular,
-                                size: 18,
-                              ),
-                              label: Text(
-                                isSouhait ? 'Souhaité' : 'Souhait',
-                                style: const TextStyle(
-                                    fontSize: 14, fontWeight: FontWeight.w600),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: produit.enStock
-                                    ? styles.bleu
-                                    : Colors.grey.shade400,
-                                foregroundColor: Colors.white,
-                                elevation: 1,
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 10, horizontal: 8),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10)),
-                              ),
-                              onPressed: produit.enStock
-                                  ? onTogglePanier
-                                  : null,
-                              icon: Icon(
-                                isPanier
-                                    ? FluentIcons.shopping_bag_tag_24_filled
-                                    : FluentIcons
-                                        .shopping_bag_tag_24_regular,
-                                size: 18,
-                              ),
-                              label: Text(
-                                isPanier ? 'Ajouté' : 'Panier',
-                                style: const TextStyle(
-                                    fontSize: 14, fontWeight: FontWeight.w600),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
                     ],
                   ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      produit.nomProduit,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '${produit.prix} CFA',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: styles.rouge,
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: produit.enStock
+                                ? styles.vert.withOpacity(0.1)
+                                : styles.erreur.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            produit.enStock ? 'En stock' : 'Rupture',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: produit.enStock ? styles.vert : styles.erreur,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: produit.enStock ? onToggleSouhait : null,
+                            icon: Icon(
+                              isSouhait
+                                  ? FluentIcons.book_star_24_filled
+                                  : FluentIcons.book_star_24_regular,
+                              size: 18,
+                            ),
+                            label: Text(
+                              isSouhait ? 'Souhaité' : 'Souhait',
+                              style: const TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: isSouhait ? styles.blanc : styles.rouge,
+                              foregroundColor: isSouhait ? styles.rouge : styles.blanc,
+                              side: BorderSide(color: styles.rouge, width: 1.2),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: produit.enStock ? onTogglePanier : null,
+                            icon: Icon(
+                              isPanier
+                                  ? FluentIcons.shopping_bag_tag_24_filled
+                                  : FluentIcons.shopping_bag_tag_24_regular,
+                              size: 18,
+                            ),
+                            label: Text(
+                              isPanier ? 'Ajouté' : 'Panier',
+                              style: const TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  isSouhait ? styles.bleu : styles.blanc,
+                              foregroundColor: isSouhait ? styles.blanc : styles.bleu,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _fleche({required IconData icon, required VoidCallback onPressed}) {
-    return Container(
-      margin: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.5),
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: IconButton(
-        icon: Icon(icon, color: Colors.white, size: 18),
-        onPressed: onPressed,
       ),
     );
   }
@@ -299,7 +224,7 @@ class ProductCard extends StatelessWidget {
     if (imageData.startsWith('http')) {
       return CachedNetworkImage(
         imageUrl: imageData,
-        fit: BoxFit.contain,
+        fit: BoxFit.cover,
         width: MediaQuery.of(context).size.width > 400 ? 300 : 280,
         placeholder: (context, url) =>
             const Center(child: CircularProgressIndicator()),
@@ -318,7 +243,7 @@ class ProductCard extends StatelessWidget {
       final Uint8List imageBytes = base64Decode(imageData);
       return Image.memory(
         imageBytes,
-        fit: BoxFit.contain,
+        fit: BoxFit.cover,
         width: MediaQuery.of(context).size.width > 400 ? 300 : 280,
         errorBuilder: (context, error, stackTrace) => const Icon(
           Icons.broken_image_outlined,
