@@ -64,9 +64,10 @@ class Produit {
       electronique: json['electronique'] ?? false,
       quantite: json['quantite']?.toString() ?? '',
       livrable: json['livrable'] ?? true,
-      createdAt: json['createdAt'] != null
-          ? Timestamp.fromMillisecondsSinceEpoch(json['createdAt'] as int)
-          : Timestamp.now(),
+      createdAt:
+          json['createdAt'] != null
+              ? Timestamp.fromMillisecondsSinceEpoch(json['createdAt'] as int)
+              : Timestamp.now(),
       enStock: json['enStock'] ?? true,
       img1: json['img1']?.toString() ?? '',
       img2: json['img2']?.toString() ?? '',
@@ -87,16 +88,17 @@ class Produit {
 
   // Dans produit.dart
 
-factory Produit.fromFirestore(DocumentSnapshot doc) {
+  factory Produit.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     return Produit(
       idProduit: doc.id,
       nomProduit: data['nomProduit'] ?? '',
       description: data['description'] ?? '',
       prix: data['prix']?.toString() ?? '0', // Lit le prix
-      auPanier: data['auPanier'] ?? false,   // Important : Lit le statut du panier
-      quantite: data['quantite']?.toString() ?? '1', // Important : Lit la quantité
-
+      auPanier:
+          data['auPanier'] ?? false, // Important : Lit le statut du panier
+      quantite:
+          data['quantite']?.toString() ?? '1', // Important : Lit la quantité
       // Assurez-vous que les autres champs sont également mappés correctement
       descriptionCourte: data['descriptionCourte'] ?? '',
       sousCategorie: data['sousCategorie'] ?? '',
@@ -113,10 +115,10 @@ factory Produit.fromFirestore(DocumentSnapshot doc) {
       vues: data['vues']?.toString() ?? '0',
       modele: data['modele'] ?? '',
       marque: data['marque'] ?? '',
-      type: data['type'] ?? '', 
+      type: data['type'] ?? '',
       categorie: data['categorie'] ?? '',
     );
-}
+  }
   Map<String, dynamic> toJson() {
     return {
       'descriptionCourte': descriptionCourte,

@@ -54,8 +54,11 @@ class _DetailsState extends State<Details> {
     _firestoreService.updateProductCart(produit.idProduit, !produit.auPanier);
   }
 
-void _messageReponse(
-    String message, {bool isSuccess = true,IconData? icon}) {
+  void _messageReponse(
+    String message, {
+    bool isSuccess = true,
+    IconData? icon,
+  }) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -76,8 +79,7 @@ void _messageReponse(
     );
   }
 
-
-Widget _montreLesImages() {
+  Widget _montreLesImages() {
     if (_images.isEmpty) {
       return Container(
         color: Colors.grey.shade100,
@@ -181,15 +183,16 @@ Widget _montreLesImages() {
   }
 
   Widget _detailsContenu(Produit produit) {
-  final constraints = MediaQuery.of(context).size.width > 1200;
+    final constraints = MediaQuery.of(context).size.width > 1200;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          
-          constraints ? const SizedBox(height: 170) : const SizedBox(height: 10,),
+          constraints
+              ? const SizedBox(height: 170)
+              : const SizedBox(height: 10),
           Text(
             produit.nomProduit,
             style: const TextStyle(
@@ -250,71 +253,85 @@ Widget _montreLesImages() {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               //Bouton souhait
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: styles.rouge,
-                side: BorderSide(color: styles.rouge, width: 1.5),
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: styles.rouge,
+                  side: BorderSide(color: styles.rouge, width: 1.5),
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 16,
+                    horizontal: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed:
+                    produit.enStock ? () => _toggleSouhait(produit) : null,
+                icon: Icon(
+                  produit.jeVeut
+                      ? FluentIcons.class_20_filled
+                      : FluentIcons.book_star_24_regular,
+                  size: 20,
+                ),
+                label: Text(
+                  produit.jeVeut ? 'Souhaité' : 'Je Souhaite',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-              onPressed: produit.enStock ? () => _toggleSouhait(produit) : null,
-              icon: Icon(
-                produit.jeVeut
-                    ? FluentIcons.class_20_filled
-                    : FluentIcons.book_star_24_regular,
-                size: 20,
+              //Bouton Panier
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                      produit.enStock ? styles.bleu : Colors.grey.shade400,
+                  foregroundColor: Colors.white,
+                  elevation: 2,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 16,
+                    horizontal: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed:
+                    produit.enStock ? () => _togglePanier(produit) : null,
+                icon: Icon(
+                  produit.auPanier
+                      ? FluentIcons.shopping_bag_tag_24_filled
+                      : FluentIcons.shopping_bag_tag_24_regular,
+                  size: 20,
+                ),
+                label: Text(
+                  produit.auPanier ? 'Ajouté ! ' : 'Ajouter au Panier',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
-              label: Text(
-                produit.jeVeut ? 'Souhaité' : 'Je Souhaite',
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ),
-          //Bouton Panier
-        ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor:
-                  produit.enStock ? styles.bleu : Colors.grey.shade400,
-              foregroundColor: Colors.white,
-              elevation: 2,
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            onPressed: produit.enStock ? () => _togglePanier(produit) : null,
-            icon: Icon(
-              produit.auPanier
-                  ? FluentIcons.shopping_bag_tag_24_filled
-                  : FluentIcons.shopping_bag_tag_24_regular,
-              size: 20,
-            ),
-            label: Text(
-              produit.auPanier ? 'Ajouté ! ' : 'Ajouter au Panier',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
+            ],
           ),
-        
-          ],),
-           
-          
         ],
       ),
     );
   }
- Widget _detailsContenumob(Produit produit) {
-  final constraints = MediaQuery.of(context).size.width > 1200;
+
+  Widget _detailsContenumob(Produit produit) {
+    final constraints = MediaQuery.of(context).size.width > 1200;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          
-          constraints ? const SizedBox(height: 170) : const SizedBox(height: 10,),
+          constraints
+              ? const SizedBox(height: 170)
+              : const SizedBox(height: 10),
           Text(
             produit.nomProduit,
             style: const TextStyle(
@@ -371,102 +388,104 @@ Widget _montreLesImages() {
 
           _carteDetails(produit),
           const SizedBox(height: 24),
-         Center(
-           child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: styles.rouge,
-                  side: BorderSide(color: styles.rouge, width: 1.5),
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+          Center(
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: styles.rouge,
+                side: BorderSide(color: styles.rouge, width: 1.5),
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 16,
+                  horizontal: 12,
                 ),
-                onPressed: produit.enStock ? () => _toggleSouhait(produit) : null,
-                icon: Icon(
-                  produit.jeVeut
-                      ? FluentIcons.class_20_filled
-                      : FluentIcons.book_star_24_regular,
-                  size: 20,
-                ),
-                label: Text(
-                  produit.jeVeut ? 'Article Souhaité !' : 'Ajouter aux souhaits',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
-         ),
-          
-          const SizedBox(height: 12,),
-          Text(
-                'Description Détaillée:',
+              onPressed: produit.enStock ? () => _toggleSouhait(produit) : null,
+              icon: Icon(
+                produit.jeVeut
+                    ? FluentIcons.class_20_filled
+                    : FluentIcons.book_star_24_regular,
+                size: 20,
+              ),
+              label: Text(
+                produit.jeVeut ? 'Article Souhaité !' : 'Ajouter aux souhaits',
                 style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                produit.description.isNotEmpty
-                    ? produit.description
-                    : "Aucune description fournie pour ce produit.",
-                style: TextStyle(
                   fontSize: 16,
-                  height: 1.6,
-                  color: Colors.grey.shade800,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              _methodePaiment(produit),
-      
-              if (MediaQuery.of(context).size.width > 600) ...[
-                const SizedBox(height: 32),
-                _boutons(produit),
-              ],
-          
+            ),
+          ),
+
+          const SizedBox(height: 12),
+          Text(
+            'Description Détaillée:',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            produit.description.isNotEmpty
+                ? produit.description
+                : "Aucune description fournie pour ce produit.",
+            style: TextStyle(
+              fontSize: 16,
+              height: 1.6,
+              color: Colors.grey.shade800,
+            ),
+          ),
+          _methodePaiment(produit),
+
+          if (MediaQuery.of(context).size.width > 600) ...[
+            const SizedBox(height: 32),
+            _boutons(produit),
+          ],
         ],
       ),
     );
   }
 
-
-Widget _detailsTxt(Produit produit){
-  final constraints = MediaQuery.of(context).size.width > 1200;
-  return SingleChildScrollView(
-    child: Padding(
-      padding: const EdgeInsets.all(20.0),
-      child: Column(
-        children: [
-          
-          constraints ? const SizedBox(height: 170,)
-          :const SizedBox(height: 12,),
-          Text(
-                'Description Détaillée:',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
+  Widget _detailsTxt(Produit produit) {
+    final constraints = MediaQuery.of(context).size.width > 1200;
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          children: [
+            constraints
+                ? const SizedBox(height: 170)
+                : const SizedBox(height: 12),
+            Text(
+              'Description Détaillée:',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
               ),
-              const SizedBox(height: 12),
-              Text(
-                produit.description.isNotEmpty
-                    ? produit.description
-                    : "Aucune description fournie pour ce produit.",
-                style: TextStyle(
-                  fontSize: 16,
-                  height: 1.6,
-                  color: Colors.grey.shade800,
-                ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              produit.description.isNotEmpty
+                  ? produit.description
+                  : "Aucune description fournie pour ce produit.",
+              style: TextStyle(
+                fontSize: 16,
+                height: 1.6,
+                color: Colors.grey.shade800,
               ),
-      
-              
-        ],
+            ),
+          ],
+        ),
       ),
-    
-    ),
-  );
-}
+    );
+  }
+
   //Méthode de paiement
   Widget _methodePaiment(Produit produit) {
     final cash = produit.cash;
@@ -541,10 +560,9 @@ Widget _detailsTxt(Produit produit){
             _detailsIndividuels(
               FluentIcons.document_bullet_list_16_regular,
               'Quantité',
-              produit.quantite as String,
+              produit.quantite,
             ),
-            const SizedBox(height: 12,),
-             
+            const SizedBox(height: 12),
           ],
         ),
       ),
@@ -675,7 +693,9 @@ Widget _detailsTxt(Produit produit){
         stream: _firestoreService.getProduitStream(widget.produit.idProduit),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: styles.rouge));
+            return const Center(
+              child: CircularProgressIndicator(color: styles.rouge),
+            );
           }
           if (snapshot.hasError) {
             return Center(child: Text('Erreur: ${snapshot.error}'));
@@ -698,7 +718,7 @@ Widget _detailsTxt(Produit produit){
                       children: [
                         Expanded(flex: 3, child: _montreLesImages()),
                         Expanded(flex: 3, child: _detailsContenu(produit)),
-                        Expanded(flex: 3, child: _detailsTxt(produit))
+                        Expanded(flex: 3, child: _detailsTxt(produit)),
                       ],
                     ),
                   ),
@@ -727,19 +747,20 @@ Widget _detailsTxt(Produit produit){
                     children: [
                       Expanded(flex: 3, child: _montreLesImages()),
                       Expanded(flex: 3, child: _detailsContenumob(produit)),
-                      
                     ],
                   ),
                 ),
               );
             },
           );
-        }
+        },
       ),
       bottomNavigationBar:
           MediaQuery.of(context).size.width <= 600
               ? StreamBuilder<Produit>(
-                stream: _firestoreService.getProduitStream(widget.produit.idProduit),
+                stream: _firestoreService.getProduitStream(
+                  widget.produit.idProduit,
+                ),
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) return const SizedBox.shrink();
                   final produit = snapshot.data!;
@@ -748,7 +769,7 @@ Widget _detailsTxt(Produit produit){
                     padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
                     child: _boutons(produit),
                   );
-                }
+                },
               )
               : null,
     );

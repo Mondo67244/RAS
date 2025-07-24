@@ -20,7 +20,8 @@ class PanierState extends State<Panier> {
   String? _selectedPaymentMethod;
   String? _selectedDeliveryMethod;
   bool _confirmTerms = false;
-  final TextEditingController _paymentNumberController = TextEditingController();
+  final TextEditingController _paymentNumberController =
+      TextEditingController();
 
   // Map pour gérer localement les quantités
   Map<String, int> _productQuantities = {};
@@ -35,7 +36,7 @@ class PanierState extends State<Panier> {
       setState(() {
         _productQuantities = {
           for (var p in products.where((p) => p.auPanier))
-            p.idProduit: int.tryParse(p.quantite) ?? 1
+            p.idProduit: int.tryParse(p.quantite) ?? 1,
         };
       });
     });
@@ -66,7 +67,7 @@ class PanierState extends State<Panier> {
       );
     }
   }
-  
+
   String _formatPrice(double price) {
     final format = NumberFormat("#,##0", "fr_FR");
     return "${format.format(price)} CFA";
@@ -88,19 +89,24 @@ class PanierState extends State<Panier> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: Text('Erreur de chargement du panier : ${snapshot.error}'));
+            return Center(
+              child: Text('Erreur de chargement du panier : ${snapshot.error}'),
+            );
           }
-          
-          final produitsPanier = snapshot.data?.where((p) => p.auPanier).toList() ?? [];
+
+          final produitsPanier =
+              snapshot.data?.where((p) => p.auPanier).toList() ?? [];
 
           if (produitsPanier.isEmpty) {
             return const Center(child: Text('Votre panier est vide.'));
           }
-          
+
           double grandTotal = 0;
           for (var produit in produitsPanier) {
             double prix = double.tryParse(produit.prix) ?? 0.0;
-            int currentQuantity = _productQuantities[produit.idProduit] ?? (int.tryParse(produit.quantite) ?? 1);
+            int currentQuantity =
+                _productQuantities[produit.idProduit] ??
+                (int.tryParse(produit.quantite) ?? 1);
             grandTotal += prix * currentQuantity;
           }
 
@@ -131,7 +137,10 @@ class PanierState extends State<Panier> {
                       flex: 2, // Le panier prend 2/3 de la largeur
                       child: SingleChildScrollView(
                         padding: const EdgeInsets.all(24.0),
-                        child: _buildCartDetailsColumn(produitsPanier, grandTotal),
+                        child: _buildCartDetailsColumn(
+                          produitsPanier,
+                          grandTotal,
+                        ),
                       ),
                     ),
                     const VerticalDivider(width: 1),
@@ -153,13 +162,26 @@ class PanierState extends State<Panier> {
   }
 
   // WIDGET POUR LA PARTIE GAUCHE (détails du panier)
-  Widget _buildCartDetailsColumn(List<Produit> produitsPanier, double grandTotal) {
+  Widget _buildCartDetailsColumn(
+    List<Produit> produitsPanier,
+    double grandTotal,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Prêt à Commander ?', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+        const Text(
+          'Prêt à Commander ?',
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+        ),
         const SizedBox(height: 16),
-        const Text('Récapitulatif des choix :', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.black54)),
+        const Text(
+          'Récapitulatif des choix :',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: Colors.black54,
+          ),
+        ),
         const SizedBox(height: 10),
         ListView.builder(
           shrinkWrap: true,
@@ -172,12 +194,29 @@ class PanierState extends State<Panier> {
         const SizedBox(height: 20),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(color: Colors.amber[300], borderRadius: BorderRadius.circular(8)),
+          decoration: BoxDecoration(
+            color: Colors.amber[300],
+            borderRadius: BorderRadius.circular(8),
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Total avec frais de livraison :', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
-              Text(_formatPrice(grandTotal), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black)),
+              const Text(
+                'Total avec frais de livraison :',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              Text(
+                _formatPrice(grandTotal),
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
             ],
           ),
         ),
@@ -200,11 +239,18 @@ class PanierState extends State<Panier> {
         ElevatedButton(
           onPressed: _confirmTerms ? () {} : null,
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF191970), // Couleur bleu marine de l'image
+            backgroundColor: const Color(
+              0xFF191970,
+            ), // Couleur bleu marine de l'image
             padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30),
+            ),
           ),
-          child: const Text('Valider la commande', style: TextStyle(fontSize: 18, color: Colors.white)),
+          child: const Text(
+            'Valider la commande',
+            style: TextStyle(fontSize: 18, color: Colors.white),
+          ),
         ),
       ],
     );
@@ -212,7 +258,9 @@ class PanierState extends State<Panier> {
 
   // WIDGET POUR UN ARTICLE INDIVIDUEL DANS LE PANIER
   Widget _buildCartItemCard(Produit produit) {
-    int quantity = _productQuantities[produit.idProduit] ?? (int.tryParse(produit.quantite) ?? 1);
+    int quantity =
+        _productQuantities[produit.idProduit] ??
+        (int.tryParse(produit.quantite) ?? 1);
     double prix = double.tryParse(produit.prix) ?? 0.0;
     double itemTotal = prix * quantity;
 
@@ -231,19 +279,47 @@ class PanierState extends State<Panier> {
             Expanded(
               child: Row(
                 children: [
-                  Text('x$quantity', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black54)),
+                  Text(
+                    'x$quantity',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black54,
+                    ),
+                  ),
                   const SizedBox(width: 15),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(produit.nomProduit, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                        Text(
+                          produit.nomProduit,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            _buildQuantityButton(icon: Icons.add, onPressed: () => _updateQuantity(produit.idProduit, quantity + 1)),
+                            _buildQuantityButton(
+                              icon: Icons.add,
+                              onPressed:
+                                  () => _updateQuantity(
+                                    produit.idProduit,
+                                    quantity + 1,
+                                  ),
+                            ),
                             const SizedBox(width: 12),
-                            _buildQuantityButton(icon: Icons.remove, onPressed: () => _updateQuantity(produit.idProduit, quantity - 1)),
+                            _buildQuantityButton(
+                              icon: Icons.remove,
+                              onPressed:
+                                  () => _updateQuantity(
+                                    produit.idProduit,
+                                    quantity - 1,
+                                  ),
+                            ),
                           ],
                         ),
                       ],
@@ -253,20 +329,33 @@ class PanierState extends State<Panier> {
               ),
             ),
             const SizedBox(width: 10),
-            Text(_formatPrice(itemTotal), style: const TextStyle(fontSize: 16, color: Colors.red, fontWeight: FontWeight.bold)),
+            Text(
+              _formatPrice(itemTotal),
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.red,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildQuantityButton({required IconData icon, required VoidCallback onPressed}) {
+  Widget _buildQuantityButton({
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) {
     return InkWell(
       onTap: onPressed,
       borderRadius: BorderRadius.circular(4),
       child: Container(
         padding: const EdgeInsets.all(2),
-        decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade400), borderRadius: BorderRadius.circular(4)),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade400),
+          borderRadius: BorderRadius.circular(4),
+        ),
         child: Icon(icon, size: 20, color: Colors.black54),
       ),
     );
@@ -276,7 +365,10 @@ class PanierState extends State<Panier> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Choisir une méthode de paiement :', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+        const Text(
+          'Choisir une méthode de paiement :',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
         _buildRadioTile('MTN Mobile Money', 'MTN'),
         _buildRadioTile('Orange Money', 'ORANGE'),
         _buildRadioTile('Monnaie Physique', 'CASH'),
@@ -293,13 +385,14 @@ class PanierState extends State<Panier> {
       ],
     );
   }
-  
+
   Widget _buildRadioTile(String title, String value) {
     return RadioListTile<String>(
       title: Text(title),
       value: value,
       groupValue: _selectedPaymentMethod,
-      onChanged: (newValue) => setState(() => _selectedPaymentMethod = newValue),
+      onChanged:
+          (newValue) => setState(() => _selectedPaymentMethod = newValue),
       contentPadding: EdgeInsets.zero,
       activeColor: Colors.red[700],
     );
@@ -309,11 +402,17 @@ class PanierState extends State<Panier> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Choisir une méthode de livraison :', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+        const Text(
+          'Choisir une méthode de livraison :',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
         CheckboxListTile(
           title: const Text('Je veux être livré à Domicile'),
           value: _selectedDeliveryMethod == 'domicile',
-          onChanged: (value) => setState(() => _selectedDeliveryMethod = value! ? 'domicile' : null),
+          onChanged:
+              (value) => setState(
+                () => _selectedDeliveryMethod = value! ? 'domicile' : null,
+              ),
           controlAffinity: ListTileControlAffinity.leading,
           contentPadding: EdgeInsets.zero,
           activeColor: Colors.red[700],
@@ -321,7 +420,10 @@ class PanierState extends State<Panier> {
         CheckboxListTile(
           title: const Text('Je viendrai prendre en boutique'),
           value: _selectedDeliveryMethod == 'boutique',
-          onChanged: (value) => setState(() => _selectedDeliveryMethod = value! ? 'boutique' : null),
+          onChanged:
+              (value) => setState(
+                () => _selectedDeliveryMethod = value! ? 'boutique' : null,
+              ),
           controlAffinity: ListTileControlAffinity.leading,
           contentPadding: EdgeInsets.zero,
           activeColor: Colors.red[700],
@@ -329,7 +431,7 @@ class PanierState extends State<Panier> {
       ],
     );
   }
-  
+
   Widget _buildConfirmationSection() {
     return Row(
       children: [
@@ -339,7 +441,9 @@ class PanierState extends State<Panier> {
           activeColor: Colors.red[700],
         ),
         const Expanded(
-          child: Text("Je confirme mes choix et m'engage à payer le prix total des articles"),
+          child: Text(
+            "Je confirme mes choix et m'engage à payer le prix total des articles",
+          ),
         ),
       ],
     );

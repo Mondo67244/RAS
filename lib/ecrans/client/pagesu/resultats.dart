@@ -19,15 +19,36 @@ class _ResultatsState extends State<Resultats> {
   final _minPriceController = TextEditingController();
   final _maxPriceController = TextEditingController();
 
-  final List<String> _categories = ['Informatique', 'Électro Ménager', 'Électronique'];
-  final List<String> _brands = ['- Autre -', 'Apple', 'Dell', 'HP', 'Lenovo', 'Samsung', 'Sony', 'LG'];
+  final List<String> _categories = [
+    'Informatique',
+    'Électro Ménager',
+    'Électronique',
+  ];
+  final List<String> _brands = [
+    '- Autre -',
+    'Apple',
+    'Dell',
+    'HP',
+    'Lenovo',
+    'Samsung',
+    'Sony',
+    'LG',
+  ];
   final Map<String, List<String>> categoryTypes = {
     'Informatique': ['Bureautique', 'Réseau'],
     'Électro Ménager': ['Divers'],
     'Électronique': ['Appareils Mobiles', 'Accessoires'],
   };
   final Map<String, List<String>> typeAppareil = {
-    'Bureautique': ['Imprimante', 'Souris', 'Clavier', 'Ecran', 'Ordinateur', 'Scanner', 'Haut parleur'],
+    'Bureautique': [
+      'Imprimante',
+      'Souris',
+      'Clavier',
+      'Ecran',
+      'Ordinateur',
+      'Scanner',
+      'Haut parleur',
+    ],
     'Réseau': ['Routeurs', 'Switch', 'Modem', 'Serveur'],
     'Appareils Mobiles': ['Téléphone', 'Tablette', 'Accessoire mobile'],
     'Divers': ['Téléviseur', 'Machine à laver', 'Cafetière', 'Fers à repasser'],
@@ -57,7 +78,7 @@ class _ResultatsState extends State<Resultats> {
   }
 
   @override
-  //Pour disposer les champs 
+  //Pour disposer les champs
   void dispose() {
     _searchController.dispose();
     _minPriceController.dispose();
@@ -66,27 +87,29 @@ class _ResultatsState extends State<Resultats> {
     super.dispose();
   }
 
-//Quand le texte de la barre de recherche change
+  //Quand le texte de la barre de recherche change
   void _onSearchTextChanged() {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), _performSearch);
   }
 
-//Quand le prix change
+  //Quand le prix change
   void _onPriceChanged() {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), _performSearch);
   }
 
-//Lorsque la valeur des dropdownchange
+  //Lorsque la valeur des dropdownchange
   void _onDropdownChanged() {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 300), _performSearch);
   }
 
-//StreamBuilder pour récupérer les données de Firestore
+  //StreamBuilder pour récupérer les données de Firestore
   Stream<List<Produit>> _buildSearchStream() {
-    Query<Map<String, dynamic>> query = FirebaseFirestore.instance.collection('Produits');
+    Query<Map<String, dynamic>> query = FirebaseFirestore.instance.collection(
+      'Produits',
+    );
 
     if (_selectedCategory != null) {
       query = query.where('categorie', isEqualTo: _selectedCategory);
@@ -102,31 +125,43 @@ class _ResultatsState extends State<Resultats> {
     }
 
     return query.snapshots().map((snapshot) {
-      List<Produit> results = snapshot.docs.map((doc) => Produit.fromFirestore(doc)).toList();
+      List<Produit> results =
+          snapshot.docs.map((doc) => Produit.fromFirestore(doc)).toList();
 
       final searchText = _searchController.text.toLowerCase();
       final minPrice = double.tryParse(_minPriceController.text);
       final maxPrice = double.tryParse(_maxPriceController.text);
 
       if (searchText.isNotEmpty) {
-        results = results.where((p) =>
-            p.nomProduit.toLowerCase().contains(searchText) ||
-            p.description.toLowerCase().contains(searchText)).toList();
+        results =
+            results
+                .where(
+                  (p) =>
+                      p.nomProduit.toLowerCase().contains(searchText) ||
+                      p.description.toLowerCase().contains(searchText),
+                )
+                .toList();
       }
 
       if (minPrice != null) {
-        results = results.where((p) => (double.tryParse(p.prix) ?? 0.0) >= minPrice).toList();
+        results =
+            results
+                .where((p) => (double.tryParse(p.prix) ?? 0.0) >= minPrice)
+                .toList();
       }
 
       if (maxPrice != null) {
-        results = results.where((p) => (double.tryParse(p.prix) ?? 0.0) <= maxPrice).toList();
+        results =
+            results
+                .where((p) => (double.tryParse(p.prix) ?? 0.0) <= maxPrice)
+                .toList();
       }
 
       return results;
     });
   }
 
-//Méthode pour lancer les recherches
+  //Méthode pour lancer les recherches
   Future<void> _performSearch() async {
     if (_isLoading) return;
 
@@ -154,20 +189,12 @@ class _ResultatsState extends State<Resultats> {
             // Web layout
             return Center(
               child: Container(
-                constraints: BoxConstraints(
-                  maxWidth: 1200
-                ),
+                constraints: BoxConstraints(maxWidth: 1200),
                 child: Row(
                   children: [
-                    Expanded(
-                      flex: 1,
-                      child: _buildSearchForm(),
-                    ),
+                    Expanded(flex: 1, child: _buildSearchForm()),
                     const VerticalDivider(width: 1),
-                    Expanded(
-                      flex: 3,
-                      child: _buildResultsSection(),
-                    ),
+                    Expanded(flex: 3, child: _buildResultsSection()),
                   ],
                 ),
               ),
@@ -179,7 +206,10 @@ class _ResultatsState extends State<Resultats> {
                 _buildSearchForm(),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Divider(color: primaryBlue.withOpacity(0.5), thickness: 1),
+                  child: Divider(
+                    color: primaryBlue.withOpacity(0.5),
+                    thickness: 1,
+                  ),
                 ),
                 const SizedBox(height: 10),
                 Expanded(child: _buildResultsSection()),
@@ -191,7 +221,7 @@ class _ResultatsState extends State<Resultats> {
     );
   }
 
-//le formulaire de recherche
+  //le formulaire de recherche
   Widget _buildSearchForm() {
     return Form(
       key: _formKey,
@@ -204,7 +234,9 @@ class _ResultatsState extends State<Resultats> {
               runSpacing: 16,
               spacing: 16,
               children: [
-                _buildDropdown(_categories, 'Catégorie', _selectedCategory, (val) {
+                _buildDropdown(_categories, 'Catégorie', _selectedCategory, (
+                  val,
+                ) {
                   setState(() {
                     _selectedCategory = val;
                     _selectedSousCat = null;
@@ -214,21 +246,31 @@ class _ResultatsState extends State<Resultats> {
                 }),
 
                 if (_selectedCategory != null)
-                  _buildDropdown(categoryTypes[_selectedCategory!]!, 'Sous-catégorie', _selectedSousCat, (val) {
-                    setState(() {
-                      _selectedSousCat = val;
-                      _selectedType = null;
-                      _onDropdownChanged();
-                    });
-                  }),
+                  _buildDropdown(
+                    categoryTypes[_selectedCategory!]!,
+                    'Sous-catégorie',
+                    _selectedSousCat,
+                    (val) {
+                      setState(() {
+                        _selectedSousCat = val;
+                        _selectedType = null;
+                        _onDropdownChanged();
+                      });
+                    },
+                  ),
 
                 if (_selectedSousCat != null)
-                  _buildDropdown(typeAppareil[_selectedSousCat!]!, 'Type d\'appareil', _selectedType, (val) {
-                    setState(() {
-                      _selectedType = val;
-                      _onDropdownChanged();
-                    });
-                  }),
+                  _buildDropdown(
+                    typeAppareil[_selectedSousCat!]!,
+                    'Type d\'appareil',
+                    _selectedType,
+                    (val) {
+                      setState(() {
+                        _selectedType = val;
+                        _onDropdownChanged();
+                      });
+                    },
+                  ),
 
                 _buildDropdown(_brands, 'Marque', _selectedBrand, (val) {
                   setState(() {
@@ -242,7 +284,10 @@ class _ResultatsState extends State<Resultats> {
                     Expanded(
                       child: TextFormField(
                         controller: _minPriceController,
-                        decoration: _inputDecoration('Prix Min', Icons.price_check),
+                        decoration: _inputDecoration(
+                          'Prix Min',
+                          Icons.price_check,
+                        ),
                         keyboardType: TextInputType.number,
                       ),
                     ),
@@ -250,7 +295,10 @@ class _ResultatsState extends State<Resultats> {
                     Expanded(
                       child: TextFormField(
                         controller: _maxPriceController,
-                        decoration: _inputDecoration('Prix Max', Icons.price_change_outlined),
+                        decoration: _inputDecoration(
+                          'Prix Max',
+                          Icons.price_change_outlined,
+                        ),
                         keyboardType: TextInputType.number,
                       ),
                     ),
@@ -261,16 +309,32 @@ class _ResultatsState extends State<Resultats> {
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     onPressed: _performSearch,
-                    icon: _isLoading ? Container() : const Icon(Icons.search, color: Colors.white),
-                    label: _isLoading
-                        ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3))
-                        : const Text('Rechercher'),
+                    icon:
+                        _isLoading
+                            ? Container()
+                            : const Icon(Icons.search, color: Colors.white),
+                    label:
+                        _isLoading
+                            ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 3,
+                              ),
+                            )
+                            : const Text('Rechercher'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryRed,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      textStyle: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
                 ),
@@ -282,7 +346,7 @@ class _ResultatsState extends State<Resultats> {
     );
   }
 
-//Les listes déroulantes
+  //Les listes déroulantes
   Widget _buildDropdown(
     List<String> items,
     String hint,
@@ -293,7 +357,10 @@ class _ResultatsState extends State<Resultats> {
       isExpanded: true,
       value: selectedValue,
       hint: Text(hint, style: TextStyle(color: Colors.grey[600])),
-      items: items.map((item) => DropdownMenuItem(value: item, child: Text(item))).toList(),
+      items:
+          items
+              .map((item) => DropdownMenuItem(value: item, child: Text(item)))
+              .toList(),
       onChanged: onChanged,
       buttonStyleData: ButtonStyleData(
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -309,7 +376,7 @@ class _ResultatsState extends State<Resultats> {
     );
   }
 
-//L'endroit dans lequel on affiche les résultats
+  //L'endroit dans lequel on affiche les résultats
   Widget _buildResultsSection() {
     if (!_hasSearched) {
       return const Center(
@@ -340,23 +407,36 @@ class _ResultatsState extends State<Resultats> {
         final results = snapshot.data ?? [];
 
         if (results.isEmpty) {
-          return const Center(child: Text('Aucun résultat trouvé pour ces critères.'));
+          return const Center(
+            child: Text('Aucun résultat trouvé pour ces critères.'),
+          );
         }
 
         return ListView.separated(
           itemCount: results.length,
-          separatorBuilder: (context, index) => const Divider(indent: 16, endIndent: 16),
+          separatorBuilder:
+              (context, index) => const Divider(indent: 16, endIndent: 16),
           itemBuilder: (context, index) {
             final produit = results[index];
             return ListTile(
-              leading: produit.img1.isNotEmpty
-                  ? _buildImage(produit.img1)
-                  : const Icon(Icons.image_not_supported, size: 60),
-              title: Text(produit.nomProduit, style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text('${produit.categorie} > ${produit.sousCategorie}\n${produit.prix} CFA'),
+              leading:
+                  produit.img1.isNotEmpty
+                      ? _buildImage(produit.img1)
+                      : const Icon(Icons.image_not_supported, size: 60),
+              title: Text(
+                produit.nomProduit,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Text(
+                '${produit.categorie} > ${produit.sousCategorie}\n${produit.prix} CFA',
+              ),
               isThreeLine: true,
               onTap: () {
-                Navigator.pushNamed(context, '/details', arguments: produit).then((_) => _performSearch());
+                Navigator.pushNamed(
+                  context,
+                  '/details',
+                  arguments: produit,
+                ).then((_) => _performSearch());
               },
             );
           },
@@ -365,26 +445,40 @@ class _ResultatsState extends State<Resultats> {
     );
   }
 
-//Méthode pour récupérer les images et les décoder
+  //Méthode pour récupérer les images et les décoder
   Widget _buildImage(String imageData) {
     try {
       if (imageData.startsWith('http')) {
         return ClipRRect(
           borderRadius: BorderRadius.circular(8.0),
-          child: Image.network(imageData, width: 60, height: 60, fit: BoxFit.cover),
+          child: Image.network(
+            imageData,
+            width: 60,
+            height: 60,
+            fit: BoxFit.cover,
+          ),
         );
       }
       final Uint8List imageBytes = base64Decode(imageData);
       return ClipRRect(
         borderRadius: BorderRadius.circular(8.0),
-        child: Image.memory(imageBytes, width: 60, height: 60, fit: BoxFit.cover),
+        child: Image.memory(
+          imageBytes,
+          width: 60,
+          height: 60,
+          fit: BoxFit.cover,
+        ),
       );
     } catch (e) {
-      return const Icon(Icons.broken_image_outlined, color: Colors.red, size: 60);
+      return const Icon(
+        Icons.broken_image_outlined,
+        color: Colors.red,
+        size: 60,
+      );
     }
   }
 
-// Le style des zones de textes
+  // Le style des zones de textes
   InputDecoration _inputDecoration(String label, IconData icon) {
     return InputDecoration(
       labelText: label,
