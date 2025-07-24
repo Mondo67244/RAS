@@ -108,6 +108,83 @@ class FirestoreService {
     }
   }
 
+  Stream<Produit> getProduitStream(String produitId) {
+    try {
+      return produitsCollection.doc(produitId).snapshots().map((doc) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        return Produit(
+          descriptionCourte: data['descriptionCourte'] ?? '',
+          sousCategorie: data['sousCategorie'] ?? '',
+          enPromo: data['enPromo'] ?? false,
+          cash: data['cash'] ?? false,
+          electronique: data['electronique'] ?? false,
+          quantite: data['quantite'] ?? '',
+          livrable: data['livrable'] ?? true,
+          createdAt: data['createdAt'] ?? Timestamp.now(),
+          enStock: data['enStock'] ?? true,
+          img1: data['img1'] ?? '',
+          img2: data['img2'] ?? '',
+          img3: data['img3'] ?? '',
+          auPanier: data['auPanier'] ?? false,
+          idProduit: doc.id,
+          nomProduit: data['nomProduit'] ?? '',
+          description: data['description'] ?? '',
+          prix: data['prix'] ?? '',
+          vues: data['vues']?.toString() ?? '0',
+          modele: data['modele'] ?? '',
+          marque: data['marque'] ?? '',
+          categorie: data['categorie'] ?? '',
+          type: data['type'] ?? '',
+          jeVeut: data['jeVeut'] ?? false,
+        );
+      });
+    } catch (e) {
+      print('Erreur dans getProduitStream: $e');
+      return Stream.error(e);
+    }
+  }
+
+  Stream<List<Produit>> getProduitsStream() {
+    try {
+      return produitsCollection
+          .orderBy('createdAt', descending: true)
+          .snapshots()
+          .map((snapshot) {
+        return snapshot.docs.map((doc) {
+          Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+          return Produit(
+            descriptionCourte: data['descriptionCourte'] ?? '',
+            sousCategorie: data['sousCategorie'] ?? '',
+            enPromo: data['enPromo'] ?? false,
+            cash: data['cash'] ?? false,
+            electronique: data['electronique'] ?? false,
+            quantite: data['quantite'] ?? '',
+            livrable: data['livrable'] ?? true,
+            createdAt: data['createdAt'] ?? Timestamp.now(),
+            enStock: data['enStock'] ?? true,
+            img1: data['img1'] ?? '',
+            img2: data['img2'] ?? '',
+            img3: data['img3'] ?? '',
+            auPanier: data['auPanier'] ?? false,
+            idProduit: doc.id,
+            nomProduit: data['nomProduit'] ?? '',
+            description: data['description'] ?? '',
+            prix: data['prix'] ?? '',
+            vues: data['vues']?.toString() ?? '0',
+            modele: data['modele'] ?? '',
+            marque: data['marque'] ?? '',
+            categorie: data['categorie'] ?? '',
+            type: data['type'] ?? '',
+            jeVeut: data['jeVeut'] ?? false,
+          );
+        }).toList();
+      });
+    } catch (e) {
+      print('Erreur dans getProduitsStream: $e');
+      return Stream.value([]);
+    }
+  }
+
   Future<void> updateProductWishlist(String productId, bool newStatus) async {
     try {
       await produitsCollection.doc(productId).update({

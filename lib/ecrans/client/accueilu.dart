@@ -61,7 +61,7 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
         children: [
           Icon(FluentIcons.class_20_filled),
           const SizedBox(width: 3),
-          Text('Liste de Souhaits'),
+          Text('Liste Souhaits'),
         ],
       ),
     ),

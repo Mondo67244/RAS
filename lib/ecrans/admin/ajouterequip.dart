@@ -43,10 +43,13 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
   final List<String> _brands = [
     '- Autre -',
     'Apple',
+    'Canon',
     'Dell',
+    'HPE'
     'D-link',
     'Tp-Link',
     'HP',
+    'UniFi',
     'Lenovo',
     'Samsung',
     'Sony',
@@ -82,7 +85,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
   // Structure des types par catégorie
   final Map<String, List<String>> typeAppareil = {
     'Bureautique': ['Imprimante', 'Souris', 'Clavier', 'Ecran', 'Ordinateur','Scanner','Haut parleur'],
-    'Réseau': ['Routeurs', 'Switch', 'Modem', 'Serveur'],
+    'Réseau': ['Routeurs', 'Switch', 'Modem', 'Serveur','Téléphones IP'],
     'Appareils Mobiles': ['Téléphone', 'Tablette', 'Accessoire mobile'],
     'Divers': ['Téléviseur', 'Machine à laver', 'Cafetière','Fers à repasser'],
     'Accessoires': ['Montres connectées','Casques','Chaussures',

@@ -17,18 +17,13 @@ class Details extends StatefulWidget {
 
 class _DetailsState extends State<Details> {
   final FirestoreService _firestoreService = FirestoreService();
-  late bool _isSouhait;
-  late bool _isPanier;
   late PageController _pageController;
   int _currentPage = 0;
   List<String> _images = [];
-  String methode = '';
 
   @override
   void initState() {
     super.initState();
-    _isSouhait = widget.produit.jeVeut;
-    _isPanier = widget.produit.auPanier;
     _images =
         [
           widget.produit.img1,
@@ -51,66 +46,12 @@ class _DetailsState extends State<Details> {
     super.dispose();
   }
 
-  Future<void> _toggleJeVeut() async {
-    final bool nouvelEtat = !_isSouhait;
-    setState(() {
-      _isSouhait = nouvelEtat;
-      if (nouvelEtat) _isPanier = false;
-    });
-    _messageReponse(
-      nouvelEtat
-          ? '${widget.produit.nomProduit} ajouté à vos souhaits'
-          : '${widget.produit.nomProduit} retiré de vos souhaits',
-      isSuccess: nouvelEtat,
-    );
-    try {
-      await _firestoreService.updateProductWishlist(
-        widget.produit.idProduit,
-        nouvelEtat,
-      );
-      if (nouvelEtat) {
-        await _firestoreService.updateProductCart(
-          widget.produit.idProduit,
-          false,
-        );
-      }
-    } catch (e) {
-      _messageReponse('Erreur de mise à jour du souhait.', isSuccess: false);
-      setState(() => _isSouhait = !nouvelEtat);
-    }
+  void _toggleSouhait(Produit produit) {
+    _firestoreService.updateProductWishlist(produit.idProduit, !produit.jeVeut);
   }
 
-  Future<void> _toggleAuPanier() async {
-    final bool nouvelEtat = !_isPanier;
-    setState(() {
-      _isPanier = nouvelEtat;
-      if (nouvelEtat) _isSouhait = false;
-    });
-    _messageReponse(
-      nouvelEtat
-          ? '${widget.produit.nomProduit} ajouté au panier'
-          : '${widget.produit.nomProduit} retiré du panier',
-      isSuccess: nouvelEtat,
-      icon:
-          nouvelEtat
-              ? Icons.add_shopping_cart_outlined
-              : Icons.remove_shopping_cart_outlined,
-    );
-    try {
-      await _firestoreService.updateProductCart(
-        widget.produit.idProduit,
-        nouvelEtat,
-      );
-      if (nouvelEtat) {
-        await _firestoreService.updateProductWishlist(
-          widget.produit.idProduit,
-          false,
-        );
-      }
-    } catch (e) {
-      _messageReponse('Erreur de mise à jour du panier.', isSuccess: false);
-      setState(() => _isPanier = !nouvelEtat);
-    }
+  void _togglePanier(Produit produit) {
+    _firestoreService.updateProductCart(produit.idProduit, !produit.auPanier);
   }
 
   void _messageReponse(
@@ -241,7 +182,7 @@ class _DetailsState extends State<Details> {
     );
   }
 
-  Widget _detailsContenu() {
+  Widget _detailsContenu(Produit produit) {
   final constraints = MediaQuery.of(context).size.width > 1200;
 
     return SingleChildScrollView(
@@ -252,7 +193,7 @@ class _DetailsState extends State<Details> {
           
           constraints ? const SizedBox(height: 170) : const SizedBox(height: 10,),
           Text(
-            widget.produit.nomProduit,
+            produit.nomProduit,
             style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
@@ -264,7 +205,7 @@ class _DetailsState extends State<Details> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '${widget.produit.prix} CFA',
+                '${produit.prix} CFA',
                 style: TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.w700,
@@ -278,17 +219,17 @@ class _DetailsState extends State<Details> {
                 ),
                 decoration: BoxDecoration(
                   color:
-                      widget.produit.enStock
+                      produit.enStock
                           ? styles.vert.withOpacity(0.1)
                           : styles.rouge.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  widget.produit.enStock ? 'En stock' : 'Rupture',
+                  produit.enStock ? 'En stock' : 'Rupture',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: widget.produit.enStock ? styles.vert : styles.erreur,
+                    color: produit.enStock ? styles.vert : styles.erreur,
                   ),
                 ),
               ),
@@ -305,7 +246,7 @@ class _DetailsState extends State<Details> {
           ),
           const SizedBox(height: 10),
 
-          _carteDetails(),
+          _carteDetails(produit),
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -322,15 +263,15 @@ class _DetailsState extends State<Details> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              onPressed: widget.produit.enStock ? _toggleJeVeut : null,
+              onPressed: produit.enStock ? () => _toggleSouhait(produit) : null,
               icon: Icon(
-                _isSouhait
+                produit.jeVeut
                     ? FluentIcons.class_20_filled
                     : FluentIcons.book_star_24_regular,
                 size: 20,
               ),
               label: Text(
-                _isSouhait ? 'Souhaité' : 'Je Souhaite',
+                produit.jeVeut ? 'Souhaité' : 'Je Souhaite',
                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
@@ -338,7 +279,7 @@ class _DetailsState extends State<Details> {
         ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
               backgroundColor:
-                  widget.produit.enStock ? styles.bleu : Colors.grey.shade400,
+                  produit.enStock ? styles.bleu : Colors.grey.shade400,
               foregroundColor: Colors.white,
               elevation: 2,
               padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
@@ -346,15 +287,15 @@ class _DetailsState extends State<Details> {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            onPressed: widget.produit.enStock ? _toggleAuPanier : null,
+            onPressed: produit.enStock ? () => _togglePanier(produit) : null,
             icon: Icon(
-              _isPanier
+              produit.auPanier
                   ? FluentIcons.shopping_bag_tag_24_filled
                   : FluentIcons.shopping_bag_tag_24_regular,
               size: 20,
             ),
             label: Text(
-              _isPanier ? 'Ajouté ! ' : 'Ajouter au Panier',
+              produit.auPanier ? 'Ajouté ! ' : 'Ajouter au Panier',
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),
@@ -366,7 +307,7 @@ class _DetailsState extends State<Details> {
       ),
     );
   }
- Widget _detailsContenumob() {
+ Widget _detailsContenumob(Produit produit) {
   final constraints = MediaQuery.of(context).size.width > 1200;
 
     return SingleChildScrollView(
@@ -377,7 +318,7 @@ class _DetailsState extends State<Details> {
           
           constraints ? const SizedBox(height: 170) : const SizedBox(height: 10,),
           Text(
-            widget.produit.nomProduit,
+            produit.nomProduit,
             style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
@@ -389,7 +330,7 @@ class _DetailsState extends State<Details> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '${widget.produit.prix} CFA',
+                '${produit.prix} CFA',
                 style: TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.w700,
@@ -403,17 +344,17 @@ class _DetailsState extends State<Details> {
                 ),
                 decoration: BoxDecoration(
                   color:
-                      widget.produit.enStock
+                      produit.enStock
                           ? styles.vert.withOpacity(0.1)
                           : styles.rouge.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  widget.produit.enStock ? 'En stock' : 'Rupture',
+                  produit.enStock ? 'En stock' : 'Rupture',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: widget.produit.enStock ? styles.vert : styles.erreur,
+                    color: produit.enStock ? styles.vert : styles.erreur,
                   ),
                 ),
               ),
@@ -430,7 +371,7 @@ class _DetailsState extends State<Details> {
           ),
           const SizedBox(height: 10),
 
-          _carteDetails(),
+          _carteDetails(produit),
           const SizedBox(height: 24),
          Center(
            child: ElevatedButton.icon(
@@ -444,15 +385,15 @@ class _DetailsState extends State<Details> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                onPressed: widget.produit.enStock ? _toggleJeVeut : null,
+                onPressed: produit.enStock ? () => _toggleSouhait(produit) : null,
                 icon: Icon(
-                  _isSouhait
+                  produit.jeVeut
                       ? FluentIcons.class_20_filled
                       : FluentIcons.book_star_24_regular,
                   size: 20,
                 ),
                 label: Text(
-                  _isSouhait ? 'Article Souhaité !' : 'Ajouter aux souhaits',
+                  produit.jeVeut ? 'Article Souhaité !' : 'Ajouter aux souhaits',
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -469,8 +410,8 @@ class _DetailsState extends State<Details> {
               ),
               const SizedBox(height: 12),
               Text(
-                widget.produit.description.isNotEmpty
-                    ? widget.produit.description
+                produit.description.isNotEmpty
+                    ? produit.description
                     : "Aucune description fournie pour ce produit.",
                 style: TextStyle(
                   fontSize: 16,
@@ -478,11 +419,11 @@ class _DetailsState extends State<Details> {
                   color: Colors.grey.shade800,
                 ),
               ),
-              _methodePaiment(),
+              _methodePaiment(produit),
       
               if (MediaQuery.of(context).size.width > 600) ...[
                 const SizedBox(height: 32),
-                _boutons(),
+                _boutons(produit),
               ],
           
         ],
@@ -491,7 +432,7 @@ class _DetailsState extends State<Details> {
   }
 
 
-Widget _detailsTxt(){
+Widget _detailsTxt(Produit produit){
   final constraints = MediaQuery.of(context).size.width > 1200;
   return SingleChildScrollView(
     child: Padding(
@@ -511,8 +452,8 @@ Widget _detailsTxt(){
               ),
               const SizedBox(height: 12),
               Text(
-                widget.produit.description.isNotEmpty
-                    ? widget.produit.description
+                produit.description.isNotEmpty
+                    ? produit.description
                     : "Aucune description fournie pour ce produit.",
                 style: TextStyle(
                   fontSize: 16,
@@ -529,9 +470,9 @@ Widget _detailsTxt(){
   );
 }
   //Méthode de paiement
-  Widget _methodePaiment() {
-    final cash = widget.produit.cash;
-    final electro = widget.produit.electronique;
+  Widget _methodePaiment(Produit produit) {
+    final cash = produit.cash;
+    final electro = produit.electronique;
     String methode = '';
 
     if (cash == true && electro == true) {
@@ -563,7 +504,7 @@ Widget _detailsTxt(){
   }
 
   //Container contenant les détails de l'article
-  Widget _carteDetails() {
+  Widget _carteDetails(Produit produit) {
     return Card(
       elevation: 2,
       color: Colors.white,
@@ -575,19 +516,19 @@ Widget _detailsTxt(){
             _detailsIndividuels(
               FluentIcons.tag_24_regular,
               'Marque',
-              widget.produit.marque,
+              produit.marque,
             ),
             const Divider(height: 24),
             _detailsIndividuels(
               FluentIcons.box_24_regular,
               'Modèle',
-              widget.produit.modele,
+              produit.modele,
             ),
             const Divider(height: 24),
             _detailsIndividuels(
               FluentIcons.apps_list_detail_24_regular,
               'Type',
-              widget.produit.type,
+              produit.type,
             ),
             const Divider(height: 24),
 
@@ -595,14 +536,14 @@ Widget _detailsTxt(){
               FluentIcons.send_clock_20_regular,
 
               'Livrable',
-              widget.produit.livrable ? 'Oui' : 'Non',
+              produit.livrable ? 'Oui' : 'Non',
             ),
             const Divider(height: 24),
 
             _detailsIndividuels(
               FluentIcons.document_bullet_list_16_regular,
               'Quantité',
-              widget.produit.quantite,
+              produit.quantite,
             ),
             const SizedBox(height: 12,),
              
@@ -634,7 +575,7 @@ Widget _detailsTxt(){
     );
   }
 
-  Widget _boutons() {
+  Widget _boutons(Produit produit) {
     return Row(
       children: [
         const SizedBox(width: 16),
@@ -642,7 +583,7 @@ Widget _detailsTxt(){
           child: ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
               backgroundColor:
-                  widget.produit.enStock ? styles.bleu : Colors.grey.shade400,
+                  produit.enStock ? styles.bleu : Colors.grey.shade400,
               foregroundColor: Colors.white,
               elevation: 2,
               padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
@@ -650,15 +591,15 @@ Widget _detailsTxt(){
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            onPressed: widget.produit.enStock ? _toggleAuPanier : null,
+            onPressed: produit.enStock ? () => _togglePanier(produit) : null,
             icon: Icon(
-              _isPanier
+              produit.auPanier
                   ? FluentIcons.shopping_bag_tag_24_filled
                   : FluentIcons.shopping_bag_tag_24_regular,
               size: 20,
             ),
             label: Text(
-              _isPanier ? 'Ajouté au Panier ' : 'Ajouter au Panier',
+              produit.auPanier ? 'Ajouté au Panier ' : 'Ajouter au Panier',
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),
@@ -732,60 +673,84 @@ Widget _detailsTxt(){
         elevation: 2,
         shadowColor: Colors.black.withOpacity(0.1),
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          if (constraints.maxWidth > 1200) {
-            return Center(
-              child: Container(
-                constraints: BoxConstraints(maxWidth: 1300),
-                child: Row(
-                  key: const Key('layout Web'),
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(flex: 3, child: _montreLesImages()),
-                    Expanded(flex: 3, child: _detailsContenu()),
-                    Expanded(flex: 3, child: _detailsTxt())
-                  ],
-                ),
-              ),
-            );
+      body: StreamBuilder<Produit>(
+        stream: _firestoreService.getProduitStream(widget.produit.idProduit),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator(color: styles.rouge));
           }
-          if (constraints.maxWidth > 964) {
-            return Center(
-              child: Container(
-                constraints: BoxConstraints(maxWidth: 900),
-                child: Row(
-                  key: const Key('layout tablet'),
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(flex: 2, child: _montreLesImages()),
-                    Expanded(flex: 2, child: _detailsContenumob()),
-                  ],
-                ),
-              ),
-            );
+          if (snapshot.hasError) {
+            return Center(child: Text('Erreur: ${snapshot.error}'));
           }
-          return Center(
-            child: Container(
-              constraints: BoxConstraints(maxWidth: 500),
-              child: Column(
-                key: const Key('layout Mobile'),
-                children: [
-                  Expanded(flex: 4, child: _montreLesImages()),
-                  Expanded(flex: 3, child: _detailsContenumob()),
-                  
-                ],
-              ),
-            ),
+          if (!snapshot.hasData) {
+            return const Center(child: Text('Produit non trouvé.'));
+          }
+
+          final produit = snapshot.data!;
+
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth > 1200) {
+                return Center(
+                  child: Container(
+                    constraints: BoxConstraints(maxWidth: 1300),
+                    child: Row(
+                      key: const Key('layout Web'),
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(flex: 3, child: _montreLesImages()),
+                        Expanded(flex: 3, child: _detailsContenu(produit)),
+                        Expanded(flex: 3, child: _detailsTxt(produit))
+                      ],
+                    ),
+                  ),
+                );
+              }
+              if (constraints.maxWidth > 964) {
+                return Center(
+                  child: Container(
+                    constraints: BoxConstraints(maxWidth: 900),
+                    child: Row(
+                      key: const Key('layout tablet'),
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(flex: 2, child: _montreLesImages()),
+                        Expanded(flex: 2, child: _detailsContenumob(produit)),
+                      ],
+                    ),
+                  ),
+                );
+              }
+              return Center(
+                child: Container(
+                  constraints: BoxConstraints(maxWidth: 500),
+                  child: Column(
+                    key: const Key('layout Mobile'),
+                    children: [
+                      Expanded(flex: 4, child: _montreLesImages()),
+                      Expanded(flex: 3, child: _detailsContenumob(produit)),
+                      
+                    ],
+                  ),
+                ),
+              );
+            },
           );
-        },
+        }
       ),
       bottomNavigationBar:
           MediaQuery.of(context).size.width <= 600
-              ? BottomAppBar(
-                elevation: 8,
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-                child: _boutons(),
+              ? StreamBuilder<Produit>(
+                stream: _firestoreService.getProduitStream(widget.produit.idProduit),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) return const SizedBox.shrink();
+                  final produit = snapshot.data!;
+                  return BottomAppBar(
+                    elevation: 8,
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+                    child: _boutons(produit),
+                  );
+                }
               )
               : null,
     );

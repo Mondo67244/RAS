@@ -13,58 +13,40 @@ class Promo extends StatefulWidget {
 }
 
 class PromoState extends State<Promo> {
-  late Future<List<Produit>> _produitsFuture;
+  late Stream<List<Produit>> _produitsStream;
   final FirestoreService _firestoreService = FirestoreService();
   final Set<String> _souhaits = {};
   final Set<String> _paniers = {};
   final ScrollController _populairesScrollController = ScrollController();
   final ScrollController _bureautiqueScrollController = ScrollController();
 
-  // Liste des produits affichés (pour la recherche contextuelle)
   List<Produit> _produits = [];
   List<Produit> get produits => _produits;
-  
 
   @override
   void initState() {
     super.initState();
-    _produitsFuture = _firestoreService.getProduits();
-    _chargerDonneesInitiales();
+    _produitsStream = _firestoreService.getProduitsStream();
   }
 
-@override
+  @override
   void dispose() {
     _populairesScrollController.dispose();
     _bureautiqueScrollController.dispose();
     super.dispose();
   }
 
-  Future<void> _chargerDonneesInitiales() async {
-    try {
-      final produits = await _produitsFuture;
-      if (!mounted) return;
-      setState(() {
-        for (var produit in produits) {
-          if (produit.jeVeut) _souhaits.add(produit.idProduit);
-          if (produit.auPanier) _paniers.add(produit.idProduit);
-        }
-      });
-    } catch (e) {
-      print('Erreur lors du chargement des données initiales: $e');
-      _messageReponse('Erreur de chargement des données.', isSuccess: false);
+  void _updateSets(List<Produit> produits) {
+    _souhaits.clear();
+    _paniers.clear();
+    for (var produit in produits) {
+      if (produit.jeVeut) _souhaits.add(produit.idProduit);
+      if (produit.auPanier) _paniers.add(produit.idProduit);
     }
   }
 
   Future<void> _toggleJeVeut(Produit produit) async {
-    final bool nouvelEtat = !_souhaits.contains(produit.idProduit);
-    setState(() {
-      if (nouvelEtat) {
-        _souhaits.add(produit.idProduit);
-        _paniers.remove(produit.idProduit);
-      } else {
-        _souhaits.remove(produit.idProduit);
-      }
-    });
+    final bool nouvelEtat = !produit.jeVeut;
     _messageReponse(
       nouvelEtat
           ? '${produit.nomProduit} ajouté à vos souhaits'
@@ -73,32 +55,14 @@ class PromoState extends State<Promo> {
     );
     try {
       await _firestoreService.updateProductWishlist(produit.idProduit, nouvelEtat);
-      if (nouvelEtat) {
-        await _firestoreService.updateProductCart(produit.idProduit, false);
-      }
     } catch (e) {
       print('Erreur Firestore pour JeVeut: $e');
       _messageReponse('Erreur de mise à jour du souhait.', isSuccess: false);
-      setState(() {
-        if (nouvelEtat) {
-          _souhaits.remove(produit.idProduit);
-        } else {
-          _souhaits.add(produit.idProduit);
-        }
-      });
     }
   }
 
   Future<void> _toggleAuPanier(Produit produit) async {
-    final bool nouvelEtat = !_paniers.contains(produit.idProduit);
-    setState(() {
-      if (nouvelEtat) {
-        _paniers.add(produit.idProduit);
-        _souhaits.remove(produit.idProduit);
-      } else {
-        _paniers.remove(produit.idProduit);
-      }
-    });
+    final bool nouvelEtat = !produit.auPanier;
     _messageReponse(
       nouvelEtat
           ? '${produit.nomProduit} ajouté au panier'
@@ -108,19 +72,9 @@ class PromoState extends State<Promo> {
     );
     try {
       await _firestoreService.updateProductCart(produit.idProduit, nouvelEtat);
-      if (nouvelEtat) {
-        await _firestoreService.updateProductWishlist(produit.idProduit, false);
-      }
     } catch (e) {
       print('Erreur Firestore pour AuPanier: $e');
       _messageReponse('Erreur de mise à jour du panier.', isSuccess: false);
-      setState(() {
-        if (nouvelEtat) {
-          _paniers.remove(produit.idProduit);
-        } else {
-          _paniers.add(produit.idProduit);
-        }
-      });
     }
   }
 
@@ -148,9 +102,8 @@ class PromoState extends State<Promo> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      
-      body: FutureBuilder<List<Produit>>(
-        future: _produitsFuture,
+      body: StreamBuilder<List<Produit>>(
+        stream: _produitsStream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
@@ -191,6 +144,7 @@ class PromoState extends State<Promo> {
           }
           final produits = snapshot.data!;
           _produits = produits;
+          _updateSets(produits);
           return LayoutBuilder(
             builder: (context, constraints) {
               final bool isWideScreen = constraints.maxWidth > 600;
@@ -253,9 +207,7 @@ class PromoState extends State<Promo> {
             title: 'Articles Populaires',
             produits: produitsPopulaires,
             isWideScreen: isWideScreen,
-            souhaits: _souhaits,
-            paniers: _paniers,
-            onToggleSouhait: _toggleJeVeut,
+
             onTogglePanier: _toggleAuPanier, onTap: (Produit ) {  },
           ),
           const SizedBox(height: 24),
@@ -267,9 +219,7 @@ class PromoState extends State<Promo> {
             title: 'Appareils pour la Bureautique',
             produits: produitsBureautique,
             isWideScreen: isWideScreen,
-            souhaits: _souhaits,
-            paniers: _paniers,
-            onToggleSouhait: _toggleJeVeut,
+
             onTogglePanier: _toggleAuPanier, onTap: (Produit ) {  },
           ),
           const SizedBox(height: 24),
@@ -281,9 +231,7 @@ class PromoState extends State<Promo> {
             title: 'Appareils Réseau',
             produits: produitsReseau,
             isWideScreen: isWideScreen,
-            souhaits: _souhaits,
-            paniers: _paniers,
-            onToggleSouhait: _toggleJeVeut,
+
             onTogglePanier: _toggleAuPanier, onTap: (Produit ) {  },
           ),
           const SizedBox(height: 24),
@@ -295,9 +243,7 @@ class PromoState extends State<Promo> {
             title: 'Appareils Mobiles',
             produits: produitsMobiles,
             isWideScreen: isWideScreen,
-            souhaits: _souhaits,
-            paniers: _paniers,
-            onToggleSouhait: _toggleJeVeut,
+
             onTogglePanier: _toggleAuPanier, onTap: (Produit ) {  },
           ),
           const SizedBox(height: 24),
@@ -308,9 +254,7 @@ class PromoState extends State<Promo> {
             title: 'Produit Divers',
             produits: produitDivers,
             isWideScreen: isWideScreen,
-            souhaits: _souhaits,
-            paniers: _paniers,
-            onToggleSouhait: _toggleJeVeut,
+
             onTogglePanier: _toggleAuPanier, onTap: (Produit ) {  },
           ),
         ],

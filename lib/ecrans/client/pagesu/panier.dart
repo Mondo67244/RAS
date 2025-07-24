@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:ras_app/services/ponts/pontPanierLocal.dart';
 import 'package:ras_app/services/base%20de%20donn%C3%A9es/lienbd.dart';
 import 'package:ras_app/basicdata/produit.dart';
 import 'package:ras_app/basicdata/style.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:typed_data';
 import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -16,65 +14,24 @@ class Panier extends StatefulWidget {
 }
 
 class PanierState extends State<Panier> {
-  late Future<List<Produit>> _cartProductsFuture;
+  late Stream<List<Produit>> _cartProductsStream;
   final FirestoreService _firestoreService = FirestoreService();
-
-  // Liste des produits affichés (pour la recherche contextuelle)
-  List<Produit> _produits = [];
-  List<Produit> get produits => _produits;
 
   @override
   void initState() {
     super.initState();
-    _cartProductsFuture = _getCartProducts();
-  }
-
-  Future<List<Produit>> _getCartProducts() async {
-    final ids = await LocalCartService.getProductIds();
-    if (ids.isEmpty) return [];
-    List<Produit> produits = [];
-    for (var i = 0; i < ids.length; i += 10) {
-      final batch = ids.skip(i).take(10).toList();
-      final snapshot = await _firestoreService.produitsCollection
-          .where(FieldPath.documentId, whereIn: batch)
-          .get();
-      produits.addAll(snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        return Produit(
-          descriptionCourte: data['descriptionCourte'] ?? '',
-          sousCategorie: data['sousCategorie'] ?? '',
-          enPromo: data['enPromo'] ?? false,
-          cash: data['cash'] ?? false,
-          electronique: data['electronique'] ?? false,
-          quantite: data['quantite'] ?? '',
-          livrable: data['livrable'] ?? true,
-          createdAt: data['createdAt'] ?? Timestamp.now(),
-          enStock: data['enStock'] ?? true,
-          img1: data['img1'] ?? '',
-          img2: data['img2'] ?? '',
-          img3: data['img3'] ?? '',
-          idProduit: doc.id,
-          nomProduit: data['nomProduit'] ?? '',
-          description: data['description'] ?? '',
-          prix: data['prix'] ?? '',
-          vues: data['vues']?.toString() ?? '0',
-          modele: data['modele'] ?? '',
-          marque: data['marque'] ?? '',
-          categorie: data['categorie'] ?? '',
-          type: data['type'] ?? '',
-          jeVeut: false,
-          auPanier: true,
-        );
-      }));
-    }
-    return produits;
+    _cartProductsStream = _firestoreService.getProduitsStream();
   }
 
   Future<void> _removeFromCart(String idProduit) async {
-    await LocalCartService.removeProductId(idProduit);
-    setState(() {
-      _cartProductsFuture = _getCartProducts();
-    });
+    try {
+      await _firestoreService.updateProductCart(idProduit, false);
+    } catch (e) {
+      // Gérer l'erreur, par exemple, afficher un message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors de la suppression du produit: $e')),
+      );
+    }
   }
 
   Widget _buildProductCard(Produit produit) {
@@ -308,8 +265,8 @@ class PanierState extends State<Panier> {
               isWideScreen
                   ? BoxConstraints(maxWidth: 1200)
                   : BoxConstraints(maxWidth: 400),
-          child: FutureBuilder<List<Produit>>(
-            future: _cartProductsFuture,
+          child: StreamBuilder<List<Produit>>(
+            stream: _cartProductsStream,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(
@@ -322,13 +279,17 @@ class PanierState extends State<Panier> {
                 );
               }
               if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                _produits = [];
                 return const Center(
                   child: Text('Votre panier est vide.'),
                 );
               }
-              final produitsPanier = snapshot.data!;
-              _produits = produitsPanier;
+              final produitsPanier = snapshot.data!.where((p) => p.auPanier).toList();
+
+              if (produitsPanier.isEmpty) {
+                return const Center(
+                  child: Text('Votre panier est vide.'),
+                );
+              }
               return isWideScreen
                   ? GridView.builder(
                       padding: const EdgeInsets.all(16),

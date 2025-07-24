@@ -8,10 +8,7 @@ class ProductSection extends StatelessWidget {
   final String title;
   final List<Produit> produits;
   final bool isWideScreen;
-  final Set<String> souhaits;
-  final Set<String> paniers;
-  final Function(Produit) onToggleSouhait;
-  final Function(Produit) onTogglePanier;
+      final Function(Produit) onTogglePanier;
   final Function(Produit) onTap;
 
   const ProductSection({
@@ -19,9 +16,6 @@ class ProductSection extends StatelessWidget {
     required this.title,
     required this.produits,
     required this.isWideScreen,
-    required this.souhaits,
-    required this.paniers,
-    required this.onToggleSouhait,
     required this.onTogglePanier,
     required this.onTap,
   });
@@ -79,12 +73,11 @@ class ProductSection extends StatelessWidget {
                 itemCount: produits.length,
                 itemBuilder: (context, index) {
                   final produit = produits[index];
+                  final bool isPanier = produit.auPanier;
                   return ProductCard(
                     produit: produit,
-                    isSouhait: souhaits.contains(produit.idProduit),
-                    isPanier: paniers.contains(produit.idProduit),
+                    isPanier: isPanier,
                     isWideScreen: isWideScreen,
-                    onToggleSouhait: () => onToggleSouhait(produit),
                     onTogglePanier: () => onTogglePanier(produit),
                     onTap: () => onTap(produit),
                   );

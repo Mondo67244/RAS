@@ -8,20 +8,16 @@ import 'package:cached_network_image/cached_network_image.dart';
 
 class ProductCard extends StatelessWidget {
   final Produit produit;
-  final bool isSouhait;
   final bool isPanier;
   final bool isWideScreen;
-  final VoidCallback onToggleSouhait;
   final VoidCallback onTogglePanier;
   final VoidCallback onTap;
 
   const ProductCard({
     super.key,
     required this.produit,
-    required this.isSouhait,
     required this.isPanier,
     required this.isWideScreen,
-    required this.onToggleSouhait,
     required this.onTogglePanier,
     required this.onTap,
   });
