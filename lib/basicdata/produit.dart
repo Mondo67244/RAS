@@ -85,35 +85,38 @@ class Produit {
     );
   }
 
-  factory Produit.fromFirestore(DocumentSnapshot doc) {
+  // Dans produit.dart
+
+factory Produit.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     return Produit(
       idProduit: doc.id,
-      
       nomProduit: data['nomProduit'] ?? '',
       description: data['description'] ?? '',
-      prix: data['prix'] ?? '0',
-      categorie: data['categorie'] ?? '',
-      sousCategorie: data['sousCategorie'] ?? '',
-      img1: data['img1'] ?? '', 
-      descriptionCourte: '', 
-      enPromo: false, 
-      cash: false, 
-      electronique: false, 
-      quantite: '', 
-      livrable: false, 
-      createdAt: Timestamp.now(), enStock: true, 
-      img2: '', 
-      img3: '', 
-      auPanier: false, 
-      jeVeut: false, 
-      vues: '', 
-      modele: '', 
-      marque: '', 
-      type: '',
-    );
-  }
+      prix: data['prix']?.toString() ?? '0', // Lit le prix
+      auPanier: data['auPanier'] ?? false,   // Important : Lit le statut du panier
+      quantite: data['quantite']?.toString() ?? '1', // Important : Lit la quantité
 
+      // Assurez-vous que les autres champs sont également mappés correctement
+      descriptionCourte: data['descriptionCourte'] ?? '',
+      sousCategorie: data['sousCategorie'] ?? '',
+      enPromo: data['enPromo'] ?? false,
+      cash: data['cash'] ?? false,
+      electronique: data['electronique'] ?? false,
+      livrable: data['livrable'] ?? true,
+      createdAt: data['createdAt'] ?? Timestamp.now(),
+      enStock: data['enStock'] ?? true,
+      img1: data['img1'] ?? '',
+      img2: data['img2'] ?? '',
+      img3: data['img3'] ?? '',
+      jeVeut: data['jeVeut'] ?? false,
+      vues: data['vues']?.toString() ?? '0',
+      modele: data['modele'] ?? '',
+      marque: data['marque'] ?? '',
+      type: data['type'] ?? '', 
+      categorie: data['categorie'] ?? '',
+    );
+}
   Map<String, dynamic> toJson() {
     return {
       'descriptionCourte': descriptionCourte,

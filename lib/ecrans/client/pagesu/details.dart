@@ -54,11 +54,8 @@ class _DetailsState extends State<Details> {
     _firestoreService.updateProductCart(produit.idProduit, !produit.auPanier);
   }
 
-  void _messageReponse(
-    String message, {
-    bool isSuccess = true,
-    IconData? icon,
-  }) {
+void _messageReponse(
+    String message, {bool isSuccess = true,IconData? icon}) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -79,7 +76,8 @@ class _DetailsState extends State<Details> {
     );
   }
 
-  Widget _montreLesImages() {
+
+Widget _montreLesImages() {
     if (_images.isEmpty) {
       return Container(
         color: Colors.grey.shade100,
@@ -543,7 +541,7 @@ Widget _detailsTxt(Produit produit){
             _detailsIndividuels(
               FluentIcons.document_bullet_list_16_regular,
               'Quantité',
-              produit.quantite,
+              produit.quantite as String,
             ),
             const SizedBox(height: 12,),
              
@@ -727,7 +725,7 @@ Widget _detailsTxt(Produit produit){
                   child: Column(
                     key: const Key('layout Mobile'),
                     children: [
-                      Expanded(flex: 4, child: _montreLesImages()),
+                      Expanded(flex: 3, child: _montreLesImages()),
                       Expanded(flex: 3, child: _detailsContenumob(produit)),
                       
                     ],
