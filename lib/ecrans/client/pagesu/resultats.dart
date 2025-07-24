@@ -148,16 +148,45 @@ class _ResultatsState extends State<Resultats> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          _buildSearchForm(),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Divider(color: primaryBlue.withOpacity(0.5), thickness: 1),
-          ),
-          const SizedBox(height: 10),
-          Expanded(child: _buildResultsSection()),
-        ],
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth > 650) {
+            // Web layout
+            return Center(
+              child: Container(
+                constraints: BoxConstraints(
+                  maxWidth: 1200
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: _buildSearchForm(),
+                    ),
+                    const VerticalDivider(width: 1),
+                    Expanded(
+                      flex: 3,
+                      child: _buildResultsSection(),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          } else {
+            // Mobile layout
+            return Column(
+              children: [
+                _buildSearchForm(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Divider(color: primaryBlue.withOpacity(0.5), thickness: 1),
+                ),
+                const SizedBox(height: 10),
+                Expanded(child: _buildResultsSection()),
+              ],
+            );
+          }
+        },
       ),
     );
   }
@@ -285,7 +314,7 @@ class _ResultatsState extends State<Resultats> {
     if (!_hasSearched) {
       return const Center(
         child: Text(
-          'Utilisez le formulaire ci-dessus pour lancer une recherche.',
+          'Utilisez le formulaire ci-joint pour lancer une recherche.',
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 16, color: Colors.grey),
         ),
@@ -327,7 +356,7 @@ class _ResultatsState extends State<Resultats> {
               subtitle: Text('${produit.categorie} > ${produit.sousCategorie}\n${produit.prix} CFA'),
               isThreeLine: true,
               onTap: () {
-                Navigator.pushNamed(context, '/details', arguments: produit);
+                Navigator.pushNamed(context, '/details', arguments: produit).then((_) => _performSearch());
               },
             );
           },

@@ -13,6 +13,7 @@ class ProductCard extends StatelessWidget {
   final bool isWideScreen;
   final VoidCallback onToggleSouhait;
   final VoidCallback onTogglePanier;
+  final VoidCallback onTap;
 
   const ProductCard({
     super.key,
@@ -22,6 +23,7 @@ class ProductCard extends StatelessWidget {
     required this.isWideScreen,
     required this.onToggleSouhait,
     required this.onTogglePanier,
+    required this.onTap,
   });
 
   @override
@@ -34,8 +36,7 @@ class ProductCard extends StatelessWidget {
     return SizedBox(
       width: isWideScreen ? 300 : 280,
       child: InkWell(
-        onTap: () =>
-            Navigator.pushNamed(context, '/details', arguments: produit),
+        onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Card(
           margin: const EdgeInsets.all(10),
@@ -82,7 +83,7 @@ class ProductCard extends StatelessWidget {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(Icons.whatshot_outlined,
-                                      size: 16, color: styles.rouge),
+                                      size: 16, color: const Color.fromARGB(255, 222, 118, 7)),
                                   const SizedBox(width: 4),
                                   Text(
                                     'En Promo!',

@@ -12,6 +12,7 @@ class ProductSection extends StatelessWidget {
   final Set<String> paniers;
   final Function(Produit) onToggleSouhait;
   final Function(Produit) onTogglePanier;
+  final Function(Produit) onTap;
 
   const ProductSection({
     super.key,
@@ -22,6 +23,7 @@ class ProductSection extends StatelessWidget {
     required this.paniers,
     required this.onToggleSouhait,
     required this.onTogglePanier,
+    required this.onTap,
   });
 
   @override
@@ -84,6 +86,7 @@ class ProductSection extends StatelessWidget {
                     isWideScreen: isWideScreen,
                     onToggleSouhait: () => onToggleSouhait(produit),
                     onTogglePanier: () => onTogglePanier(produit),
+                    onTap: () => onTap(produit),
                   );
                 },
               ),

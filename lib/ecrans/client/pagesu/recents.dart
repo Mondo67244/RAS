@@ -357,7 +357,11 @@ class RecentsState extends State<Recents> {
             builder: (context, constraints) {
               final bool isWideScreen = constraints.maxWidth > 600;
               debugPrint('isWideScreen: $isWideScreen, screenWidth: ${constraints.maxWidth}');
-              return _contenu(produits, isWideScreen: isWideScreen);
+              return Center(
+                child: Container(
+                  constraints: BoxConstraints(maxWidth: 900),
+                  child: _contenu(produits, isWideScreen: isWideScreen)),
+              );
             },
           );
         },
@@ -416,6 +420,9 @@ class RecentsState extends State<Recents> {
             paniers: _paniers,
             onToggleSouhait: _toggleJeVeut,
             onTogglePanier: _toggleAuPanier,
+            onTap: (produit) {
+              Navigator.pushNamed(context, '/details', arguments: produit).then((_) => _initializeData());
+            },
           ),
           const SizedBox(height: 24),
           isWideScreen
@@ -430,6 +437,9 @@ class RecentsState extends State<Recents> {
             paniers: _paniers,
             onToggleSouhait: _toggleJeVeut,
             onTogglePanier: _toggleAuPanier,
+            onTap: (produit) {
+              Navigator.pushNamed(context, '/details', arguments: produit).then((_) => _initializeData());
+            },
           ),
           const SizedBox(height: 24),
           isWideScreen
@@ -444,6 +454,9 @@ class RecentsState extends State<Recents> {
             paniers: _paniers,
             onToggleSouhait: _toggleJeVeut,
             onTogglePanier: _toggleAuPanier,
+            onTap: (produit) {
+              Navigator.pushNamed(context, '/details', arguments: produit).then((_) => _initializeData());
+            },
           ),
           const SizedBox(height: 24),
           isWideScreen
@@ -457,6 +470,9 @@ class RecentsState extends State<Recents> {
             paniers: _paniers,
             onToggleSouhait: _toggleJeVeut,
             onTogglePanier: _toggleAuPanier,
+            onTap: (produit) {
+              Navigator.pushNamed(context, '/details', arguments: produit).then((_) => _initializeData());
+            },
           ),
           const SizedBox(height: 24),
           isWideScreen
@@ -470,6 +486,9 @@ class RecentsState extends State<Recents> {
             paniers: _paniers,
             onToggleSouhait: _toggleJeVeut,
             onTogglePanier: _toggleAuPanier,
+            onTap: (produit) {
+              Navigator.pushNamed(context, '/details', arguments: produit).then((_) => _initializeData());
+            },
           ),
         ],
       ),

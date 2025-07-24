@@ -242,16 +242,15 @@ class _DetailsState extends State<Details> {
   }
 
   Widget _detailsContenu() {
+  final constraints = MediaQuery.of(context).size.width > 1200;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-            ],
-          ),
-          const SizedBox(height: 16),
+          
+          constraints ? const SizedBox(height: 170) : const SizedBox(height: 10,),
           Text(
             widget.produit.nomProduit,
             style: const TextStyle(
@@ -308,37 +307,227 @@ class _DetailsState extends State<Details> {
 
           _carteDetails(),
           const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              //Bouton souhait
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: styles.rouge,
+                side: BorderSide(color: styles.rouge, width: 1.5),
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: widget.produit.enStock ? _toggleJeVeut : null,
+              icon: Icon(
+                _isSouhait
+                    ? FluentIcons.class_20_filled
+                    : FluentIcons.book_star_24_regular,
+                size: 20,
+              ),
+              label: Text(
+                _isSouhait ? 'Souhaité' : 'Je Souhaite',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+          //Bouton Panier
+        ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor:
+                  widget.produit.enStock ? styles.bleu : Colors.grey.shade400,
+              foregroundColor: Colors.white,
+              elevation: 2,
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: widget.produit.enStock ? _toggleAuPanier : null,
+            icon: Icon(
+              _isPanier
+                  ? FluentIcons.shopping_bag_tag_24_filled
+                  : FluentIcons.shopping_bag_tag_24_regular,
+              size: 20,
+            ),
+            label: Text(
+              _isPanier ? 'Ajouté ! ' : 'Ajouter au Panier',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ),
+        
+          ],),
+           
+          
+        ],
+      ),
+    );
+  }
+ Widget _detailsContenumob() {
+  final constraints = MediaQuery.of(context).size.width > 1200;
 
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          
+          constraints ? const SizedBox(height: 170) : const SizedBox(height: 10,),
           Text(
-            'Description :',
+            widget.produit.nomProduit,
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '${widget.produit.prix} CFA',
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w700,
+                  color: styles.rouge,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color:
+                      widget.produit.enStock
+                          ? styles.vert.withOpacity(0.1)
+                          : styles.rouge.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  widget.produit.enStock ? 'En stock' : 'Rupture',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: widget.produit.enStock ? styles.vert : styles.erreur,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'Caractéristiques du produit :',
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: Colors.black,
             ),
           ),
-          const SizedBox(height: 12),
-          Text(
-            widget.produit.description.isNotEmpty
-                ? widget.produit.description
-                : "Aucune description fournie pour ce produit.",
-            style: TextStyle(
-              fontSize: 16,
-              height: 1.6,
-              color: Colors.grey.shade800,
-            ),
-          ),
-          _methodePaiment(),
+          const SizedBox(height: 10),
 
-          if (MediaQuery.of(context).size.width > 600) ...[
-            const SizedBox(height: 32),
-            _boutons(),
-          ],
+          _carteDetails(),
+          const SizedBox(height: 24),
+         Center(
+           child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: styles.rouge,
+                  side: BorderSide(color: styles.rouge, width: 1.5),
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: widget.produit.enStock ? _toggleJeVeut : null,
+                icon: Icon(
+                  _isSouhait
+                      ? FluentIcons.class_20_filled
+                      : FluentIcons.book_star_24_regular,
+                  size: 20,
+                ),
+                label: Text(
+                  _isSouhait ? 'Article Souhaité !' : 'Ajouter aux souhaits',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+         ),
+          
+          const SizedBox(height: 12,),
+          Text(
+                'Description Détaillée:',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                widget.produit.description.isNotEmpty
+                    ? widget.produit.description
+                    : "Aucune description fournie pour ce produit.",
+                style: TextStyle(
+                  fontSize: 16,
+                  height: 1.6,
+                  color: Colors.grey.shade800,
+                ),
+              ),
+              _methodePaiment(),
+      
+              if (MediaQuery.of(context).size.width > 600) ...[
+                const SizedBox(height: 32),
+                _boutons(),
+              ],
+          
         ],
       ),
     );
   }
 
+
+Widget _detailsTxt(){
+  final constraints = MediaQuery.of(context).size.width > 1200;
+  return SingleChildScrollView(
+    child: Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: Column(
+        children: [
+          
+          constraints ? const SizedBox(height: 170,)
+          :const SizedBox(height: 12,),
+          Text(
+                'Description Détaillée:',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                widget.produit.description.isNotEmpty
+                    ? widget.produit.description
+                    : "Aucune description fournie pour ce produit.",
+                style: TextStyle(
+                  fontSize: 16,
+                  height: 1.6,
+                  color: Colors.grey.shade800,
+                ),
+              ),
+      
+              
+        ],
+      ),
+    
+    ),
+  );
+}
   //Méthode de paiement
   Widget _methodePaiment() {
     final cash = widget.produit.cash;
@@ -415,6 +604,8 @@ class _DetailsState extends State<Details> {
               'Quantité',
               widget.produit.quantite,
             ),
+            const SizedBox(height: 12,),
+             
           ],
         ),
       ),
@@ -446,32 +637,6 @@ class _DetailsState extends State<Details> {
   Widget _boutons() {
     return Row(
       children: [
-        // Expanded(
-        //   child: ElevatedButton.icon(
-        //     style: ElevatedButton.styleFrom(
-        //       backgroundColor: Colors.white,
-        //       foregroundColor: styles.rouge,
-        //       side: BorderSide(color: styles.rouge, width: 1.5),
-        //       elevation: 0,
-        //       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-        //       shape: RoundedRectangleBorder(
-        //         borderRadius: BorderRadius.circular(12),
-        //       ),
-        //     ),
-        //     onPressed: widget.produit.enStock ? _toggleJeVeut : null,
-        //     icon: Icon(
-        //       _isSouhait
-        //           ? FluentIcons.class_20_filled
-        //           : FluentIcons.book_star_24_regular,
-        //       size: 20,
-        //     ),
-        //     label: Text(
-        //       _isSouhait ? 'Souhaité' : 'Souhaits',
-        //       style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        //     ),
-        //   ),
-        // ),
-        
         const SizedBox(width: 16),
         Expanded(
           child: ElevatedButton.icon(
@@ -569,22 +734,49 @@ class _DetailsState extends State<Details> {
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
-          if (constraints.maxWidth > 600) {
-            return Row(
-              key: const Key('layout Web'),
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(flex: 2, child: _montreLesImages()),
-                Expanded(flex: 2, child: _detailsContenu()),
-              ],
+          if (constraints.maxWidth > 1200) {
+            return Center(
+              child: Container(
+                constraints: BoxConstraints(maxWidth: 1300),
+                child: Row(
+                  key: const Key('layout Web'),
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(flex: 3, child: _montreLesImages()),
+                    Expanded(flex: 3, child: _detailsContenu()),
+                    Expanded(flex: 3, child: _detailsTxt())
+                  ],
+                ),
+              ),
             );
           }
-          return Column(
-            key: const Key('layout Mobile'),
-            children: [
-              Expanded(flex: 2, child: _montreLesImages()),
-              Expanded(flex: 3, child: _detailsContenu()),
-            ],
+          if (constraints.maxWidth > 964) {
+            return Center(
+              child: Container(
+                constraints: BoxConstraints(maxWidth: 900),
+                child: Row(
+                  key: const Key('layout tablet'),
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(flex: 2, child: _montreLesImages()),
+                    Expanded(flex: 2, child: _detailsContenumob()),
+                  ],
+                ),
+              ),
+            );
+          }
+          return Center(
+            child: Container(
+              constraints: BoxConstraints(maxWidth: 500),
+              child: Column(
+                key: const Key('layout Mobile'),
+                children: [
+                  Expanded(flex: 4, child: _montreLesImages()),
+                  Expanded(flex: 3, child: _detailsContenumob()),
+                  
+                ],
+              ),
+            ),
           );
         },
       ),

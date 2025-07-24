@@ -256,7 +256,7 @@ class PromoState extends State<Promo> {
             souhaits: _souhaits,
             paniers: _paniers,
             onToggleSouhait: _toggleJeVeut,
-            onTogglePanier: _toggleAuPanier,
+            onTogglePanier: _toggleAuPanier, onTap: (Produit ) {  },
           ),
           const SizedBox(height: 24),
           isWideScreen
@@ -270,7 +270,7 @@ class PromoState extends State<Promo> {
             souhaits: _souhaits,
             paniers: _paniers,
             onToggleSouhait: _toggleJeVeut,
-            onTogglePanier: _toggleAuPanier,
+            onTogglePanier: _toggleAuPanier, onTap: (Produit ) {  },
           ),
           const SizedBox(height: 24),
           isWideScreen
@@ -284,7 +284,7 @@ class PromoState extends State<Promo> {
             souhaits: _souhaits,
             paniers: _paniers,
             onToggleSouhait: _toggleJeVeut,
-            onTogglePanier: _toggleAuPanier,
+            onTogglePanier: _toggleAuPanier, onTap: (Produit ) {  },
           ),
           const SizedBox(height: 24),
           isWideScreen
@@ -298,7 +298,7 @@ class PromoState extends State<Promo> {
             souhaits: _souhaits,
             paniers: _paniers,
             onToggleSouhait: _toggleJeVeut,
-            onTogglePanier: _toggleAuPanier,
+            onTogglePanier: _toggleAuPanier, onTap: (Produit ) {  },
           ),
           const SizedBox(height: 24),
           isWideScreen
@@ -311,7 +311,7 @@ class PromoState extends State<Promo> {
             souhaits: _souhaits,
             paniers: _paniers,
             onToggleSouhait: _toggleJeVeut,
-            onTogglePanier: _toggleAuPanier,
+            onTogglePanier: _toggleAuPanier, onTap: (Produit ) {  },
           ),
         ],
       ),
