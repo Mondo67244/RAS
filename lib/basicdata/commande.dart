@@ -34,4 +34,44 @@ class Commande {
     required this.ville,
     required this.codePostal
   });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'idCommande': idCommande,
+      'dateCommande': dateCommande,
+      'noteCommande': noteCommande,
+      'pays': pays,
+      'rue': rue,
+      'prixCommande': prixCommande,
+      'ville': ville,
+      'codePostal': codePostal,
+      'utilisateur': utilisateur.toMap(),
+      'produit': produit.map((p) => p.toMap()).toList(),
+      'methodePaiment': methodePaiment,
+      'choixLivraison': choixLivraison,
+      'enPromo': enPromo,
+      'enSouhait': enSouhait,
+      'auPanier': auPanier,
+    };
+  }
+
+  factory Commande.fromMap(Map<String, dynamic> map) {
+    return Commande(
+      idCommande: map['idCommande'] ?? '',
+      dateCommande: map['dateCommande'] ?? '',
+      noteCommande: map['noteCommande'] ?? '',
+      pays: map['pays'] ?? '',
+      rue: map['rue'] ?? '',
+      prixCommande: map['prixCommande'] ?? '',
+      ville: map['ville'] ?? '',
+      codePostal: map['codePostal'] ?? '',
+      utilisateur: Utilisateur.fromMap(map['utilisateur']),
+      produit: (map['produit'] as List).map((p) => Produit.fromMap(p as Map<String, dynamic>, p['idProduit'])).toList(),
+      methodePaiment: map['methodePaiment'] ?? false,
+      choixLivraison: map['choixLivraison'] ?? false,
+      enPromo: map['enPromo'] ?? false,
+      enSouhait: map['enSouhait'] ?? false,
+      auPanier: map['auPanier'] ?? false,
+    );
+  }
 }

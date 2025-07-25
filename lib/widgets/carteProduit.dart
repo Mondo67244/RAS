@@ -73,7 +73,7 @@ class ProductCard extends StatelessWidget {
                               backgroundColor: Colors.red.shade50,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                side: BorderSide(color: styles.rouge, width: 1),
+                                side: BorderSide(color: Styles.rouge, width: 1),
                               ),
                               label: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -85,7 +85,7 @@ class ProductCard extends StatelessWidget {
                                     'En Promo!',
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      color: styles.rouge,
+                                      color: Styles.rouge,
                                       fontSize: 12,
                                     ),
                                   ),
@@ -121,7 +121,7 @@ class ProductCard extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: styles.rouge,
+                            color: Styles.rouge,
                           ),
                         ),
                         Container(
@@ -129,8 +129,8 @@ class ProductCard extends StatelessWidget {
                               horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
                             color: produit.enStock
-                                ? styles.vert.withOpacity(0.1)
-                                : styles.erreur.withOpacity(0.1),
+                                ?Styles.vert.withAlpha((0.1 * 255).round())
+                                : Styles.erreur.withAlpha((0.1 * 255).round()),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
@@ -138,7 +138,7 @@ class ProductCard extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: produit.enStock ? styles.vert : styles.erreur,
+                              color: produit.enStock ? Styles.vert : Styles.erreur,
                             ),
                           ),
                         ),
@@ -147,31 +147,7 @@ class ProductCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        // Expanded(
-                        //   child: OutlinedButton.icon(
-                        //     onPressed: produit.enStock ? onToggleSouhait : null,
-                        //     icon: Icon(
-                        //       isSouhait
-                        //           ? FluentIcons.class_20_filled
-                        //           : FluentIcons.book_star_24_regular,
-                        //       size: 18,
-                        //     ),
-                        //     label: Text(
-                        //       isSouhait ? 'Souhaité' : 'Souhait',
-                        //       style: const TextStyle(fontWeight: FontWeight.w600),
-                        //     ),
-                        //     style: OutlinedButton.styleFrom(
-                        //       backgroundColor: isSouhait ? Colors.red.shade50 : styles.rouge,
-                        //       foregroundColor: isSouhait ? styles.rouge : styles.blanc,
-                        //       side: BorderSide(color: styles.rouge, width: 1.2),
-                        //       shape: RoundedRectangleBorder(
-                        //         borderRadius: BorderRadius.circular(10),
-                        //       ),
-                        //       padding: const EdgeInsets.symmetric(vertical: 10),
-                        //     ),
-                        //   ),
-                        // ),
-                       
+                        
                         Expanded(
                           child: ElevatedButton.icon(
                             onPressed: produit.enStock ? onTogglePanier : null,
@@ -186,8 +162,8 @@ class ProductCard extends StatelessWidget {
                               style: const TextStyle(fontWeight: FontWeight.w600),
                             ),
                             style: OutlinedButton.styleFrom(
-                              backgroundColor: isPanier ? Colors.blue.shade50 : styles.bleu,
-                              foregroundColor: isPanier ? styles.bleu : styles.blanc,
+                              backgroundColor: isPanier ? Colors.blue.shade50 : Styles.bleu,
+                              foregroundColor: isPanier ? Styles.bleu : Styles.blanc,
                               side: BorderSide(color: const Color.fromARGB(255, 11, 7, 115), width: 1.2),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
@@ -198,6 +174,7 @@ class ProductCard extends StatelessWidget {
                         ),
                       ],
                     ),
+                  
                   ],
                 ),
               ),
@@ -233,7 +210,7 @@ class ProductCard extends StatelessWidget {
     }
 
     try {
-      final RegExp base64Regex = RegExp(r'^[A-Za-z0-9+/=]+$');
+      final RegExp base64Regex = RegExp(r'^[A-Za-z0-9+/=]+');
       if (!base64Regex.hasMatch(imageData)) {
         throw const FormatException('Chaîne Base64 invalide');
       }

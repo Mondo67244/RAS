@@ -4,6 +4,7 @@ import 'package:ras_app/basicdata/produit.dart';
 import 'package:ras_app/basicdata/style.dart';
 import 'package:ras_app/services/base%20de%20donn%C3%A9es/lienbd.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:ras_app/services/panier/panier_local.dart';
 
 
 class Recents extends StatefulWidget {
@@ -16,6 +17,8 @@ class Recents extends StatefulWidget {
 class RecentsState extends State<Recents> {
   late Stream<List<Produit>> _produitsStream;
   final FirestoreService _firestoreService = FirestoreService();
+  final PanierLocal _panierLocal = PanierLocal();
+  List<String> _idsPanier = [];
   final ScrollController _populairesScrollController = ScrollController();
   final ScrollController _bureautiqueScrollController = ScrollController();
 
@@ -23,6 +26,15 @@ class RecentsState extends State<Recents> {
   void initState() {
     super.initState();
     _produitsStream = _firestoreService.getProduitsStream();
+    _initPanierLocal();
+  }
+
+  Future<void> _initPanierLocal() async {
+    await _panierLocal.init();
+    final ids = await _panierLocal.getPanier();
+    setState(() {
+      _idsPanier = ids;
+    });
   }
 
   @override
@@ -33,20 +45,18 @@ class RecentsState extends State<Recents> {
   }
 
   Future<void> _toggleAuPanier(Produit produit) async {
-    final bool nouvelEtat = !produit.auPanier;
-    try {
-      await _firestoreService.updateProductCart(produit.idProduit, nouvelEtat);
-      _messageReponse(
-        nouvelEtat
-            ? '${produit.nomProduit} ajouté au panier'
-            : '${produit.nomProduit} retiré du panier',
-        isSuccess: true,
-        icon: nouvelEtat
-            ? Icons.add_shopping_cart_outlined
-            : Icons.remove_shopping_cart_outlined,
-      );
-    } catch (e) {
-      _messageReponse('Erreur de mise à jour du panier.', isSuccess: false);
+    if (_idsPanier.contains(produit.idProduit)) {
+      await _panierLocal.retirerDuPanier(produit.idProduit);
+      setState(() {
+        _idsPanier.remove(produit.idProduit);
+      });
+      _messageReponse('${produit.nomProduit} retiré du panier', isSuccess: false, icon: Icons.remove_shopping_cart_outlined);
+    } else {
+      await _panierLocal.ajouterAuPanier(produit.idProduit);
+      setState(() {
+        _idsPanier.add(produit.idProduit);
+      });
+      _messageReponse('${produit.nomProduit} ajouté au panier', isSuccess: true, icon: Icons.add_shopping_cart_outlined);
     }
   }
 
@@ -60,7 +70,7 @@ class RecentsState extends State<Recents> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         duration: const Duration(seconds: 2),
-        backgroundColor: isSuccess ? styles.vert : styles.erreur,
+        backgroundColor: isSuccess ? Styles.vert : Styles.erreur,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         content: Row(
@@ -69,7 +79,7 @@ class RecentsState extends State<Recents> {
               Icon(icon, color: Colors.white),
               const SizedBox(width: 8),
             ],
-            Expanded(child: Text(message, style: styles.textebas)),
+            Expanded(child: Text(message, style: Styles.textebas)),
           ],
         ),
       ),
@@ -85,14 +95,14 @@ class RecentsState extends State<Recents> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
-              child: CircularProgressIndicator(color: styles.rouge),
+              child: CircularProgressIndicator(color: Styles.rouge),
             );
           }
           if (snapshot.hasError) {
             return Center(
               child: Text(
                 'Erreur: ${snapshot.error}',
-                style: TextStyle(color: styles.erreur, fontSize: 16),
+                style: TextStyle(color: Styles.erreur, fontSize: 16),
               ),
             );
           }
@@ -186,6 +196,7 @@ class RecentsState extends State<Recents> {
             onTap: (produit) {
               Navigator.pushNamed(context, '/details', arguments: produit);
             },
+            idsPanier: _idsPanier,
           ),
           const SizedBox(height: 24),
           isWideScreen
@@ -200,6 +211,7 @@ class RecentsState extends State<Recents> {
             onTap: (produit) {
               Navigator.pushNamed(context, '/details', arguments: produit);
             },
+            idsPanier: _idsPanier,
           ),
           const SizedBox(height: 24),
           isWideScreen
@@ -214,6 +226,7 @@ class RecentsState extends State<Recents> {
             onTap: (produit) {
               Navigator.pushNamed(context, '/details', arguments: produit);
             },
+            idsPanier: _idsPanier,
           ),
           const SizedBox(height: 24),
           isWideScreen
@@ -223,10 +236,11 @@ class RecentsState extends State<Recents> {
             title: 'Appareils Mobiles',
             produits: produitsMobiles,
             isWideScreen: isWideScreen,
-              onTogglePanier: _toggleAuPanier,
+            onTogglePanier: _toggleAuPanier,
             onTap: (produit) {
               Navigator.pushNamed(context, '/details', arguments: produit);
             },
+            idsPanier: _idsPanier,
           ),
           const SizedBox(height: 24),
           isWideScreen
@@ -240,6 +254,7 @@ class RecentsState extends State<Recents> {
             onTap: (produit) {
               Navigator.pushNamed(context, '/details', arguments: produit);
             },
+            idsPanier: _idsPanier,
           ),
         ],
       ),

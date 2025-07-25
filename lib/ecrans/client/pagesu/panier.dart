@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:ras_app/services/base%20de%20donn%C3%A9es/lienbd.dart'; // Assurez-vous que ce service existe et est correct
-import 'package:ras_app/basicdata/produit.dart'; // Votre classe Produit
-// import 'package:ras_app/basicdata/style.dart'; // Vous pouvez décommenter si vous utilisez ce fichier
+import 'package:ras_app/services/base%20de%20donn%C3%A9es/lienbd.dart';
+import 'package:ras_app/basicdata/produit.dart';
+import 'package:intl/intl.dart';
+import 'package:ras_app/services/panier/panier_local.dart';
 import 'dart:async';
-import 'package:intl/intl.dart'; // Pour le formatage des nombres
 
 class Panier extends StatefulWidget {
   const Panier({Key? key}) : super(key: key);
@@ -15,30 +15,45 @@ class Panier extends StatefulWidget {
 class PanierState extends State<Panier> {
   late Stream<List<Produit>> _cartProductsStream;
   final FirestoreService _firestoreService = FirestoreService();
+  final PanierLocal _panierLocal = PanierLocal();
 
   // Variables d'état pour gérer les sélections de l'utilisateur
   String? _selectedPaymentMethod;
   String? _selectedDeliveryMethod;
   bool _confirmTerms = false;
-  final TextEditingController _paymentNumberController =
-      TextEditingController();
+  final TextEditingController _paymentNumberController = TextEditingController();
 
   // Map pour gérer localement les quantités
-  Map<String, int> _productQuantities = {};
+  final Map<String, int> _productQuantities = {};
+  List<String> _idsPanier = [];
 
   @override
   void initState() {
     super.initState();
     _cartProductsStream = _firestoreService.getProduitsStream();
+    _initPanierLocal();
+  }
 
-    _cartProductsStream.listen((products) {
-      if (!mounted) return;
-      setState(() {
-        _productQuantities = {
-          for (var p in products.where((p) => p.auPanier))
-            p.idProduit: int.tryParse(p.quantite) ?? 1,
-        };
-      });
+  Future<void> _initPanierLocal() async {
+    await _panierLocal.init();
+    final ids = await _panierLocal.getPanier();
+    final quantities = await _panierLocal.getQuantities();
+    setState(() {
+      _idsPanier = ids;
+      _productQuantities.clear();
+      _productQuantities.addAll(quantities);
+      // Ajouter une quantité par défaut de 1 pour les produits sans quantité
+      for (var id in ids) {
+        _productQuantities[id] = _productQuantities[id] ?? 1;
+      }
+    });
+  }
+
+  Future<void> _retirerDuPanier(String idProduit) async {
+    await _panierLocal.retirerDuPanier(idProduit);
+    setState(() {
+      _idsPanier.remove(idProduit);
+      _productQuantities.remove(idProduit);
     });
   }
 
@@ -47,24 +62,9 @@ class PanierState extends State<Panier> {
       setState(() {
         _productQuantities[productId] = newQuantity;
       });
-      // Optionnel : Mettre à jour dans Firestore pour la persistance
-      // _firestoreService.updateProductQuantity(productId, newQuantity);
+      _panierLocal.updateQuantity(productId, newQuantity); // Persister la quantité
     } else {
-      _removeFromCart(productId);
-    }
-  }
-
-  Future<void> _removeFromCart(String idProduit) async {
-    try {
-      await _firestoreService.updateProductCart(idProduit, false);
-      setState(() {
-        _productQuantities.remove(idProduit);
-      });
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur lors de la suppression du produit: $e')),
-      );
+      _retirerDuPanier(productId);
     }
   }
 
@@ -95,7 +95,7 @@ class PanierState extends State<Panier> {
           }
 
           final produitsPanier =
-              snapshot.data?.where((p) => p.auPanier).toList() ?? [];
+              (snapshot.data ?? []).where((p) => _idsPanier.contains(p.idProduit)).toList();
 
           if (produitsPanier.isEmpty) {
             return const Center(child: Text('Votre panier est vide.'));
@@ -104,17 +104,12 @@ class PanierState extends State<Panier> {
           double grandTotal = 0;
           for (var produit in produitsPanier) {
             double prix = double.tryParse(produit.prix) ?? 0.0;
-            int currentQuantity =
-                _productQuantities[produit.idProduit] ??
-                (int.tryParse(produit.quantite) ?? 1);
+            int currentQuantity = _productQuantities[produit.idProduit] ?? 1;
             grandTotal += prix * currentQuantity;
           }
 
-          // LayoutBuilder est idéal pour construire une UI responsive
           return LayoutBuilder(
             builder: (context, constraints) {
-              // On définit un point de rupture : 800 pixels
-              // En dessous, tout est en colonne. Au-dessus, en 2 colonnes.
               if (constraints.maxWidth < 700) {
                 return SingleChildScrollView(
                   padding: const EdgeInsets.all(16.0),
@@ -129,12 +124,11 @@ class PanierState extends State<Panier> {
                   ),
                 );
               } else {
-                // MISE EN PAGE LARGE (deux colonnes)
                 return Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      flex: 2, // Le panier prend 2/3 de la largeur
+                      flex: 2,
                       child: SingleChildScrollView(
                         padding: const EdgeInsets.all(24.0),
                         child: _buildCartDetailsColumn(
@@ -145,7 +139,7 @@ class PanierState extends State<Panier> {
                     ),
                     const VerticalDivider(width: 1),
                     Expanded(
-                      flex: 1, // Les actions prennent 1/3 de la largeur
+                      flex: 1,
                       child: SingleChildScrollView(
                         padding: const EdgeInsets.all(24.0),
                         child: _buildActionDetailsColumn(),
@@ -161,11 +155,12 @@ class PanierState extends State<Panier> {
     );
   }
 
-  // WIDGET POUR LA PARTIE GAUCHE (détails du panier)
   Widget _buildCartDetailsColumn(
     List<Produit> produitsPanier,
     double grandTotal,
   ) {
+    final taille = MediaQuery.of(context).size.width;
+    final estGrand = taille > 650;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -198,33 +193,56 @@ class PanierState extends State<Panier> {
             color: Colors.amber[300],
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Total avec frais de livraison :',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+          child: estGrand
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Total avec frais de livraison :',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    Text(
+                      _formatPrice(grandTotal),
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ],
+                )
+              : Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Total avec frais de livraison :',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      Text(
+                        _formatPrice(grandTotal),
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              Text(
-                _formatPrice(grandTotal),
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-            ],
-          ),
         ),
       ],
     );
   }
 
-  // WIDGET POUR LA PARTIE DROITE (actions de l'utilisateur)
   Widget _buildActionDetailsColumn() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -239,9 +257,7 @@ class PanierState extends State<Panier> {
         ElevatedButton(
           onPressed: _confirmTerms ? () {} : null,
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(
-              0xFF191970,
-            ), // Couleur bleu marine de l'image
+            backgroundColor: const Color(0xFF191970),
             padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(30),
@@ -256,13 +272,10 @@ class PanierState extends State<Panier> {
     );
   }
 
-  // WIDGET POUR UN ARTICLE INDIVIDUEL DANS LE PANIER
   Widget _buildCartItemCard(Produit produit) {
-    int quantity =
-        _productQuantities[produit.idProduit] ??
-        (int.tryParse(produit.quantite) ?? 1);
     double prix = double.tryParse(produit.prix) ?? 0.0;
-    double itemTotal = prix * quantity;
+    int quantiteSouhaitee = _productQuantities[produit.idProduit] ?? 1;
+    double itemTotal = prix * quantiteSouhaitee;
 
     return Card(
       elevation: 0,
@@ -280,7 +293,7 @@ class PanierState extends State<Panier> {
               child: Row(
                 children: [
                   Text(
-                    'x$quantity',
+                    'x$quantiteSouhaitee',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -292,33 +305,37 @@ class PanierState extends State<Panier> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          produit.nomProduit,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
+                        Container(
+                          child: Text(
+                            produit.nomProduit,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                          overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 4),
                         Row(
                           children: [
                             _buildQuantityButton(
                               icon: Icons.add,
-                              onPressed:
-                                  () => _updateQuantity(
-                                    produit.idProduit,
-                                    quantity + 1,
-                                  ),
+                              onPressed: () => _updateQuantity(
+                                produit.idProduit,
+                                quantiteSouhaitee + 1,
+                              ),
                             ),
                             const SizedBox(width: 12),
                             _buildQuantityButton(
                               icon: Icons.remove,
-                              onPressed:
-                                  () => _updateQuantity(
-                                    produit.idProduit,
-                                    quantity - 1,
-                                  ),
+                              onPressed: () => _updateQuantity(
+                                produit.idProduit,
+                                quantiteSouhaitee - 1,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline, color: Colors.red),
+                              onPressed: () => _retirerDuPanier(produit.idProduit),
                             ),
                           ],
                         ),
@@ -391,8 +408,7 @@ class PanierState extends State<Panier> {
       title: Text(title),
       value: value,
       groupValue: _selectedPaymentMethod,
-      onChanged:
-          (newValue) => setState(() => _selectedPaymentMethod = newValue),
+      onChanged: (newValue) => setState(() => _selectedPaymentMethod = newValue),
       contentPadding: EdgeInsets.zero,
       activeColor: Colors.red[700],
     );
@@ -409,10 +425,9 @@ class PanierState extends State<Panier> {
         CheckboxListTile(
           title: const Text('Je veux être livré à Domicile'),
           value: _selectedDeliveryMethod == 'domicile',
-          onChanged:
-              (value) => setState(
-                () => _selectedDeliveryMethod = value! ? 'domicile' : null,
-              ),
+          onChanged: (value) => setState(
+            () => _selectedDeliveryMethod = value! ? 'domicile' : null,
+          ),
           controlAffinity: ListTileControlAffinity.leading,
           contentPadding: EdgeInsets.zero,
           activeColor: Colors.red[700],
@@ -420,10 +435,9 @@ class PanierState extends State<Panier> {
         CheckboxListTile(
           title: const Text('Je viendrai prendre en boutique'),
           value: _selectedDeliveryMethod == 'boutique',
-          onChanged:
-              (value) => setState(
-                () => _selectedDeliveryMethod = value! ? 'boutique' : null,
-              ),
+          onChanged: (value) => setState(
+            () => _selectedDeliveryMethod = value! ? 'boutique' : null,
+          ),
           controlAffinity: ListTileControlAffinity.leading,
           contentPadding: EdgeInsets.zero,
           activeColor: Colors.red[700],

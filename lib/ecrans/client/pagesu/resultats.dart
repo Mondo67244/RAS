@@ -126,7 +126,7 @@ class _ResultatsState extends State<Resultats> {
 
     return query.snapshots().map((snapshot) {
       List<Produit> results =
-          snapshot.docs.map((doc) => Produit.fromFirestore(doc)).toList();
+          snapshot.docs.map((doc) => Produit.fromFirestore(doc, null)).toList();
 
       final searchText = _searchController.text.toLowerCase();
       final minPrice = double.tryParse(_minPriceController.text);
@@ -207,7 +207,7 @@ class _ResultatsState extends State<Resultats> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Divider(
-                    color: primaryBlue.withOpacity(0.5),
+                    color: primaryBlue.withAlpha((0.5 * 255).round()),
                     thickness: 1,
                   ),
                 ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class styles {
+class Styles {
   static const Color rouge = Color.fromARGB(255, 141, 13, 4);
   static const Color bleu = Color.fromARGB(255, 1, 7, 71);
   static const Color bleuvar = Color.fromARGB(255, 1, 7, 71);

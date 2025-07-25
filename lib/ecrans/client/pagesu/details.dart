@@ -4,7 +4,8 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:ras_app/basicdata/produit.dart';
 import 'package:ras_app/basicdata/style.dart';
-import 'package:ras_app/services/base%20de%20donn%C3%A9es/lienbd.dart';
+import 'package:ras_app/services/panier/panier_local.dart';
+import 'package:ras_app/services/souhaits/souhaits_local.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class Details extends StatefulWidget {
@@ -16,19 +17,22 @@ class Details extends StatefulWidget {
 }
 
 class _DetailsState extends State<Details> {
-  final FirestoreService _firestoreService = FirestoreService();
+  final PanierLocal _panierLocal = PanierLocal();
+  final SouhaitsLocal _souhaitsLocal = SouhaitsLocal();
   late PageController _pageController;
   int _currentPage = 0;
   List<String> _images = [];
+  late Produit _currentProduit;
 
   @override
   void initState() {
     super.initState();
+    _currentProduit = widget.produit;
     _images =
         [
-          widget.produit.img1,
-          widget.produit.img2,
-          widget.produit.img3,
+          _currentProduit.img1,
+          _currentProduit.img2,
+          _currentProduit.img3,
         ].where((img) => img.isNotEmpty).toList();
     _pageController = PageController();
     _pageController.addListener(() {
@@ -38,6 +42,21 @@ class _DetailsState extends State<Details> {
         });
       }
     });
+    _checkInitialStates();
+  }
+
+  Future<void> _checkInitialStates() async {
+    await _panierLocal.init();
+    await _souhaitsLocal.init();
+    final panierIds = await _panierLocal.getPanier();
+    final souhaitsIds = await _souhaitsLocal.getSouhaits();
+
+    setState(() {
+      _currentProduit = _currentProduit.copyWith(
+        auPanier: panierIds.contains(_currentProduit.idProduit),
+        jeVeut: souhaitsIds.contains(_currentProduit.idProduit),
+      );
+    });
   }
 
   @override
@@ -46,12 +65,62 @@ class _DetailsState extends State<Details> {
     super.dispose();
   }
 
-  void _toggleSouhait(Produit produit) {
-    _firestoreService.updateProductWishlist(produit.idProduit, !produit.jeVeut);
+  void _toggleSouhait(Produit produit) async {
+    final bool isCurrentlyWished = produit.jeVeut;
+    try {
+      if (isCurrentlyWished) {
+        await _souhaitsLocal.retirerDesSouhaits(produit.idProduit);
+        _messageReponse('Retiré des souhaits',
+            icon: FluentIcons.book_star_24_regular);
+      } else {
+        // If adding to wishlist, remove from cart if present
+        if (produit.auPanier) {
+          await _panierLocal.retirerDuPanier(produit.idProduit);
+          
+        }
+        await _souhaitsLocal.ajouterAuxSouhaits(produit.idProduit);
+        _messageReponse('Ajouté aux souhaits',
+            icon: FluentIcons.class_20_filled);
+      }
+      setState(() {
+        _currentProduit = _currentProduit.copyWith(
+          jeVeut: !isCurrentlyWished,
+          auPanier: isCurrentlyWished ? _currentProduit.auPanier : false, // If adding to wishlist, ensure not in cart
+        );
+      });
+    } catch (e) {
+      _messageReponse('Erreur: Impossible de modifier les souhaits',
+          isSuccess: false, icon: Icons.error);
+    }
   }
 
-  void _togglePanier(Produit produit) {
-    _firestoreService.updateProductCart(produit.idProduit, !produit.auPanier);
+  void _togglePanier(Produit produit) async {
+    final bool isCurrentlyInCart = produit.auPanier;
+    try {
+      if (isCurrentlyInCart) {
+        await _panierLocal.retirerDuPanier(produit.idProduit);
+        _messageReponse('Retiré du panier',
+            icon: FluentIcons.shopping_bag_tag_24_regular);
+      } else {
+        // If adding to cart, remove from wishlist if present
+        if (produit.jeVeut) {
+          await _souhaitsLocal.retirerDesSouhaits(produit.idProduit);
+          
+        }
+        await _panierLocal.ajouterAuPanier(produit.idProduit);
+        _messageReponse('Ajouté au panier',
+            icon: FluentIcons.shopping_bag_tag_24_filled);
+      }
+      setState(() {
+        _currentProduit = _currentProduit.copyWith(
+          auPanier: !isCurrentlyInCart,
+          jeVeut: isCurrentlyInCart ? _currentProduit.jeVeut : false, // If adding to cart, ensure not in wishlist
+        );
+      });
+    } catch (e) {
+      _messageReponse('Erreur: Impossible de modifier le panier',
+          isSuccess: false, icon: Icons.error);
+    }
   }
 
   void _messageReponse(
@@ -63,7 +132,7 @@ class _DetailsState extends State<Details> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         duration: const Duration(seconds: 2),
-        backgroundColor: isSuccess ? styles.vert : styles.erreur,
+        backgroundColor: isSuccess ? Styles.vert : Styles.erreur,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         content: Row(
@@ -72,7 +141,7 @@ class _DetailsState extends State<Details> {
               Icon(icon, color: Colors.white),
               const SizedBox(width: 8),
             ],
-            Expanded(child: Text(message, style: styles.textebas)),
+            Expanded(child: Text(message, style: Styles.textebas)),
           ],
         ),
       ),
@@ -124,8 +193,8 @@ class _DetailsState extends State<Details> {
                   shape: BoxShape.circle,
                   color:
                       _currentPage == index
-                          ? styles.rouge
-                          : Colors.white.withOpacity(0.7),
+                          ? Styles.rouge
+                          : Colors.white.withAlpha((0.7 * 255).round()),
                 ),
               );
             }),
@@ -165,11 +234,11 @@ class _DetailsState extends State<Details> {
     return Container(
       margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.5),
+        color: Colors.black.withAlpha((0.5 * 255).round()),
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withAlpha((0.2 * 255).round()),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -191,10 +260,10 @@ class _DetailsState extends State<Details> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           constraints
-              ? const SizedBox(height: 170)
+              ? const SizedBox(height: 150)
               : const SizedBox(height: 10),
           Text(
-            produit.nomProduit,
+            _currentProduit.nomProduit,
             style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
@@ -206,11 +275,11 @@ class _DetailsState extends State<Details> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '${produit.prix} CFA',
+                '${_currentProduit.prix} CFA',
                 style: TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.w700,
-                  color: styles.rouge,
+                  color: Styles.rouge,
                 ),
               ),
               Container(
@@ -221,16 +290,16 @@ class _DetailsState extends State<Details> {
                 decoration: BoxDecoration(
                   color:
                       produit.enStock
-                          ? styles.vert.withOpacity(0.1)
-                          : styles.rouge.withOpacity(0.1),
+                          ? Styles.vert.withAlpha((0.1 * 255).round())
+                          : Styles.rouge.withAlpha((0.1 * 255).round()),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  produit.enStock ? 'En stock' : 'Rupture',
+                  _currentProduit.enStock ? 'En stock' : 'Rupture',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: produit.enStock ? styles.vert : styles.erreur,
+                    color: _currentProduit.enStock ? Styles.vert : Styles.erreur,
                   ),
                 ),
               ),
@@ -247,7 +316,7 @@ class _DetailsState extends State<Details> {
           ),
           const SizedBox(height: 10),
 
-          _carteDetails(produit),
+          _carteDetails(_currentProduit),
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -256,8 +325,8 @@ class _DetailsState extends State<Details> {
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
-                  foregroundColor: styles.rouge,
-                  side: BorderSide(color: styles.rouge, width: 1.5),
+                  foregroundColor: Styles.rouge,
+                  side: BorderSide(color: Styles.rouge, width: 1.5),
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(
                     vertical: 16,
@@ -268,15 +337,15 @@ class _DetailsState extends State<Details> {
                   ),
                 ),
                 onPressed:
-                    produit.enStock ? () => _toggleSouhait(produit) : null,
+                    _currentProduit.enStock ? () => _toggleSouhait(_currentProduit) : null,
                 icon: Icon(
-                  produit.jeVeut
+                  _currentProduit.jeVeut
                       ? FluentIcons.class_20_filled
                       : FluentIcons.book_star_24_regular,
                   size: 20,
                 ),
                 label: Text(
-                  produit.jeVeut ? 'Souhaité' : 'Je Souhaite',
+                  _currentProduit.jeVeut ? 'Souhaité' : 'Je Souhaite',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -287,7 +356,7 @@ class _DetailsState extends State<Details> {
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor:
-                      produit.enStock ? styles.bleu : Colors.grey.shade400,
+                      _currentProduit.enStock ? Styles.bleu : Colors.grey.shade400,
                   foregroundColor: Colors.white,
                   elevation: 2,
                   padding: const EdgeInsets.symmetric(
@@ -299,15 +368,15 @@ class _DetailsState extends State<Details> {
                   ),
                 ),
                 onPressed:
-                    produit.enStock ? () => _togglePanier(produit) : null,
+                    _currentProduit.enStock ? () => _togglePanier(_currentProduit) : null,
                 icon: Icon(
-                  produit.auPanier
+                  _currentProduit.auPanier
                       ? FluentIcons.shopping_bag_tag_24_filled
                       : FluentIcons.shopping_bag_tag_24_regular,
                   size: 20,
                 ),
                 label: Text(
-                  produit.auPanier ? 'Ajouté ! ' : 'Ajouter au Panier',
+                  _currentProduit.auPanier ? 'Ajouté ! ' : 'Ajouter au Panier',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -330,10 +399,10 @@ class _DetailsState extends State<Details> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           constraints
-              ? const SizedBox(height: 170)
+              ? const SizedBox(height: 150)
               : const SizedBox(height: 10),
           Text(
-            produit.nomProduit,
+            _currentProduit.nomProduit,
             style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
@@ -345,11 +414,11 @@ class _DetailsState extends State<Details> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '${produit.prix} CFA',
+                '${_currentProduit.prix} CFA',
                 style: TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.w700,
-                  color: styles.rouge,
+                  color: Styles.rouge,
                 ),
               ),
               Container(
@@ -360,16 +429,16 @@ class _DetailsState extends State<Details> {
                 decoration: BoxDecoration(
                   color:
                       produit.enStock
-                          ? styles.vert.withOpacity(0.1)
-                          : styles.rouge.withOpacity(0.1),
+                          ? Styles.vert.withAlpha((0.1 * 255).round())
+                          : Styles.rouge.withAlpha((0.1 * 255).round()),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  produit.enStock ? 'En stock' : 'Rupture',
+                  _currentProduit.enStock ? 'En stock' : 'Rupture',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: produit.enStock ? styles.vert : styles.erreur,
+                    color: _currentProduit.enStock ? Styles.vert : Styles.erreur,
                   ),
                 ),
               ),
@@ -386,14 +455,14 @@ class _DetailsState extends State<Details> {
           ),
           const SizedBox(height: 10),
 
-          _carteDetails(produit),
+          _carteDetails(_currentProduit),
           const SizedBox(height: 24),
           Center(
             child: ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
-                foregroundColor: styles.rouge,
-                side: BorderSide(color: styles.rouge, width: 1.5),
+                foregroundColor: Styles.rouge,
+                side: BorderSide(color: Styles.rouge, width: 1.5),
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(
                   vertical: 16,
@@ -403,15 +472,15 @@ class _DetailsState extends State<Details> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              onPressed: produit.enStock ? () => _toggleSouhait(produit) : null,
+              onPressed: _currentProduit.enStock ? () => _toggleSouhait(_currentProduit) : null,
               icon: Icon(
-                produit.jeVeut
+                _currentProduit.jeVeut
                     ? FluentIcons.class_20_filled
                     : FluentIcons.book_star_24_regular,
                 size: 20,
               ),
               label: Text(
-                produit.jeVeut ? 'Article Souhaité !' : 'Ajouter aux souhaits',
+                _currentProduit.jeVeut ? 'Article Souhaité !' : 'Ajouter aux souhaits',
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -431,8 +500,8 @@ class _DetailsState extends State<Details> {
           ),
           const SizedBox(height: 12),
           Text(
-            produit.description.isNotEmpty
-                ? produit.description
+            _currentProduit.description.isNotEmpty
+                ? _currentProduit.description
                 : "Aucune description fournie pour ce produit.",
             style: TextStyle(
               fontSize: 16,
@@ -440,11 +509,11 @@ class _DetailsState extends State<Details> {
               color: Colors.grey.shade800,
             ),
           ),
-          _methodePaiment(produit),
+          _methodePaiment(_currentProduit),
 
           if (MediaQuery.of(context).size.width > 600) ...[
             const SizedBox(height: 32),
-            _boutons(produit),
+            _boutons(_currentProduit),
           ],
         ],
       ),
@@ -459,7 +528,7 @@ class _DetailsState extends State<Details> {
         child: Column(
           children: [
             constraints
-                ? const SizedBox(height: 170)
+                ? const SizedBox(height: 150)
                 : const SizedBox(height: 12),
             Text(
               'Description Détaillée:',
@@ -471,8 +540,8 @@ class _DetailsState extends State<Details> {
             ),
             const SizedBox(height: 12),
             Text(
-              produit.description.isNotEmpty
-                  ? produit.description
+              _currentProduit.description.isNotEmpty
+                  ? _currentProduit.description
                   : "Aucune description fournie pour ce produit.",
               style: TextStyle(
                 fontSize: 16,
@@ -488,8 +557,8 @@ class _DetailsState extends State<Details> {
 
   //Méthode de paiement
   Widget _methodePaiment(Produit produit) {
-    final cash = produit.cash;
-    final electro = produit.electronique;
+    final cash = _currentProduit.cash;
+    final electro = _currentProduit.electronique;
     String methode = '';
 
     if (cash == true && electro == true) {
@@ -533,19 +602,19 @@ class _DetailsState extends State<Details> {
             _detailsIndividuels(
               FluentIcons.tag_24_regular,
               'Marque',
-              produit.marque,
+              _currentProduit.marque,
             ),
             const Divider(height: 24),
             _detailsIndividuels(
               FluentIcons.box_24_regular,
               'Modèle',
-              produit.modele,
+              _currentProduit.modele,
             ),
             const Divider(height: 24),
             _detailsIndividuels(
               FluentIcons.apps_list_detail_24_regular,
               'Type',
-              produit.type,
+              _currentProduit.type,
             ),
             const Divider(height: 24),
 
@@ -553,14 +622,14 @@ class _DetailsState extends State<Details> {
               FluentIcons.send_clock_20_regular,
 
               'Livrable',
-              produit.livrable ? 'Oui' : 'Non',
+              _currentProduit.livrable ? 'Oui' : 'Non',
             ),
             const Divider(height: 24),
 
             _detailsIndividuels(
               FluentIcons.document_bullet_list_16_regular,
-              'Quantité',
-              produit.quantite,
+              'Quantité Dispo',
+              _currentProduit.quantite,
             ),
             const SizedBox(height: 12),
           ],
@@ -599,7 +668,7 @@ class _DetailsState extends State<Details> {
           child: ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
               backgroundColor:
-                  produit.enStock ? styles.bleu : Colors.grey.shade400,
+                  _currentProduit.enStock ? Styles.bleu : Colors.grey.shade400,
               foregroundColor: Colors.white,
               elevation: 2,
               padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
@@ -607,15 +676,15 @@ class _DetailsState extends State<Details> {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            onPressed: produit.enStock ? () => _togglePanier(produit) : null,
+            onPressed: _currentProduit.enStock ? () => _togglePanier(_currentProduit) : null,
             icon: Icon(
-              produit.auPanier
+              _currentProduit.auPanier
                   ? FluentIcons.shopping_bag_tag_24_filled
                   : FluentIcons.shopping_bag_tag_24_regular,
               size: 20,
             ),
             label: Text(
-              produit.auPanier ? 'Ajouté au Panier ' : 'Ajouter au Panier',
+              _currentProduit.auPanier ? 'Ajouté au Panier ' : 'Ajouter au Panier',
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),
@@ -687,90 +756,62 @@ class _DetailsState extends State<Details> {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black87,
         elevation: 2,
-        shadowColor: Colors.black.withOpacity(0.1),
+        shadowColor: Colors.black.withAlpha((0.1 * 255).round()),
       ),
-      body: StreamBuilder<Produit>(
-        stream: _firestoreService.getProduitStream(widget.produit.idProduit),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(color: styles.rouge),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth > 1200) {
+            return Center(
+              child: Container(
+                constraints: BoxConstraints(maxWidth: 1300),
+                child: Row(
+                  key: const Key('layout Web'),
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(flex: 3, child: _montreLesImages()),
+                    Expanded(flex: 3, child: _detailsContenu(_currentProduit)),
+                    Expanded(flex: 3, child: _detailsTxt(_currentProduit)),
+                  ],
+                ),
+              ),
             );
           }
-          if (snapshot.hasError) {
-            return Center(child: Text('Erreur: ${snapshot.error}'));
-          }
-          if (!snapshot.hasData) {
-            return const Center(child: Text('Produit non trouvé.'));
-          }
-
-          final produit = snapshot.data!;
-
-          return LayoutBuilder(
-            builder: (context, constraints) {
-              if (constraints.maxWidth > 1200) {
-                return Center(
-                  child: Container(
-                    constraints: BoxConstraints(maxWidth: 1300),
-                    child: Row(
-                      key: const Key('layout Web'),
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(flex: 3, child: _montreLesImages()),
-                        Expanded(flex: 3, child: _detailsContenu(produit)),
-                        Expanded(flex: 3, child: _detailsTxt(produit)),
-                      ],
-                    ),
-                  ),
-                );
-              }
-              if (constraints.maxWidth > 964) {
-                return Center(
-                  child: Container(
-                    constraints: BoxConstraints(maxWidth: 900),
-                    child: Row(
-                      key: const Key('layout tablet'),
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(flex: 2, child: _montreLesImages()),
-                        Expanded(flex: 2, child: _detailsContenumob(produit)),
-                      ],
-                    ),
-                  ),
-                );
-              }
-              return Center(
-                child: Container(
-                  constraints: BoxConstraints(maxWidth: 500),
-                  child: Column(
-                    key: const Key('layout Mobile'),
-                    children: [
-                      Expanded(flex: 3, child: _montreLesImages()),
-                      Expanded(flex: 3, child: _detailsContenumob(produit)),
-                    ],
-                  ),
+          if (constraints.maxWidth > 964) {
+            return Center(
+              child: Container(
+                constraints: BoxConstraints(maxWidth: 900),
+                child: Row(
+                  key: const Key('layout tablet'),
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(flex: 2, child: _montreLesImages()),
+                    Expanded(flex: 2, child: _detailsContenumob(_currentProduit)),
+                  ],
                 ),
-              );
-            },
+              ),
+            );
+          }
+          return Center(
+            child: Container(
+              constraints: BoxConstraints(maxWidth: 500),
+              child: Column(
+                key: const Key('layout Mobile'),
+                children: [
+                  Expanded(flex: 3, child: _montreLesImages()),
+                  Expanded(flex: 3, child: _detailsContenumob(_currentProduit)),
+                ],
+              ),
+            ),
           );
         },
       ),
       bottomNavigationBar:
           MediaQuery.of(context).size.width <= 600
-              ? StreamBuilder<Produit>(
-                stream: _firestoreService.getProduitStream(
-                  widget.produit.idProduit,
-                ),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) return const SizedBox.shrink();
-                  final produit = snapshot.data!;
-                  return BottomAppBar(
-                    elevation: 8,
-                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-                    child: _boutons(produit),
-                  );
-                },
-              )
+              ? BottomAppBar(
+                  elevation: 8,
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+                  child: _boutons(_currentProduit),
+                )
               : null,
     );
   }

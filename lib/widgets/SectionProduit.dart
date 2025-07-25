@@ -8,8 +8,9 @@ class ProductSection extends StatelessWidget {
   final String title;
   final List<Produit> produits;
   final bool isWideScreen;
-      final Function(Produit) onTogglePanier;
+  final Function(Produit) onTogglePanier;
   final Function(Produit) onTap;
+  final List<String> idsPanier;
 
   const ProductSection({
     super.key,
@@ -18,6 +19,7 @@ class ProductSection extends StatelessWidget {
     required this.isWideScreen,
     required this.onTogglePanier,
     required this.onTap,
+    required this.idsPanier,
   });
 
   @override
@@ -49,7 +51,7 @@ class ProductSection extends StatelessWidget {
           child: Row(
             children: [
               Icon(FluentIcons.arrow_right_24_filled,
-                  color: styles.bleu, size: 24),
+                  color: Styles.bleu, size: 24),
               const SizedBox(width: 8),
               Text(
                 title,
@@ -73,7 +75,7 @@ class ProductSection extends StatelessWidget {
                 itemCount: produits.length,
                 itemBuilder: (context, index) {
                   final produit = produits[index];
-                  final bool isPanier = produit.auPanier;
+                  final bool isPanier = idsPanier.contains(produit.idProduit);
                   return ProductCard(
                     produit: produit,
                     isPanier: isPanier,
@@ -114,7 +116,7 @@ class ProductSection extends StatelessWidget {
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withAlpha((0.2 * 255).round()),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),

@@ -16,4 +16,26 @@ class Facture {
     required this.utilisateur,
     required this.produits,
   });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'idFacture': idFacture,
+      'dateFacture': dateFacture,
+      'utilisateur': utilisateur.toMap(),
+      'produits': produits.map((p) => p.toMap()).toList(),
+      'prixFacture': prixFacture,
+      'quantite': quantite,
+    };
+  }
+
+  factory Facture.fromMap(Map<String, dynamic> map) {
+    return Facture(
+      idFacture: map['idFacture'] ?? '',
+      dateFacture: map['dateFacture'] ?? '',
+      utilisateur: Utilisateur.fromMap(map['utilisateur']),
+      produits: (map['produits'] as List).map((p) => Produit.fromMap(p as Map<String, dynamic>, p['idProduit'])).toList(),
+      prixFacture: map['prixFacture'] ?? 0,
+      quantite: map['quantite'] ?? 0,
+    );
+  }
 }

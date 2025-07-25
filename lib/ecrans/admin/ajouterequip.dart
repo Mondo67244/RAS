@@ -5,7 +5,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:ras_app/basicdata/style.dart';
-import 'package:dropdown_button2/dropdown_button2.dart'; // Importez le package
+import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:ras_app/services/base de données/lienbd.dart';
+import 'package:ras_app/basicdata/produit.dart';
 
 class AjouterEquipPage extends StatefulWidget {
   const AjouterEquipPage({super.key});
@@ -165,30 +167,33 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
         base64Images.add(base64Encode(imageBytes));
       }
 
-      await FirebaseFirestore.instance.collection('Produits').add({
-        'nomProduit': _nomController.text.trim(),
-        'description': _descriptionController.text.trim(),
-        'descriptionCourte': _descriptionBreveController.text.trim(),
-        'marque': _selectedBrand,
-        'modele': _modeleController.text.trim(),
-        'prix': _prixController.text.trim(),
-        'categorie': _selectedCategory,
-        'type' : _selectedType,
-        'sousCategorie': _selectedSousCat,
-        'img1': base64Images[0],
-        'img2': base64Images[1],
-        'img3': base64Images[2],
-        'vues': 0,
-        'quantite': _quantiteController.text.trim(),
-        'livrable': estChoisi,
-        'cash': cash,
-        'electronique': electronique,
-        'enPromo': enPromo,
-        'jeVeut': false,
-        'auPanier': false,
-        'enStock': true,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+      final produit = Produit(
+        idProduit: '', // Firestore will generate this
+        nomProduit: _nomController.text.trim(),
+        description: _descriptionController.text.trim(),
+        descriptionCourte: _descriptionBreveController.text.trim(),
+        marque: _selectedBrand!,
+        modele: _modeleController.text.trim(),
+        prix: _prixController.text.trim(),
+        categorie: _selectedCategory!,
+        type: _selectedType!,
+        sousCategorie: _selectedSousCat!,
+        img1: base64Images[0],
+        img2: base64Images[1],
+        img3: base64Images[2],
+        vues: '0',
+        quantite: _quantiteController.text.trim(),
+        livrable: estChoisi,
+        cash: cash,
+        electronique: electronique,
+        enPromo: enPromo,
+        jeVeut: false,
+        auPanier: false,
+        enStock: true,
+        createdAt: Timestamp.now(),
+      );
+
+      await FirestoreService().addProduit(produit);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -231,7 +236,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
           fontSize: 20,
           fontWeight: FontWeight.bold,
         ),
-        backgroundColor: styles.rouge,
+        backgroundColor: Styles.rouge,
         iconTheme: IconThemeData(color: Colors.white),
         centerTitle: true,
       ),
@@ -289,7 +294,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
                 decoration: BoxDecoration(
                   color: Colors.grey[200],
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: styles.rouge, width: 1.5),
+                  border: Border.all(color: Styles.rouge, width: 1.5),
                   image:
                       _imageFiles[index] != null
                           ? DecorationImage(
@@ -304,7 +309,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
                           child: Icon(
                             Icons.add_a_photo_outlined,
                             size: 40,
-                            color: styles.rouge,
+                            color: Styles.rouge,
                           ),
                         )
                         : null,
@@ -543,7 +548,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
                 Text('Est livrable ', style: TextStyle(fontSize: 17)),
                 Switch(
                   value: estChoisi,
-                  activeColor: styles.rouge,
+                  activeColor: Styles.rouge,
                   onChanged: (value) {
                     setState(() {
                       estChoisi = !estChoisi;
@@ -557,7 +562,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
                 Text('En Promo ', style: TextStyle(fontSize: 17)),
                 Switch(
                   value: enPromo,
-                  activeColor: styles.rouge,
+                  activeColor: Styles.rouge,
                   onChanged: (value) {
                     setState(() {
                       enPromo = !enPromo;
@@ -616,7 +621,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
                 Text('MTN | Orange Money ', style: TextStyle(fontSize: 17)),
                 Switch(
                   value: electronique,
-                  activeColor: styles.rouge,
+                  activeColor: Styles.rouge,
                   onChanged: (value) {
                     setState(() {
                       electronique = !electronique;
@@ -630,7 +635,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
                 Text('Pendant la livraison ', style: TextStyle(fontSize: 17)),
                 Switch(
                   value: cash,
-                  activeColor: styles.rouge,
+                  activeColor: Styles.rouge,
                   onChanged: (value) {
                     setState(() {
                       cash = !cash;
@@ -652,7 +657,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
       child: ElevatedButton(
         onPressed: _isLoading ? null : _submitForm,
         style: ElevatedButton.styleFrom(
-          backgroundColor: styles.rouge,
+          backgroundColor: Styles.rouge,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -692,7 +697,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: styles.rouge, width: 2),
+        borderSide: BorderSide(color: Styles.rouge, width: 2),
       ),
     );
   }

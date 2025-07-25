@@ -1,1 +1,1 @@
-export '../panier/panierwinanlocal.dart' if (dart.library.web) '../panier/panierweblocal.dart';
+export '../panier/panier_local.dart';

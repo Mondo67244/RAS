@@ -110,7 +110,7 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
       ),
 
       appBar: AppBar(
-        foregroundColor: styles.blanc,
+        foregroundColor: Styles.blanc,
         backgroundColor: const Color.fromARGB(255, 163, 14, 3),
         title: AnimatedSwitcher(
           duration: const Duration(milliseconds: 300),
@@ -184,8 +184,8 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                           controller: _tabController,
                           isScrollable: false,
                           
-                          indicatorColor: styles.rouge,
-                          labelColor: styles.rouge,
+                          indicatorColor: Styles.rouge,
+                          labelColor: Styles.rouge,
                           unselectedLabelColor: Colors.grey[600],
                           tabs: _tabs,
                         ),

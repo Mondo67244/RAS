@@ -4,6 +4,7 @@ import 'package:ras_app/basicdata/produit.dart';
 import 'package:ras_app/basicdata/style.dart';
 import 'package:ras_app/services/base%20de%20donn%C3%A9es/lienbd.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:ras_app/services/panier/panier_local.dart';
 
 class Promo extends StatefulWidget {
   const Promo({Key? key}) : super(key: key);
@@ -15,6 +16,8 @@ class Promo extends StatefulWidget {
 class PromoState extends State<Promo> {
   late Stream<List<Produit>> _produitsStream;
   final FirestoreService _firestoreService = FirestoreService();
+  final PanierLocal _panierLocal = PanierLocal();
+  List<String> _idsPanier = [];
   final Set<String> _souhaits = {};
   final Set<String> _paniers = {};
   final ScrollController _populairesScrollController = ScrollController();
@@ -27,6 +30,15 @@ class PromoState extends State<Promo> {
   void initState() {
     super.initState();
     _produitsStream = _firestoreService.getProduitsStream();
+    _initPanierLocal();
+  }
+
+  Future<void> _initPanierLocal() async {
+    await _panierLocal.init();
+    final ids = await _panierLocal.getPanier();
+    setState(() {
+      _idsPanier = ids;
+    });
   }
 
   @override
@@ -45,36 +57,21 @@ class PromoState extends State<Promo> {
     }
   }
 
-  Future<void> _toggleJeVeut(Produit produit) async {
-    final bool nouvelEtat = !produit.jeVeut;
-    _messageReponse(
-      nouvelEtat
-          ? '${produit.nomProduit} ajouté à vos souhaits'
-          : '${produit.nomProduit} retiré de vos souhaits',
-      isSuccess: nouvelEtat,
-    );
-    try {
-      await _firestoreService.updateProductWishlist(produit.idProduit, nouvelEtat);
-    } catch (e) {
-      print('Erreur Firestore pour JeVeut: $e');
-      _messageReponse('Erreur de mise à jour du souhait.', isSuccess: false);
-    }
-  }
+  
 
   Future<void> _toggleAuPanier(Produit produit) async {
-    final bool nouvelEtat = !produit.auPanier;
-    _messageReponse(
-      nouvelEtat
-          ? '${produit.nomProduit} ajouté au panier'
-          : '${produit.nomProduit} retiré du panier',
-      isSuccess: nouvelEtat,
-      icon: nouvelEtat ? Icons.add_shopping_cart_outlined : Icons.remove_shopping_cart_outlined,
-    );
-    try {
-      await _firestoreService.updateProductCart(produit.idProduit, nouvelEtat);
-    } catch (e) {
-      print('Erreur Firestore pour AuPanier: $e');
-      _messageReponse('Erreur de mise à jour du panier.', isSuccess: false);
+    if (_idsPanier.contains(produit.idProduit)) {
+      await _panierLocal.retirerDuPanier(produit.idProduit);
+      setState(() {
+        _idsPanier.remove(produit.idProduit);
+      });
+      _messageReponse('${produit.nomProduit} retiré du panier', isSuccess: false, icon: Icons.remove_shopping_cart_outlined);
+    } else {
+      await _panierLocal.ajouterAuPanier(produit.idProduit);
+      setState(() {
+        _idsPanier.add(produit.idProduit);
+      });
+      _messageReponse('${produit.nomProduit} ajouté au panier', isSuccess: true, icon: Icons.add_shopping_cart_outlined);
     }
   }
 
@@ -83,7 +80,7 @@ class PromoState extends State<Promo> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         duration: const Duration(seconds: 2),
-        backgroundColor: isSuccess ? styles.vert : styles.erreur,
+        backgroundColor: isSuccess ? Styles.vert : Styles.erreur,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         content: Row(
@@ -92,7 +89,7 @@ class PromoState extends State<Promo> {
               Icon(icon, color: Colors.white),
               const SizedBox(width: 8),
             ],
-            Expanded(child: Text(message, style: styles.textebas)),
+            Expanded(child: Text(message, style: Styles.textebas)),
           ],
         ),
       ),
@@ -107,14 +104,14 @@ class PromoState extends State<Promo> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
-              child: CircularProgressIndicator(color: styles.rouge),
+              child: CircularProgressIndicator(color: Styles.rouge),
             );
           }
           if (snapshot.hasError) {
             return Center(
               child: Text(
                 'Erreur: ${snapshot.error}',
-                style: TextStyle(color: styles.erreur, fontSize: 16),
+                style: TextStyle(color: Styles.erreur, fontSize: 16),
               ),
             );
           }
@@ -194,7 +191,6 @@ class PromoState extends State<Promo> {
     final produitsPopulaires =
         produits.where((p) => (int.tryParse(p.vues) ?? 0) > 15 && p.enPromo == true).toList();
 
-
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -207,8 +203,9 @@ class PromoState extends State<Promo> {
             title: 'Articles Populaires',
             produits: produitsPopulaires,
             isWideScreen: isWideScreen,
-
-            onTogglePanier: _toggleAuPanier, onTap: (Produit ) {  },
+            onTogglePanier: _toggleAuPanier,
+            onTap: (Produit ) {  },
+            idsPanier: _idsPanier,
           ),
           const SizedBox(height: 24),
           isWideScreen
@@ -219,8 +216,9 @@ class PromoState extends State<Promo> {
             title: 'Appareils pour la Bureautique',
             produits: produitsBureautique,
             isWideScreen: isWideScreen,
-
-            onTogglePanier: _toggleAuPanier, onTap: (Produit ) {  },
+            onTogglePanier: _toggleAuPanier,
+            onTap: (Produit ) {  },
+            idsPanier: _idsPanier,
           ),
           const SizedBox(height: 24),
           isWideScreen
@@ -231,20 +229,21 @@ class PromoState extends State<Promo> {
             title: 'Appareils Réseau',
             produits: produitsReseau,
             isWideScreen: isWideScreen,
-
-            onTogglePanier: _toggleAuPanier, onTap: (Produit ) {  },
+            onTogglePanier: _toggleAuPanier,
+            onTap: (Produit ) {  },
+            idsPanier: _idsPanier,
           ),
           const SizedBox(height: 24),
           isWideScreen
               ? Text('')
               : _imagesEntetes('assets/images/EG2.png', isWide: isWideScreen),
-          //Section appareils mobiles
           ProductSection(
             title: 'Appareils Mobiles',
             produits: produitsMobiles,
             isWideScreen: isWideScreen,
-
-            onTogglePanier: _toggleAuPanier, onTap: (Produit ) {  },
+            onTogglePanier: _toggleAuPanier,
+            onTap: (Produit ) {  },
+            idsPanier: _idsPanier,
           ),
           const SizedBox(height: 24),
           isWideScreen
@@ -254,12 +253,12 @@ class PromoState extends State<Promo> {
             title: 'Produit Divers',
             produits: produitDivers,
             isWideScreen: isWideScreen,
-
-            onTogglePanier: _toggleAuPanier, onTap: (Produit ) {  },
+            onTogglePanier: _toggleAuPanier,
+            onTap: (Produit ) {  },
+            idsPanier: _idsPanier,
           ),
         ],
       ),
     );
- 
   }
 }

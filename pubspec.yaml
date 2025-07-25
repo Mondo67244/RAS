@@ -20,6 +20,7 @@ dependencies:
   dropdown_button2: ^2.3.9
   shared_preferences: ^2.5.3
   web: ^1.1.1
+  carousel_slider: ^5.1.1
 
 dev_dependencies:
   flutter_test:
