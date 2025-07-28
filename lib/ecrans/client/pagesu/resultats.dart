@@ -1,3 +1,4 @@
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
@@ -6,24 +7,37 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:ras_app/basicdata/produit.dart';
 
+/// Widget pour afficher les résultats de la recherche de produits.
 class Resultats extends StatefulWidget {
+  /// Constructeur du widget [Resultats].
   const Resultats({super.key});
 
   @override
   State<Resultats> createState() => _ResultatsState();
 }
 
+/// État du widget [Resultats].
 class _ResultatsState extends State<Resultats> {
+  /// Clé pour le formulaire de recherche.
   final _formKey = GlobalKey<FormState>();
+
+  /// Contrôleur pour le champ de recherche texte.
   final _searchController = TextEditingController();
+
+  /// Contrôleur pour le champ de prix minimum.
   final _minPriceController = TextEditingController();
+
+  /// Contrôleur pour le champ de prix maximum.
   final _maxPriceController = TextEditingController();
 
+  /// Liste des catégories disponibles.
   final List<String> _categories = [
     'Informatique',
     'Électro Ménager',
     'Électronique',
   ];
+
+  /// Liste des marques disponibles.
   final List<String> _brands = [
     '- Autre -',
     'Apple',
@@ -34,11 +48,15 @@ class _ResultatsState extends State<Resultats> {
     'Sony',
     'LG',
   ];
+
+  /// Map des sous-catégories par catégorie.
   final Map<String, List<String>> categoryTypes = {
     'Informatique': ['Bureautique', 'Réseau'],
     'Électro Ménager': ['Divers'],
     'Électronique': ['Appareils Mobiles', 'Accessoires'],
   };
+
+  /// Map des types d'appareils par sous-catégorie.
   final Map<String, List<String>> typeAppareil = {
     'Bureautique': [
       'Imprimante',
@@ -55,18 +73,34 @@ class _ResultatsState extends State<Resultats> {
     'Accessoires': ['Montres connectées', 'Casques', 'Chaussures'],
   };
 
+  /// Catégorie sélectionnée.
   String? _selectedCategory;
+
+  /// Sous-catégorie sélectionnée.
   String? _selectedSousCat;
+
+  /// Type d'appareil sélectionné.
   String? _selectedType;
+
+  /// Marque sélectionnée.
   String? _selectedBrand;
 
+  /// Indique si une recherche est en cours.
   bool _isLoading = false;
+
+  /// Indique si une recherche a été effectuée.
   bool _hasSearched = false;
+
+  /// Timer pour le debounce de la recherche.
   Timer? _debounce;
 
+  /// Stream contenant les résultats de la recherche.
   Stream<List<Produit>>? _searchStream;
 
+  /// Couleur primaire rouge utilisée dans l'interface.
   final Color primaryRed = const Color.fromARGB(255, 209, 0, 0);
+
+  /// Couleur primaire bleue utilisée dans l'interface.
   final Color primaryBlue = const Color.fromARGB(255, 30, 2, 155);
 
   @override
@@ -78,7 +112,7 @@ class _ResultatsState extends State<Resultats> {
   }
 
   @override
-  //Pour disposer les champs
+  /// Libère les ressources des contrôleurs et du timer.
   void dispose() {
     _searchController.dispose();
     _minPriceController.dispose();
@@ -87,30 +121,37 @@ class _ResultatsState extends State<Resultats> {
     super.dispose();
   }
 
-  //Quand le texte de la barre de recherche change
+  /// Déclenchée lorsque le texte de la barre de recherche change.
+  /// Utilise un debounce pour éviter des recherches trop fréquentes.
   void _onSearchTextChanged() {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), _performSearch);
   }
 
-  //Quand le prix change
+  /// Déclenchée lorsque les valeurs des champs de prix changent.
+  /// Utilise un debounce pour éviter des recherches trop fréquentes.
   void _onPriceChanged() {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), _performSearch);
   }
 
-  //Lorsque la valeur des dropdownchange
+  /// Déclenchée lorsque les valeurs des dropdowns changent.
+  /// Utilise un debounce avec un délai plus court.
   void _onDropdownChanged() {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 300), _performSearch);
   }
 
-  //StreamBuilder pour récupérer les données de Firestore
+  /// Construit le stream de recherche en fonction des critères actuels.
+  ///
+  /// Effectue les requêtes Firestore et filtre les résultats localement
+  /// pour le texte et les prix.
   Stream<List<Produit>> _buildSearchStream() {
     Query<Map<String, dynamic>> query = FirebaseFirestore.instance.collection(
       'Produits',
     );
 
+    // Application des filtres Firestore
     if (_selectedCategory != null) {
       query = query.where('categorie', isEqualTo: _selectedCategory);
     }
@@ -124,55 +165,64 @@ class _ResultatsState extends State<Resultats> {
       query = query.where('marque', isEqualTo: _selectedBrand);
     }
 
+    // Traitement des snapshots et filtres locaux
     return query.snapshots().map((snapshot) {
       List<Produit> results =
           snapshot.docs.map((doc) => Produit.fromFirestore(doc, null)).toList();
 
       final searchText = _searchController.text.toLowerCase();
-      final minPrice = double.tryParse(_minPriceController.text);
-      final maxPrice = double.tryParse(_maxPriceController.text);
+      final minPriceText = _minPriceController.text;
+      final maxPriceText = _maxPriceController.text;
 
+      // Filtre par texte (nom ou description)
       if (searchText.isNotEmpty) {
-        results =
-            results
-                .where(
-                  (p) =>
-                      p.nomProduit.toLowerCase().contains(searchText) ||
-                      p.description.toLowerCase().contains(searchText),
-                )
-                .toList();
+        results = results.where(
+          (p) =>
+              p.nomProduit.toLowerCase().contains(searchText) ||
+              p.description.toLowerCase().contains(searchText),
+        ).toList();
       }
 
-      if (minPrice != null) {
-        results =
-            results
-                .where((p) => (double.tryParse(p.prix) ?? 0.0) >= minPrice)
-                .toList();
+      // Filtre par prix minimum
+      if (minPriceText.isNotEmpty) {
+        final minPrice = double.tryParse(minPriceText);
+        if (minPrice != null) {
+          results = results.where(
+            (p) {
+              final prixProduit = double.tryParse(p.prix.toString()) ?? 0.0;
+              return prixProduit >= minPrice;
+            },
+          ).toList();
+        }
       }
 
-      if (maxPrice != null) {
-        results =
-            results
-                .where((p) => (double.tryParse(p.prix) ?? 0.0) <= maxPrice)
-                .toList();
+      // Filtre par prix maximum
+      if (maxPriceText.isNotEmpty) {
+        final maxPrice = double.tryParse(maxPriceText);
+        if (maxPrice != null) {
+          results = results.where(
+            (p) {
+              final prixProduit = double.tryParse(p.prix.toString()) ?? 0.0;
+              return prixProduit <= maxPrice;
+            },
+          ).toList();
+        }
       }
 
       return results;
     });
   }
 
-  //Méthode pour lancer les recherches
+  /// Lance la recherche en mettant à jour l'état et le stream.
   Future<void> _performSearch() async {
     if (_isLoading) return;
-
     setState(() {
       _isLoading = true;
       _hasSearched = true;
       _searchStream = _buildSearchStream();
     });
-
+    // Petit délai pour permettre à l'UI de se mettre à jour
     await Future.delayed(const Duration(milliseconds: 100));
-
     if (mounted) {
       setState(() {
         _isLoading = false;
@@ -186,10 +236,10 @@ class _ResultatsState extends State<Resultats> {
       body: LayoutBuilder(
         builder: (context, constraints) {
           if (constraints.maxWidth > 650) {
-            // Web layout
+            // Layout pour les écrans larges (web/desktop)
             return Center(
               child: Container(
-                constraints: BoxConstraints(maxWidth: 1200),
+                constraints: const BoxConstraints(maxWidth: 1200),
                 child: Row(
                   children: [
                     Expanded(flex: 1, child: _buildSearchForm()),
@@ -200,7 +250,7 @@ class _ResultatsState extends State<Resultats> {
               ),
             );
           } else {
-            // Mobile layout
+            // Layout pour les écrans étroits (mobile)
             return Column(
               children: [
                 _buildSearchForm(),
@@ -221,7 +271,7 @@ class _ResultatsState extends State<Resultats> {
     );
   }
 
-  //le formulaire de recherche
+  /// Construit le formulaire de recherche.
   Widget _buildSearchForm() {
     return Form(
       key: _formKey,
@@ -244,7 +294,6 @@ class _ResultatsState extends State<Resultats> {
                     _onDropdownChanged();
                   });
                 }),
-
                 if (_selectedCategory != null)
                   _buildDropdown(
                     categoryTypes[_selectedCategory!]!,
@@ -258,7 +307,6 @@ class _ResultatsState extends State<Resultats> {
                       });
                     },
                   ),
-
                 if (_selectedSousCat != null)
                   _buildDropdown(
                     typeAppareil[_selectedSousCat!]!,
@@ -271,14 +319,12 @@ class _ResultatsState extends State<Resultats> {
                       });
                     },
                   ),
-
                 _buildDropdown(_brands, 'Marque', _selectedBrand, (val) {
                   setState(() {
                     _selectedBrand = val;
                     _onDropdownChanged();
                   });
                 }),
-
                 Row(
                   children: [
                     Expanded(
@@ -288,7 +334,8 @@ class _ResultatsState extends State<Resultats> {
                           'Prix Min',
                           Icons.price_check,
                         ),
-                        keyboardType: TextInputType.number,
+                        keyboardType:
+                            const TextInputType.numberWithOptions(decimal: true),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -299,31 +346,29 @@ class _ResultatsState extends State<Resultats> {
                           'Prix Max',
                           Icons.price_change_outlined,
                         ),
-                        keyboardType: TextInputType.number,
+                        keyboardType:
+                            const TextInputType.numberWithOptions(decimal: true),
                       ),
                     ),
                   ],
                 ),
-
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     onPressed: _performSearch,
-                    icon:
-                        _isLoading
-                            ? Container()
-                            : const Icon(Icons.search, color: Colors.white),
-                    label:
-                        _isLoading
-                            ? const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 3,
-                              ),
-                            )
-                            : const Text('Rechercher'),
+                    icon: _isLoading
+                        ? Container()
+                        : const Icon(Icons.search, color: Colors.white),
+                    label: _isLoading
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 3,
+                            ),
+                          )
+                        : const Text('Rechercher'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryRed,
                       foregroundColor: Colors.white,
@@ -346,7 +391,12 @@ class _ResultatsState extends State<Resultats> {
     );
   }
 
-  //Les listes déroulantes
+  /// Construit un widget DropdownButton2.
+  ///
+  /// [items] : Liste des éléments du dropdown.
+  /// [hint] : Texte d'indice.
+  /// [selectedValue] : Valeur actuellement sélectionnée.
+  /// [onChanged] : Callback appelé lors d'un changement de sélection.
   Widget _buildDropdown(
     List<String> items,
     String hint,
@@ -358,9 +408,7 @@ class _ResultatsState extends State<Resultats> {
       value: selectedValue,
       hint: Text(hint, style: TextStyle(color: Colors.grey[600])),
       items:
-          items
-              .map((item) => DropdownMenuItem(value: item, child: Text(item)))
-              .toList(),
+          items.map((item) => DropdownMenuItem(value: item, child: Text(item))).toList(),
       onChanged: onChanged,
       buttonStyleData: ButtonStyleData(
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -370,13 +418,15 @@ class _ResultatsState extends State<Resultats> {
           border: Border.all(color: Colors.grey[400]!),
         ),
       ),
-      dropdownStyleData: DropdownStyleData(
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
+      dropdownStyleData: const DropdownStyleData(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.all(Radius.circular(12)),
+        ),
       ),
     );
   }
 
-  //L'endroit dans lequel on affiche les résultats
+  /// Construit la section d'affichage des résultats.
   Widget _buildResultsSection() {
     if (!_hasSearched) {
       return const Center(
@@ -387,14 +437,12 @@ class _ResultatsState extends State<Resultats> {
         ),
       );
     }
-
     return StreamBuilder<List<Produit>>(
       stream: _searchStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator(color: primaryRed));
         }
-
         if (snapshot.hasError) {
           return Center(
             child: Text(
@@ -403,32 +451,28 @@ class _ResultatsState extends State<Resultats> {
             ),
           );
         }
-
         final results = snapshot.data ?? [];
-
         if (results.isEmpty) {
           return const Center(
             child: Text('Aucun résultat trouvé pour ces critères.'),
           );
         }
-
         return ListView.separated(
           itemCount: results.length,
-          separatorBuilder:
-              (context, index) => const Divider(indent: 16, endIndent: 16),
+          separatorBuilder: (context, index) =>
+              const Divider(indent: 16, endIndent: 16),
           itemBuilder: (context, index) {
             final produit = results[index];
             return ListTile(
-              leading:
-                  produit.img1.isNotEmpty
-                      ? _buildImage(produit.img1)
-                      : const Icon(Icons.image_not_supported, size: 60),
+              leading: produit.img1.isNotEmpty
+                  ? _buildImage(produit.img1)
+                  : const Icon(Icons.image_not_supported, size: 60),
               title: Text(
                 produit.nomProduit,
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               subtitle: Text(
-                '${produit.categorie} > ${produit.sousCategorie}\n${produit.prix} CFA',
+                '${produit.categorie} > ${produit.sousCategorie}\n${produit.prix.toString()} CFA',
               ),
               isThreeLine: true,
               onTap: () {
@@ -445,10 +489,13 @@ class _ResultatsState extends State<Resultats> {
     );
   }
 
-  //Méthode pour récupérer les images et les décoder
+  /// Construit un widget Image à partir de données encodées ou d'une URL.
+  ///
+  /// [imageData] : Peut être une URL ou une chaîne Base64.
   Widget _buildImage(String imageData) {
     try {
       if (imageData.startsWith('http')) {
+        // Image depuis une URL
         return ClipRRect(
           borderRadius: BorderRadius.circular(8.0),
           child: Image.network(
@@ -456,20 +503,31 @@ class _ResultatsState extends State<Resultats> {
             width: 60,
             height: 60,
             fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              // Gestion des erreurs de chargement réseau
+              return const Icon(
+                Icons.broken_image_outlined,
+                color: Colors.red,
+                size: 60,
+              );
+            },
+          ),
+        );
+      } else {
+        // Image depuis Base64
+        final Uint8List imageBytes = base64Decode(imageData);
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(8.0),
+          child: Image.memory(
+            imageBytes,
+            width: 60,
+            height: 60,
+            fit: BoxFit.cover,
           ),
         );
       }
-      final Uint8List imageBytes = base64Decode(imageData);
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(8.0),
-        child: Image.memory(
-          imageBytes,
-          width: 60,
-          height: 60,
-          fit: BoxFit.cover,
-        ),
-      );
     } catch (e) {
+      // En cas d'erreur de décodage
       return const Icon(
         Icons.broken_image_outlined,
         color: Colors.red,
@@ -478,13 +536,19 @@ class _ResultatsState extends State<Resultats> {
     }
   }
 
-  // Le style des zones de textes
+  /// Définit le style des champs de saisie (InputDecoration).
+  ///
+  /// [label] : Le texte du label.
+  /// [icon] : L'icône à afficher.
   InputDecoration _inputDecoration(String label, IconData icon) {
     return InputDecoration(
       labelText: label,
       labelStyle: TextStyle(color: Colors.grey[600]),
       prefixIcon: Icon(icon, color: primaryBlue),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none, // Pas de bordure par défaut
+      ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: Colors.grey[400]!),
@@ -493,6 +557,8 @@ class _ResultatsState extends State<Resultats> {
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: primaryBlue, width: 2),
       ),
+      filled: true, // Active le remplissage
+      fillColor: Colors.grey[50], // Couleur de fond
     );
   }
 }
