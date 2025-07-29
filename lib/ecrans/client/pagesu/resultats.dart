@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:ras_app/basicdata/produit.dart';
+import 'package:ras_app/basicdata/style.dart';
 
 /// Widget pour afficher les résultats de la recherche de produits.
 class Resultats extends StatefulWidget {
@@ -90,6 +91,9 @@ class _ResultatsState extends State<Resultats> {
 
   /// Indique si une recherche a été effectuée.
   bool _hasSearched = false;
+
+  /// Indique si le formulaire de recherche est visible.
+  bool _isSearchFormVisible = true;
 
   /// Timer pour le debounce de la recherche.
   Timer? _debounce;
@@ -233,6 +237,43 @@ class _ResultatsState extends State<Resultats> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset(
+                        'assets/images/kanjad.png',
+                        key: const ValueKey('logo'),
+                        width: 140,
+                        height: 50,
+                      ),
+                      Transform.translate(
+                        offset: const Offset(-20, 12),
+                        child: const Text(
+                          'Recherche',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+        backgroundColor: Styles.rouge,
+        foregroundColor: Styles.blanc,
+        centerTitle: true,
+      ),
+      floatingActionButton: !_isSearchFormVisible
+          ? FloatingActionButton(
+              onPressed: () {
+                setState(() {
+                  _isSearchFormVisible = true;
+                });
+              },
+              backgroundColor: Styles.rouge,
+              child: const Icon(Icons.search, color: Colors.white),
+            )
+          : null,
       body: LayoutBuilder(
         builder: (context, constraints) {
           if (constraints.maxWidth > 650) {
@@ -273,122 +314,145 @@ class _ResultatsState extends State<Resultats> {
 
   /// Construit le formulaire de recherche.
   Widget _buildSearchForm() {
-    return Form(
-      key: _formKey,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Center(
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 600),
-            child: Wrap(
-              runSpacing: 16,
-              spacing: 16,
-              children: [
-                _buildDropdown(_categories, 'Catégorie', _selectedCategory, (
-                  val,
-                ) {
-                  setState(() {
-                    _selectedCategory = val;
-                    _selectedSousCat = null;
-                    _selectedType = null;
-                    _onDropdownChanged();
-                  });
-                }),
-                if (_selectedCategory != null)
-                  _buildDropdown(
-                    categoryTypes[_selectedCategory!]!,
-                    'Sous-catégorie',
-                    _selectedSousCat,
-                    (val) {
-                      setState(() {
-                        _selectedSousCat = val;
-                        _selectedType = null;
-                        _onDropdownChanged();
-                      });
-                    },
-                  ),
-                if (_selectedSousCat != null)
-                  _buildDropdown(
-                    typeAppareil[_selectedSousCat!]!,
-                    'Type d\'appareil',
-                    _selectedType,
-                    (val) {
-                      setState(() {
-                        _selectedType = val;
-                        _onDropdownChanged();
-                      });
-                    },
-                  ),
-                _buildDropdown(_brands, 'Marque', _selectedBrand, (val) {
-                  setState(() {
-                    _selectedBrand = val;
-                    _onDropdownChanged();
-                  });
-                }),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _minPriceController,
-                        decoration: _inputDecoration(
-                          'Prix Min',
-                          Icons.price_check,
-                        ),
-                        keyboardType:
-                            const TextInputType.numberWithOptions(decimal: true),
-                      ),
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 300),
+        opacity: _isSearchFormVisible ? 1.0 : 0.0,
+        child: _isSearchFormVisible
+            ? Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Center(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: Wrap(
+                runSpacing: 16,
+                spacing: 16,
+                children: [
+                  _buildDropdown(_categories, 'Catégorie', _selectedCategory, (
+                    val,
+                  ) {
+                    setState(() {
+                      _selectedCategory = val;
+                      _selectedSousCat = null;
+                      _selectedType = null;
+                      _onDropdownChanged();
+                    });
+                  }),
+                  if (_selectedCategory != null)
+                    _buildDropdown(
+                      categoryTypes[_selectedCategory!]!,
+                      'Sous-catégorie',
+                      _selectedSousCat,
+                      (val) {
+                        setState(() {
+                          _selectedSousCat = val;
+                          _selectedType = null;
+                          _onDropdownChanged();
+                        });
+                      },
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: TextFormField(
-                        controller: _maxPriceController,
-                        decoration: _inputDecoration(
-                          'Prix Max',
-                          Icons.price_change_outlined,
-                        ),
-                        keyboardType:
-                            const TextInputType.numberWithOptions(decimal: true),
-                      ),
+                  if (_selectedSousCat != null)
+                    _buildDropdown(
+                      typeAppareil[_selectedSousCat!]!,
+                      'Type d\'appareil',
+                      _selectedType,
+                      (val) {
+                        setState(() {
+                          _selectedType = val;
+                          _onDropdownChanged();
+                        });
+                      },
                     ),
-                  ],
-                ),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: _performSearch,
-                    icon: _isLoading
-                        ? Container()
-                        : const Icon(Icons.search, color: Colors.white),
-                    label: _isLoading
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 3,
+                  _buildDropdown(_brands, 'Marque', _selectedBrand, (val) {
+                    setState(() {
+                      _selectedBrand = val;
+                      _onDropdownChanged();
+                    });
+                  }),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _minPriceController,
+                          decoration: _inputDecoration(
+                            'Prix Min',
+                            Icons.price_check,
+                          ),
+                          keyboardType:
+                              const TextInputType.numberWithOptions(decimal: true),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _maxPriceController,
+                          decoration: _inputDecoration(
+                            'Prix Max',
+                            Icons.price_change_outlined,
+                          ),
+                          keyboardType:
+                              const TextInputType.numberWithOptions(decimal: true),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: _performSearch,
+                          icon: _isLoading
+                              ? Container()
+                              : const Icon(Icons.search, color: Colors.white),
+                          label: _isLoading
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 3,
+                                  ),
+                                )
+                              : const Text('Rechercher'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Styles.rouge,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            textStyle: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
                             ),
-                          )
-                        : const Text('Rechercher'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryRed,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      textStyle: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                      const SizedBox(width: 10),
+                      IconButton(
+                        icon: Icon(
+                              Icons.visibility_off,
+                          color: Styles.bleu,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isSearchFormVisible = !_isSearchFormVisible;
+                          });
+                        },
                       ),
-                    ),
+                    ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
-      ),
-    );
+      ) : const SizedBox.shrink(),
+    ));
   }
 
   /// Construit un widget DropdownButton2.
@@ -429,7 +493,7 @@ class _ResultatsState extends State<Resultats> {
   /// Construit la section d'affichage des résultats.
   Widget _buildResultsSection() {
     if (!_hasSearched) {
-      return const Center(
+      return Center(
         child: Text(
           'Utilisez le formulaire ci-joint pour lancer une recherche.',
           textAlign: TextAlign.center,

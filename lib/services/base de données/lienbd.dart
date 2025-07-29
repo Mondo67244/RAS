@@ -77,8 +77,9 @@ class FirestoreService {
 
   // =======================================================================
 
-  Future<void> addProduit(Produit produit) {
-    return produitsCollection.add(produit.toMap());
+  Future<void> addProduit(Produit produit) async {
+    final docRef = await produitsCollection.add(produit.toMap());
+    await docRef.update({'idProduit': docRef.id});
   }
 
   Future<List<Produit>> getProduits() async {
@@ -92,6 +93,14 @@ class FirestoreService {
     } catch (e) {
       print('Erreur dans getProduits: $e');
       return [];
+    }
+  }
+
+  Future<void> updateProduit(Produit produit) async {
+    try {
+      await produitsCollection.doc(produit.idProduit).update(produit.toMap());
+    } catch (e) {
+      print('Erreur dans updateProduit: $e');
     }
   }
 

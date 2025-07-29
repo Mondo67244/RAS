@@ -48,4 +48,20 @@ class PanierLocal {
     quantities[idProduit] = quantite;
     await _prefs?.setString('quantities', jsonEncode(quantities));
   }
+
+  Future<void> saveDeliveryMethod(String method) async {
+    await _prefs?.setString('delivery_method', method);
+  }
+
+  Future<String?> getDeliveryMethod() async {
+    return _prefs?.getString('delivery_method');
+  }
+
+  Future<void> savePaymentMethod(String method) async {
+    await _prefs?.setString('payment_method', method);
+  }
+
+  Future<String?> getPaymentMethod() async {
+    return _prefs?.getString('payment_method');
+  }
 }

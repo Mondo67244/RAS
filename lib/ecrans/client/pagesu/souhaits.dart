@@ -24,13 +24,38 @@ class SouhaitsState extends State<Souhaits> {
   final PanierLocal _panierLocal = PanierLocal();
   List<String> _idsSouhaits = [];
   List<String> _idsPanier = [];
+  
+  // Indicateur de chargement
+  bool _isLoading = true;
+
+  late Future<void> _initFuture;
 
   @override
   void initState() {
     super.initState();
     _wishlistStream = _firestoreService.getProduitsStream();
-    _initSouhaitsLocal();
+    _initFuture = _initSouhaitsLocal();
     _initPanierLocal();
+  }
+
+  Future<void> _refreshData() async {
+    setState(() {
+      _isLoading = true;
+    });
+    await _initSouhaitsLocal();
+    await _initPanierLocal();
+    setState(() {
+      _isLoading = false;
+    });
+    // Afficher un SnackBar après le rafraîchissement
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Liste de souhaits mise à jour !'),
+          duration: Duration(seconds: 1),
+        ),
+      );
+    }
   }
 
   Future<void> _initSouhaitsLocal() async {
@@ -38,6 +63,7 @@ class SouhaitsState extends State<Souhaits> {
     final ids = await _souhaitsLocal.getSouhaits();
     setState(() {
       _idsSouhaits = ids;
+      _isLoading = false; // Marquer le chargement comme terminé
     });
     print('SouhaitsLocal IDs: $_idsSouhaits'); // ADDED LOG
   }
@@ -135,130 +161,149 @@ class SouhaitsState extends State<Souhaits> {
     if (produit.idProduit.isEmpty) {
       return const SizedBox.shrink();
     }
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
-      elevation: 3,
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: isWideScreen ? _carteOrdi(produit) : _carteMobile(produit),
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      transitionBuilder: (Widget child, Animation<double> animation) {
+        return FadeTransition(opacity: animation, child: child);
+      },
+      child: Card(
+        key: ValueKey(produit.idProduit),
+        margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+        elevation: 3,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: isWideScreen ? _carteOrdi(produit) : _carteMobile(produit),
+      ),
     );
   }
 
   Widget _carteOrdi(Produit produit) {
-    return InkWell(
-      onTap: () => Navigator.pushNamed(context, '/details', arguments: produit),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildImageContainer(produit.img1, 150.0, 150.0),
-            const SizedBox(width: 12),
-            Expanded(
-              child: SizedBox(
-                height: 250,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      produit.nomProduit.isNotEmpty
-                          ? produit.nomProduit
-                          : 'Produit sans nom',
-                      style: const TextStyle(
-                        fontSize: 14.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    SizedBox(
-                      width: 250,
-                      child: Text(
-                        produit.descriptionCourte.isNotEmpty
-                            ? produit.descriptionCourte
-                            : 'Aucune description',
-                        maxLines: 3,
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+      child: InkWell(
+        onTap: () => Navigator.pushNamed(context, '/details', arguments: produit),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildImageContainer(produit.img1, 150.0, 150.0),
+              const SizedBox(width: 16),
+              Expanded(
+                child: SizedBox(
+                  height: 250,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        produit.nomProduit.isNotEmpty
+                            ? produit.nomProduit
+                            : 'Produit sans nom',
+                        style: const TextStyle(
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 14.0,
-                          color: Colors.grey[600],
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        width: 250,
+                        child: Text(
+                          produit.descriptionCourte.isNotEmpty
+                              ? produit.descriptionCourte
+                              : 'Aucune description',
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 14.0,
+                            color: Colors.grey[600],
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    SizedBox(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [_buildActionButtons(produit, 10.0)],
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [_buildActionButtons(produit, 12.0)],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _carteMobile(Produit produit) {
-    return InkWell(
-      onTap: () => Navigator.pushNamed(context, '/details', arguments: produit),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildImageContainer(produit.img1, 100.0, 100.0),
-            const SizedBox(width: 12),
-            Expanded(
-              child: SizedBox(
-                height: 130,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      produit.nomProduit.isNotEmpty
-                          ? produit.nomProduit
-                          : 'Produit sans nom',
-                      style: const TextStyle(
-                        fontSize: 14.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    SizedBox(
-                      width: 250,
-                      child: Text(
-                        produit.descriptionCourte.isNotEmpty
-                            ? produit.descriptionCourte
-                            : 'Aucune description',
-                        maxLines: 3,
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+      child: InkWell(
+        onTap: () => Navigator.pushNamed(context, '/details', arguments: produit),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildImageContainer(produit.img1, 100.0, 100.0),
+              const SizedBox(width: 12),
+              Expanded(
+                child: SizedBox(
+                  height: 130,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        produit.nomProduit.isNotEmpty
+                            ? produit.nomProduit
+                            : 'Produit sans nom',
+                        style: const TextStyle(
+                          fontSize: 15.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 14.0,
-                          color: Colors.grey[600],
+                      ),
+                      const SizedBox(height: 6),
+                      SizedBox(
+                        width: 250,
+                        child: Text(
+                          produit.descriptionCourte.isNotEmpty
+                              ? produit.descriptionCourte
+                              : 'Aucune description',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 13.0,
+                            color: Colors.grey[600],
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    SizedBox(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [_buildActionButtons(produit, 10.0)],
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [_buildActionButtons(produit, 10.0)],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -275,13 +320,13 @@ class SouhaitsState extends State<Souhaits> {
             foregroundColor: isInPanier ? Colors.blue : Styles.bleuvar,
             side: BorderSide(color: Styles.bleuvar, width: 1.2),
             elevation: 0,
-            padding: const EdgeInsets.symmetric(vertical: 8),
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
             ),
           ),
           onPressed: isInPanier ? null : () => _addToCart(produit),
-          
+          icon: const Icon(Icons.add_shopping_cart_outlined, size: 18),
           label: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Text(isInPanier ? 'Ajouté' : 'Ajouter au panier'),
@@ -293,8 +338,9 @@ class SouhaitsState extends State<Souhaits> {
           icon: Icon(
             FluentIcons.delete_12_filled,
             color: Styles.erreur,
-            size: 16,
+            size: 18,
           ),
+          tooltip: 'Retirer de la liste de souhaits',
         ),
       ],
     );
@@ -369,86 +415,123 @@ class SouhaitsState extends State<Souhaits> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isWideScreen = screenWidth > 1298;
 
-    return Scaffold(
-      body: Center(
-        child: ConstrainedBox(
-          constraints:
-              isWideScreen
-                  ? const BoxConstraints(maxWidth: 1200)
-                  : const BoxConstraints(maxWidth: 400),
-          child: StreamBuilder<List<Produit>>(
-            stream: _wishlistStream,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                  child: CircularProgressIndicator.adaptive(),
-                );
-              }
-              if (snapshot.hasError) {
-                print('Firestore Stream Error: ${snapshot.error}'); // ADDED LOG
-                return const Center(
-                  child: Text('Erreur de chargement des souhaits.'),
-                );
-              }
-              if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                print('Firestore Stream: No data or empty.'); // ADDED LOG
-                return const Center(
-                  child: Text('Votre liste de souhaits est vide.'),
-                );
-              }
+    return FutureBuilder(
+      future: _initFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Chargement de la liste de souhaits...'),
+                ],
+              ),
+            ),
+          );
+        }
 
-              print(
-                'Firestore Stream Data received. Total products: ${snapshot.data!.length}',
-              ); // ADDED LOG
-              for (var p in snapshot.data!) {
-                print('Firestore Product ID: ${p.idProduit}'); // ADDED LOG
-              }
-
-              final produitsSouhaites =
-                  (snapshot.data ?? [])
-                      .where((p) => _idsSouhaits.contains(p.idProduit))
-                      .toList();
-
-              print(
-                'Filtered Wishlist Products Count: ${produitsSouhaites.length}',
-              ); // ADDED LOG
-              for (var p in produitsSouhaites) {
-                print(
-                  'Filtered Wishlist Product ID: ${p.idProduit}',
-                ); // ADDED LOG
-              }
-              if (produitsSouhaites.isEmpty) {
-                return const Center(
-                  child: Text('Votre liste de souhaits est vide.'),
-                );
-              }
-
-              return isWideScreen
-                  ? GridView.builder(
-                    padding: const EdgeInsets.all(16),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          childAspectRatio: 1.9,
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 16,
-                        ),
-                    itemCount: produitsSouhaites.length,
-                    itemBuilder:
-                        (context, index) =>
-                            _carteEquipement(produitsSouhaites[index]),
-                  )
-                  : ListView.builder(
-                    padding: const EdgeInsets.all(8),
-                    itemCount: produitsSouhaites.length,
-                    itemBuilder:
-                        (context, index) =>
-                            _carteEquipement(produitsSouhaites[index]),
-                  );
-            },
+        return Scaffold(
+          // Ajout de l'AppBar avec le bouton de rafraîchissement
+          appBar: AppBar(
+            title: const Text('Ma Liste de Souhaits'),
+            backgroundColor: Colors.white,
+            foregroundColor: Colors.black,
+            elevation: 0,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: _refreshData,
+                tooltip: 'Rafraîchir la liste',
+              ),
+            ],
           ),
-        ),
-      ),
+          body: RefreshIndicator(
+            onRefresh: _refreshData,
+            child: Center(
+              child: ConstrainedBox(
+                constraints:
+                    isWideScreen
+                        ? const BoxConstraints(maxWidth: 1200)
+                        : const BoxConstraints(maxWidth: 400),
+                child: StreamBuilder<List<Produit>>(
+                  stream: _wishlistStream,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                        child: CircularProgressIndicator.adaptive(),
+                      );
+                    }
+                    if (snapshot.hasError) {
+                      print('Firestore Stream Error: ${snapshot.error}'); // ADDED LOG
+                      return const Center(
+                        child: Text('Erreur de chargement des souhaits.'),
+                      );
+                    }
+                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      print('Firestore Stream: No data or empty.'); // ADDED LOG
+                      return const Center(
+                        child: Text('Votre liste de souhaits est vide.'),
+                      );
+                    }
+
+                    print(
+                      'Firestore Stream Data received. Total products: ${snapshot.data!.length}',
+                    ); // ADDED LOG
+                    for (var p in snapshot.data!) {
+                      print('Firestore Product ID: ${p.idProduit}'); // ADDED LOG
+                    }
+
+                    final produitsSouhaites =
+                        (snapshot.data ?? [])
+                            .where((p) => _idsSouhaits.contains(p.idProduit))
+                            .toList();
+
+                    print(
+                      'Filtered Wishlist Products Count: ${produitsSouhaites.length}',
+                    ); // ADDED LOG
+                    for (var p in produitsSouhaites) {
+                      print(
+                        'Filtered Wishlist Product ID: ${p.idProduit}',
+                      ); // ADDED LOG
+                    }
+                    if (produitsSouhaites.isEmpty) {
+                      return const Center(
+                        child: Text('Votre liste de souhaits est vide.'),
+                      );
+                    }
+
+                    return isWideScreen
+                        ? GridView.builder(
+                          padding: const EdgeInsets.all(16),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 3,
+                                childAspectRatio: 1.9,
+                                crossAxisSpacing: 16,
+                                mainAxisSpacing: 16,
+                              ),
+                          itemCount: produitsSouhaites.length,
+                          itemBuilder:
+                              (context, index) =>
+                                  _carteEquipement(produitsSouhaites[index]),
+                        )
+                        : ListView.builder(
+                          padding: const EdgeInsets.all(8),
+                          itemCount: produitsSouhaites.length,
+                          itemBuilder:
+                              (context, index) =>
+                                  _carteEquipement(produitsSouhaites[index]),
+                        );
+                  },
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

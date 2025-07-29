@@ -68,7 +68,7 @@ class ProductSection extends StatelessWidget {
           alignment: Alignment.center,
           children: [
             SizedBox(
-              height: isWideScreen ? 420 : 400,
+              height: isWideScreen ? 380 : 350,
               child: ListView.builder(
                 controller: scrollController,
                 scrollDirection: Axis.horizontal,

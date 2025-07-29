@@ -145,7 +145,11 @@ class PromoState extends State<Promo> {
           return LayoutBuilder(
             builder: (context, constraints) {
               final bool isWideScreen = constraints.maxWidth > 600;
-              return _contenu(produits, isWideScreen: isWideScreen);
+              return Center(
+                child: Container(
+                  constraints: const BoxConstraints(maxWidth: 950),
+                  child: _contenu(produits, isWideScreen: isWideScreen)),
+              );
             },
           );
         },
@@ -200,11 +204,13 @@ class PromoState extends State<Promo> {
               ? Text('')
               : _imagesEntetes('assets/images/PG2.png', isWide: isWideScreen),
           ProductSection(
-            title: 'Articles Populaires',
+            title: 'Les Articles Populaires',
             produits: produitsPopulaires,
             isWideScreen: isWideScreen,
             onTogglePanier: _toggleAuPanier,
-            onTap: (Produit ) {  },
+            onTap: (produit) {
+              Navigator.pushNamed(context, '/details', arguments: produit);
+            },
             idsPanier: _idsPanier,
           ),
           const SizedBox(height: 24),
@@ -213,11 +219,13 @@ class PromoState extends State<Promo> {
               : _imagesEntetes('assets/images/BG.png', isWide: isWideScreen),
           const SizedBox(height: 24),
           ProductSection(
-            title: 'Appareils pour la Bureautique',
+            title: 'Appareils de Bureautique',
             produits: produitsBureautique,
             isWideScreen: isWideScreen,
             onTogglePanier: _toggleAuPanier,
-            onTap: (Produit ) {  },
+            onTap: (produit) {
+              Navigator.pushNamed(context, '/details', arguments: produit);
+            },
             idsPanier: _idsPanier,
           ),
           const SizedBox(height: 24),
@@ -230,7 +238,9 @@ class PromoState extends State<Promo> {
             produits: produitsReseau,
             isWideScreen: isWideScreen,
             onTogglePanier: _toggleAuPanier,
-            onTap: (Produit ) {  },
+            onTap: (produit) {
+              Navigator.pushNamed(context, '/details', arguments: produit);
+            },
             idsPanier: _idsPanier,
           ),
           const SizedBox(height: 24),
@@ -242,7 +252,9 @@ class PromoState extends State<Promo> {
             produits: produitsMobiles,
             isWideScreen: isWideScreen,
             onTogglePanier: _toggleAuPanier,
-            onTap: (Produit ) {  },
+            onTap: (produit) {
+              Navigator.pushNamed(context, '/details', arguments: produit);
+            },
             idsPanier: _idsPanier,
           ),
           const SizedBox(height: 24),
@@ -254,7 +266,9 @@ class PromoState extends State<Promo> {
             produits: produitDivers,
             isWideScreen: isWideScreen,
             onTogglePanier: _toggleAuPanier,
-            onTap: (Produit ) {  },
+            onTap: (produit) {
+              Navigator.pushNamed(context, '/details', arguments: produit);
+            },
             idsPanier: _idsPanier,
           ),
         ],

@@ -190,7 +190,8 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
         jeVeut: false,
         auPanier: false,
         enStock: true,
-        createdAt: Timestamp.now(),
+        createdAt: Timestamp.now(), 
+        methodeLivraison: '',
       );
 
       await FirestoreService().addProduit(produit);

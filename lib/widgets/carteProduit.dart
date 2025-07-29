@@ -30,12 +30,12 @@ class ProductCard extends StatelessWidget {
     final PageController pageController = PageController();
 
     return SizedBox(
-      width: isWideScreen ? 300 : 280,
+      width: isWideScreen ? 280 : 260,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Card(
-          margin: const EdgeInsets.all(10),
+          margin: const EdgeInsets.all(8),
           elevation: 3,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           clipBehavior: Clip.antiAlias,
@@ -46,7 +46,7 @@ class ProductCard extends StatelessWidget {
                 borderRadius:
                     const BorderRadius.vertical(top: Radius.circular(8)),
                 child: SizedBox(
-                  height: isWideScreen ? 290 : 265,
+                  height: isWideScreen ? 250 : 225,
                   width: double.infinity,
                   child: Stack(
                     fit: StackFit.expand,
@@ -54,7 +54,7 @@ class ProductCard extends StatelessWidget {
                       images.isEmpty
                           ? Center(
                               child: Icon(Icons.image_not_supported_outlined,
-                                  color: Colors.grey.shade400, size: 60),
+                                  color: Colors.grey.shade400, size: 50),
                             )
                           : PageView.builder(
                               controller: pageController,
@@ -64,8 +64,8 @@ class ProductCard extends StatelessWidget {
                             ),
                       if (produit.enPromo)
                         Positioned(
-                          top: 10,
-                          left: 10,
+                          top: 8,
+                          left: 8,
                           child: AnimatedOpacity(
                             opacity: produit.enPromo ? 1.0 : 0.0,
                             duration: const Duration(milliseconds: 400),
@@ -79,14 +79,14 @@ class ProductCard extends StatelessWidget {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(Icons.whatshot_outlined,
-                                      size: 16, color: const Color.fromARGB(255, 222, 118, 7)),
+                                      size: 14, color: const Color.fromARGB(255, 222, 118, 7)),
                                   const SizedBox(width: 4),
                                   Text(
                                     'En Promo!',
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       color: Styles.rouge,
-                                      fontSize: 12,
+                                      fontSize: 11,
                                     ),
                                   ),
                                 ],
@@ -100,7 +100,7 @@ class ProductCard extends StatelessWidget {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(8, 7, 8, 8),
+                padding: const EdgeInsets.fromLTRB(8, 6, 8, 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -109,7 +109,7 @@ class ProductCard extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontSize: 16,
+                        fontSize: 15,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -119,24 +119,24 @@ class ProductCard extends StatelessWidget {
                         Text(
                           '${produit.prix} CFA',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 15,
                             fontWeight: FontWeight.w600,
                             color: Styles.rouge,
                           ),
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
+                              horizontal: 6, vertical: 3),
                           decoration: BoxDecoration(
                             color: produit.enStock
                                 ?Styles.vert.withAlpha((0.1 * 255).round())
                                 : Styles.erreur.withAlpha((0.1 * 255).round()),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
                             produit.enStock ? 'En stock' : 'Rupture',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: 11,
                               fontWeight: FontWeight.bold,
                               color: produit.enStock ? Styles.vert : Styles.erreur,
                             ),
@@ -155,20 +155,20 @@ class ProductCard extends StatelessWidget {
                               isPanier
                                   ? FluentIcons.shopping_bag_tag_24_filled
                                   : FluentIcons.shopping_bag_tag_24_regular,
-                              size: 18,
+                              size: 16,
                             ),
                             label: Text(
                               isPanier ? 'Ajouté' : 'Ajouter au Panier',
-                              style: const TextStyle(fontWeight: FontWeight.w600),
+                              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
                             ),
                             style: OutlinedButton.styleFrom(
                               backgroundColor: isPanier ? Colors.blue.shade50 : Styles.bleu,
                               foregroundColor: isPanier ? Styles.bleu : Styles.blanc,
                               side: BorderSide(color: const Color.fromARGB(255, 11, 7, 115), width: 1.2),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius: BorderRadius.circular(8),
                               ),
-                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              padding: const EdgeInsets.symmetric(vertical: 8),
                             ),
                           ),
                         ),

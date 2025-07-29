@@ -100,73 +100,31 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
     }
 
     return Scaffold(
+      
       backgroundColor: Colors.white,
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          Navigator.pushNamed(context, '/admin/nouveau produit');
+          Navigator.pushNamed(context, '/utilisateur/recherche');
         },
         backgroundColor: const Color.fromARGB(255, 163, 14, 3),
-        child: const Icon(Icons.add, color: Colors.white),
+        icon: const Icon(Icons.search, color: Colors.white),
+        label: const Text(
+          'Rechercher',
+          style: TextStyle(color: Colors.white,fontSize: 15,fontWeight: FontWeight.bold),
+        ),
       ),
 
       appBar: AppBar(
         foregroundColor: Styles.blanc,
         backgroundColor: const Color.fromARGB(255, 163, 14, 3),
-        title: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          transitionBuilder: (Widget child, Animation<double> animation) {
-            return FadeTransition(
-              opacity: animation,
-              child: SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(1.0, 0.0),
-                  end: Offset.zero,
-                ).animate(animation),
-                child: child,
-              ),
-            );
-          },
-          child:
-              _isClick
-                  ? Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        'assets/images/kanjad.png',
-                        key: const ValueKey('logo'),
-                        width: 140,
-                        height: 50,
-                      ),
-                      Transform.translate(
-                        offset: const Offset(-20, 12),
-                        child: const Text(
-                          'Recherche',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  )
-                  : Image.asset(
+        title: Image.asset(
                     'assets/images/kanjad.png',
                     key: const ValueKey('logo'),
                     width: 140,
                     height: 50,
                   ),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(_isClick ? Icons.close : Icons.search),
-            tooltip: _isClick ? 'Fermer la recherche' : 'Rechercher',
-            onPressed: () {
-              setState(() {
-                _isClick = !_isClick;
-              });
-            },
-          ),
-        ],
+        
+        
         centerTitle: true,
         bottom:
             isLargeScreen

@@ -24,6 +24,7 @@ class Produit {
   String quantite;
   bool livrable;
   bool enPromo;
+  String methodeLivraison;
 
   Produit({
     required this.idProduit,
@@ -49,6 +50,7 @@ class Produit {
     required this.quantite,
     required this.livrable,
     required this.enPromo,
+    required this.methodeLivraison,
   });
 
   Map<String, dynamic> toMap() {
@@ -75,6 +77,7 @@ class Produit {
       'quantite': quantite,
       'livrable': livrable,
       'enPromo': enPromo,
+      'methodeLivraison': methodeLivraison,
     };
   }
 
@@ -103,6 +106,7 @@ class Produit {
       quantite: map['quantite'] ?? '',
       livrable: map['livrable'] ?? true,
       enPromo: map['enPromo'] ?? false,
+      methodeLivraison: map['methodeLivraison'] ?? '',
     );
   }
 
@@ -132,6 +136,7 @@ class Produit {
       quantite: data['quantite'] ?? '',
       livrable: data['livrable'] ?? true,
       enPromo: data['enPromo'] ?? false,
+      methodeLivraison: data['methodeLivraison'] ?? '',
     );
   }
 
@@ -159,6 +164,7 @@ class Produit {
     String? quantite,
     bool? livrable,
     bool? enPromo,
+    String? methodeLivraison,
   }) {
     return Produit(
       idProduit: idProduit ?? this.idProduit,
@@ -184,6 +190,7 @@ class Produit {
       quantite: quantite ?? this.quantite,
       livrable: livrable ?? this.livrable,
       enPromo: enPromo ?? this.enPromo,
+      methodeLivraison: methodeLivraison ?? this.methodeLivraison,
     );
   }
 }

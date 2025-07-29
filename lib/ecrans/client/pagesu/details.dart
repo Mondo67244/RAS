@@ -758,7 +758,9 @@ class _DetailsState extends State<Details> {
         elevation: 2,
         shadowColor: Colors.black.withAlpha((0.1 * 255).round()),
       ),
-      body: LayoutBuilder(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: LayoutBuilder(
         builder: (context, constraints) {
           if (constraints.maxWidth > 1200) {
             return Center(
@@ -804,6 +806,7 @@ class _DetailsState extends State<Details> {
             ),
           );
         },
+      )
       ),
       bottomNavigationBar:
           MediaQuery.of(context).size.width <= 600

@@ -2,55 +2,5 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ras_app/basicdata/produit.dart';
 
 extension ProduitExtension on Produit {
-  Produit copyWith({
-    String? descriptionCourte,
-    String? sousCategorie,
-    bool? enPromo,
-    bool? cash,
-    bool? electronique,
-    String? quantite,
-    bool? livrable,
-    Timestamp? createdAt,
-    bool? enStock,
-    String? img1,
-    String? img2,
-    String? img3,
-    bool? auPanier,
-    bool? jeVeut,
-    String? idProduit,
-    String? nomProduit,
-    String? description,
-    String? prix,
-    String? vues,
-    String? modele,
-    String? marque,
-    String? categorie,
-    String? type,
-  }) {
-    return Produit(
-      descriptionCourte: descriptionCourte ?? this.descriptionCourte,
-      sousCategorie: sousCategorie ?? this.sousCategorie,
-      enPromo: enPromo ?? this.enPromo,
-      cash: cash ?? this.cash,
-      electronique: electronique ?? this.electronique,
-      quantite: quantite ?? this.quantite,
-      livrable: livrable ?? this.livrable,
-      createdAt: createdAt ?? this.createdAt,
-      enStock: enStock ?? this.enStock,
-      img1: img1 ?? this.img1,
-      img2: img2 ?? this.img2,
-      img3: img3 ?? this.img3,
-      auPanier: auPanier ?? this.auPanier,
-      jeVeut: jeVeut ?? this.jeVeut,
-      idProduit: idProduit ?? this.idProduit,
-      nomProduit: nomProduit ?? this.nomProduit,
-      description: description ?? this.description,
-      prix: prix ?? this.prix,
-      vues: vues ?? this.vues,
-      modele: modele ?? this.modele,
-      marque: marque ?? this.marque,
-      categorie: categorie ?? this.categorie,
-      type: type ?? this.type,
-    );
-  }
+
 }
