@@ -49,18 +49,39 @@ class ProductSection extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(FluentIcons.arrow_right_24_filled,
-                  color: Styles.bleu, size: 24),
-              const SizedBox(width: 8),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 20,
-                  letterSpacing: -0.5,
-                ),
+              Row(
+                children: [
+                  Icon(FluentIcons.arrow_right_24_filled,
+                      color: Styles.bleu, size: 24),
+                  const SizedBox(width: 8),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 20,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                ],
               ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pushNamed(
+                    context,
+                    '/all_products',
+                    arguments: {
+                      'title': title,
+                      'produits': produits,
+                    },
+                  );
+                },
+                child: Text(
+                  'Voir plus',
+                  style: TextStyle(color: Styles.rouge),
+                ),
+              )
             ],
           ),
         ),

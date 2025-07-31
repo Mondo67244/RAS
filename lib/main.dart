@@ -7,6 +7,7 @@ import 'package:ras_app/ecrans/client/accueilu.dart';
 import 'package:ras_app/ecrans/admin/ajouterequip.dart';
 import 'package:ras_app/ecrans/client/pagesu/details.dart';
 import 'package:ras_app/ecrans/client/pagesu/resultats.dart';
+import 'package:ras_app/ecrans/client/pagesu/voirplus.dart';
 import 'package:ras_app/ecrans/ecrandemarrage.dart';
 import 'package:ras_app/firebase_options.dart';
 
@@ -38,6 +39,12 @@ class MainApp extends StatelessWidget {
         '/details': (context) {
           final produit = ModalRoute.of(context)!.settings.arguments as Produit;
           return Details(produit: produit);
+        },
+        '/all_products': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+          final title = args['title'] as String;
+          final produits = args['produits'] as List<Produit>;
+          return Voirplus(title: title, produits: produits);
         },
       },
     );
