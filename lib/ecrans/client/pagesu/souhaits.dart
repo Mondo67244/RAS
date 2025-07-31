@@ -190,7 +190,7 @@ class SouhaitsState extends State<Souhaits> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildImageContainer(produit.img1, 150.0, 150.0),
+              _image(produit.img1, 150.0, 150.0),
               const SizedBox(width: 16),
               Expanded(
                 child: SizedBox(
@@ -229,7 +229,7 @@ class SouhaitsState extends State<Souhaits> {
                       SizedBox(
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.start,
-                          children: [_buildActionButtons(produit, 12.0)],
+                          children: [_ajouterPanier(produit, 12.0)],
                         ),
                       ),
                     ],
@@ -256,7 +256,7 @@ class SouhaitsState extends State<Souhaits> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildImageContainer(produit.img1, 100.0, 100.0),
+              _image(produit.img1, 100.0, 100.0),
               const SizedBox(width: 12),
               Expanded(
                 child: SizedBox(
@@ -295,7 +295,7 @@ class SouhaitsState extends State<Souhaits> {
                       SizedBox(
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.start,
-                          children: [_buildActionButtons(produit, 10.0)],
+                          children: [_ajouterPanier(produit, 5.0)],
                         ),
                       ),
                     ],
@@ -309,15 +309,15 @@ class SouhaitsState extends State<Souhaits> {
     );
   }
 
-  Widget _buildActionButtons(Produit produit, double size) {
+  Widget _ajouterPanier(Produit produit, double size) {
     final bool isInPanier = _idsPanier.contains(produit.idProduit);
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         ElevatedButton.icon(
           style: ElevatedButton.styleFrom(
-            backgroundColor: isInPanier ? Colors.blue.shade50 : Colors.white,
-            foregroundColor: isInPanier ? Colors.blue : Styles.bleuvar,
+            backgroundColor: Colors.white,
+            foregroundColor:  Styles.bleuvar,
             side: BorderSide(color: Styles.bleuvar, width: 1.2),
             elevation: 0,
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
@@ -326,13 +326,11 @@ class SouhaitsState extends State<Souhaits> {
             ),
           ),
           onPressed: isInPanier ? null : () => _addToCart(produit),
-          icon: const Icon(Icons.add_shopping_cart_outlined, size: 18),
           label: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(isInPanier ? 'Ajouté' : 'Ajouter au panier'),
+            padding: const EdgeInsets.all(1.0),
+            child: Text('Ajouter au panier'),
           ),
         ),
-        const SizedBox(width: 8),
         IconButton(
           onPressed: () => _toggleJeVeut(produit),
           icon: Icon(
@@ -346,7 +344,7 @@ class SouhaitsState extends State<Souhaits> {
     );
   }
 
-  Widget _buildImageContainer(String? imageData, double width, double height) {
+  Widget _image(String? imageData, double width, double height) {
     if (imageData == null || imageData.isEmpty) {
       return SizedBox(
         width: width,

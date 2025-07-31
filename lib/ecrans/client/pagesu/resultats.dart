@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
@@ -180,23 +179,25 @@ class _ResultatsState extends State<Resultats> {
 
       // Filtre par texte (nom ou description)
       if (searchText.isNotEmpty) {
-        results = results.where(
-          (p) =>
-              p.nomProduit.toLowerCase().contains(searchText) ||
-              p.description.toLowerCase().contains(searchText),
-        ).toList();
+        results =
+            results
+                .where(
+                  (p) =>
+                      p.nomProduit.toLowerCase().contains(searchText) ||
+                      p.description.toLowerCase().contains(searchText),
+                )
+                .toList();
       }
 
       // Filtre par prix minimum
       if (minPriceText.isNotEmpty) {
         final minPrice = double.tryParse(minPriceText);
         if (minPrice != null) {
-          results = results.where(
-            (p) {
-              final prixProduit = double.tryParse(p.prix.toString()) ?? 0.0;
-              return prixProduit >= minPrice;
-            },
-          ).toList();
+          results =
+              results.where((p) {
+                final prixProduit = double.tryParse(p.prix.toString()) ?? 0.0;
+                return prixProduit >= minPrice;
+              }).toList();
         }
       }
 
@@ -204,12 +205,11 @@ class _ResultatsState extends State<Resultats> {
       if (maxPriceText.isNotEmpty) {
         final maxPrice = double.tryParse(maxPriceText);
         if (maxPrice != null) {
-          results = results.where(
-            (p) {
-              final prixProduit = double.tryParse(p.prix.toString()) ?? 0.0;
-              return prixProduit <= maxPrice;
-            },
-          ).toList();
+          results =
+              results.where((p) {
+                final prixProduit = double.tryParse(p.prix.toString()) ?? 0.0;
+                return prixProduit <= maxPrice;
+              }).toList();
         }
       }
 
@@ -239,41 +239,39 @@ class _ResultatsState extends State<Resultats> {
     return Scaffold(
       appBar: AppBar(
         title: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        'assets/images/kanjad.png',
-                        key: const ValueKey('logo'),
-                        width: 140,
-                        height: 50,
-                      ),
-                      Transform.translate(
-                        offset: const Offset(-20, 12),
-                        child: const Text(
-                          'Recherche',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/images/kanjad.png',
+              key: const ValueKey('logo'),
+              width: 140,
+              height: 50,
+            ),
+            Transform.translate(
+              offset: const Offset(-20, 12),
+              child: const Text(
+                'Recherche',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
         backgroundColor: Styles.rouge,
         foregroundColor: Styles.blanc,
         centerTitle: true,
       ),
-      floatingActionButton: !_isSearchFormVisible
-          ? FloatingActionButton(
-              onPressed: () {
-                setState(() {
-                  _isSearchFormVisible = true;
-                });
-              },
-              backgroundColor: Styles.rouge,
-              child: const Icon(Icons.search, color: Colors.white),
-            )
-          : null,
+      floatingActionButton:
+          !_isSearchFormVisible
+              ? FloatingActionButton(
+                onPressed: () {
+                  setState(() {
+                    _isSearchFormVisible = true;
+                  });
+                },
+                backgroundColor: Styles.rouge,
+                child: const Icon(Icons.search, color: Colors.white),
+              )
+              : null,
       body: LayoutBuilder(
         builder: (context, constraints) {
           if (constraints.maxWidth > 650) {
@@ -281,12 +279,17 @@ class _ResultatsState extends State<Resultats> {
             return Center(
               child: Container(
                 constraints: const BoxConstraints(maxWidth: 1200),
-                child: Row(
-                  children: [
-                    Expanded(flex: 1, child: _buildSearchForm()),
-                    const VerticalDivider(width: 1),
-                    Expanded(flex: 3, child: _buildResultsSection()),
-                  ],
+                child: Padding(
+                  padding: const EdgeInsets.all(70.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(flex: 2, child: _buildSearchForm()),
+                      const SizedBox(width: 50,),
+                      const VerticalDivider(width: 1),
+                      Expanded(flex: 4, child: _buildResultsSection()),
+                    ],
+                  ),
                 ),
               ),
             );
@@ -320,139 +323,159 @@ class _ResultatsState extends State<Resultats> {
       child: AnimatedOpacity(
         duration: const Duration(milliseconds: 300),
         opacity: _isSearchFormVisible ? 1.0 : 0.0,
-        child: _isSearchFormVisible
-            ? Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Center(
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 600),
-              child: Wrap(
-                runSpacing: 16,
-                spacing: 16,
-                children: [
-                  _buildDropdown(_categories, 'Catégorie', _selectedCategory, (
-                    val,
-                  ) {
-                    setState(() {
-                      _selectedCategory = val;
-                      _selectedSousCat = null;
-                      _selectedType = null;
-                      _onDropdownChanged();
-                    });
-                  }),
-                  if (_selectedCategory != null)
-                    _buildDropdown(
-                      categoryTypes[_selectedCategory!]!,
-                      'Sous-catégorie',
-                      _selectedSousCat,
-                      (val) {
-                        setState(() {
-                          _selectedSousCat = val;
-                          _selectedType = null;
-                          _onDropdownChanged();
-                        });
-                      },
-                    ),
-                  if (_selectedSousCat != null)
-                    _buildDropdown(
-                      typeAppareil[_selectedSousCat!]!,
-                      'Type d\'appareil',
-                      _selectedType,
-                      (val) {
-                        setState(() {
-                          _selectedType = val;
-                          _onDropdownChanged();
-                        });
-                      },
-                    ),
-                  _buildDropdown(_brands, 'Marque', _selectedBrand, (val) {
-                    setState(() {
-                      _selectedBrand = val;
-                      _onDropdownChanged();
-                    });
-                  }),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: _minPriceController,
-                          decoration: _inputDecoration(
-                            'Prix Min',
-                            Icons.price_check,
-                          ),
-                          keyboardType:
-                              const TextInputType.numberWithOptions(decimal: true),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: TextFormField(
-                          controller: _maxPriceController,
-                          decoration: _inputDecoration(
-                            'Prix Max',
-                            Icons.price_change_outlined,
-                          ),
-                          keyboardType:
-                              const TextInputType.numberWithOptions(decimal: true),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: _performSearch,
-                          icon: _isLoading
-                              ? Container()
-                              : const Icon(Icons.search, color: Colors.white),
-                          label: _isLoading
-                              ? const SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 3,
+        child:
+            _isSearchFormVisible
+                ? Form(
+                  key: _formKey,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Center(
+                      child: Container(
+                        constraints: const BoxConstraints(maxWidth: 600),
+                        child: Wrap(
+                          runSpacing: 16,
+                          spacing: 16,
+                          children: [
+                            _buildDropdown(
+                              _categories,
+                              'Catégorie',
+                              _selectedCategory,
+                              (val) {
+                                setState(() {
+                                  _selectedCategory = val;
+                                  _selectedSousCat = null;
+                                  _selectedType = null;
+                                  _onDropdownChanged();
+                                });
+                              },
+                            ),
+                            if (_selectedCategory != null)
+                              _buildDropdown(
+                                categoryTypes[_selectedCategory!]!,
+                                'Sous-catégorie',
+                                _selectedSousCat,
+                                (val) {
+                                  setState(() {
+                                    _selectedSousCat = val;
+                                    _selectedType = null;
+                                    _onDropdownChanged();
+                                  });
+                                },
+                              ),
+                            if (_selectedSousCat != null)
+                              _buildDropdown(
+                                typeAppareil[_selectedSousCat!]!,
+                                'Type d\'appareil',
+                                _selectedType,
+                                (val) {
+                                  setState(() {
+                                    _selectedType = val;
+                                    _onDropdownChanged();
+                                  });
+                                },
+                              ),
+                            _buildDropdown(_brands, 'Marque', _selectedBrand, (
+                              val,
+                            ) {
+                              setState(() {
+                                _selectedBrand = val;
+                                _onDropdownChanged();
+                              });
+                            }),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: TextFormField(
+                                    controller: _minPriceController,
+                                    decoration: _inputDecoration(
+                                      'Prix Min',
+                                      Icons.price_check,
+                                    ),
+                                    keyboardType:
+                                        const TextInputType.numberWithOptions(
+                                          decimal: true,
+                                        ),
                                   ),
-                                )
-                              : const Text('Rechercher'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Styles.rouge,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            textStyle: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: TextFormField(
+                                    controller: _maxPriceController,
+                                    decoration: _inputDecoration(
+                                      'Prix Max',
+                                      Icons.price_change_outlined,
+                                    ),
+                                    keyboardType:
+                                        const TextInputType.numberWithOptions(
+                                          decimal: true,
+                                        ),
+                                  ),
+                                ),
+                              ],
                             ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    onPressed: _performSearch,
+                                    icon:
+                                        _isLoading
+                                            ? Container()
+                                            : const Icon(
+                                              Icons.search,
+                                              color: Colors.white,
+                                            ),
+                                    label:
+                                        _isLoading
+                                            ? const SizedBox(
+                                              width: 24,
+                                              height: 24,
+                                              child: CircularProgressIndicator(
+                                                color: Colors.white,
+                                                strokeWidth: 3,
+                                              ),
+                                            )
+                                            : const Text('Rechercher'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Styles.rouge,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 16,
+                                      ),
+                                      textStyle: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.visibility_off,
+                                    color: Styles.bleu,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _isSearchFormVisible =
+                                          !_isSearchFormVisible;
+                                    });
+                                  },
+                                ),
+                              ],
                             ),
-                          ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 10),
-                      IconButton(
-                        icon: Icon(
-                              Icons.visibility_off,
-                          color: Styles.bleu,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _isSearchFormVisible = !_isSearchFormVisible;
-                          });
-                        },
-                      ),
-                    ],
+                    ),
                   ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ) : const SizedBox.shrink(),
-    ));
+                )
+                : const SizedBox.shrink(),
+      ),
+    );
   }
 
   /// Construit un widget DropdownButton2.
@@ -472,7 +495,9 @@ class _ResultatsState extends State<Resultats> {
       value: selectedValue,
       hint: Text(hint, style: TextStyle(color: Colors.grey[600])),
       items:
-          items.map((item) => DropdownMenuItem(value: item, child: Text(item))).toList(),
+          items
+              .map((item) => DropdownMenuItem(value: item, child: Text(item)))
+              .toList(),
       onChanged: onChanged,
       buttonStyleData: ButtonStyleData(
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -523,14 +548,15 @@ class _ResultatsState extends State<Resultats> {
         }
         return ListView.separated(
           itemCount: results.length,
-          separatorBuilder: (context, index) =>
-              const Divider(indent: 16, endIndent: 16),
+          separatorBuilder:
+              (context, index) => const Divider(indent: 16, endIndent: 16),
           itemBuilder: (context, index) {
             final produit = results[index];
             return ListTile(
-              leading: produit.img1.isNotEmpty
-                  ? _buildImage(produit.img1)
-                  : const Icon(Icons.image_not_supported, size: 60),
+              leading:
+                  produit.img1.isNotEmpty
+                      ? _buildImage(produit.img1)
+                      : const Icon(Icons.image_not_supported, size: 60),
               title: Text(
                 produit.nomProduit,
                 style: const TextStyle(fontWeight: FontWeight.bold),

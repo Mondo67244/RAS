@@ -23,7 +23,7 @@ class _DetailsState extends State<Details> {
   int _currentPage = 0;
   List<String> _images = [];
   late Produit produit;
-  final bool _clic = false;
+  bool _clic = false;
   @override
   void initState() {
     super.initState();
@@ -278,7 +278,7 @@ class _DetailsState extends State<Details> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           constraints
-              ? const SizedBox(height: 150)
+              ? const SizedBox(height: 120)
               : const SizedBox(height: 10),
           Text(
             produit.nomProduit,
@@ -468,7 +468,7 @@ class _DetailsState extends State<Details> {
                     Text(
                       '${produit.ancientPrix} CFA',
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 17,
                         fontWeight: FontWeight.w500,
                         color: Colors.grey,
                         decoration: TextDecoration.lineThrough,
@@ -521,11 +521,12 @@ class _DetailsState extends State<Details> {
           const SizedBox(height: 24),
           Center(
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
-                    foregroundColor: const Color.fromARGB(255, 0, 0, 0),
+                    foregroundColor: Styles.bleu,
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(
                       vertical: 16,
@@ -535,7 +536,11 @@ class _DetailsState extends State<Details> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  onPressed: (){},
+                  onPressed: (){
+                    setState(() {
+                      _clic = !_clic;
+                    });
+                  },
                   icon: Icon(
                     _clic
                         ? FluentIcons.heart_24_filled
@@ -551,7 +556,7 @@ class _DetailsState extends State<Details> {
                   ),
                 ),
 
-                //Le bouton j'aime
+                //Le bouton Enregistrer
                 ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
