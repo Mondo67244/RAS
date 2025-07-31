@@ -101,21 +101,6 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.pushNamed(context, '/utilisateur/recherche');
-        },
-        backgroundColor: const Color.fromARGB(255, 163, 14, 3),
-        icon: const Icon(Icons.search, color: Colors.white),
-        label: const Text(
-          'Rechercher',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
 
       appBar: AppBar(
         foregroundColor: Styles.blanc,
@@ -153,11 +138,14 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                   ),
                 )
                 : null,
-                actions: [
-                  IconButton(onPressed: (){
-                    Navigator.pushNamed(context, '/admin/nouveau produit');
-                  }, icon: Icon(Icons.settings))
-                ],
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.pushNamed(context, '/admin/nouveau produit');
+            },
+            icon: Icon(Icons.settings),
+          ),
+        ],
       ),
 
       drawer: const Drawer(),

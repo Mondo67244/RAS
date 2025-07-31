@@ -36,7 +36,7 @@ class PanierState extends State<Panier> {
     _initFuture = _initPanierLocal();
   }
 
-  Future<void> _refreshData() async {
+  Future<void> _actualiser() async {
     setState(() {
       _isLoading = true;
     });
@@ -133,23 +133,21 @@ class PanierState extends State<Panier> {
           );
         }
         return Scaffold(
-          // --- Ajout de l'AppBar avec le bouton de rafraîchissement ---
-          appBar: AppBar(
-            title: const Text('Mon Panier'),
-            backgroundColor: Colors.white,
-            foregroundColor: Colors.black,
-            elevation: 0,
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.refresh),
-                onPressed: _refreshData, // <- Rafraîchit le panier
-                tooltip: 'Rafraîchir le panier',
-              ),
-            ],
+          backgroundColor: Styles.blanc,
+          floatingActionButton: FloatingActionButton.extended(
+            foregroundColor: Styles.bleu,
+            backgroundColor: Styles.blanc,
+            label: Row(children: [
+              Icon(Icons.refresh),
+              const SizedBox(width: 10),
+              Text('Actualiser',style: TextStyle(fontWeight: FontWeight.bold),)
+            ],),
+            onPressed: _actualiser,
+            tooltip: 'Rafraîchir le panier',
+            
           ),
-          // ------------------------------------------------------------
           body: RefreshIndicator(
-            onRefresh: _refreshData,
+            onRefresh: _actualiser,
             child: StreamBuilder<List<Produit>>(
               stream: _cartProductsStream,
               builder: (context, snapshot) {
@@ -158,13 +156,35 @@ class PanierState extends State<Panier> {
                 }
                 if (snapshot.hasError) {
                   return Center(
-                    child: Text('Erreur de chargement du panier : ${snapshot.error}'),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('Erreur de chargement du panier : ${snapshot.error}'),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: _actualiser,
+                          child: const Text('Actualiser'),
+                        ),
+                      ],
+                    ),
                   );
                 }
                 final produitsPanier =
                     (snapshot.data ?? []).where((p) => _idsPanier.contains(p.idProduit)).toList();
                 if (produitsPanier.isEmpty) {
-                  return const Center(child: Text('Actualiser la page'));
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('Actualiser la page'),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: _actualiser,
+                          child: const Text('Actualiser'),
+                        ),
+                      ],
+                    ),
+                  );
                 }
                 double grandTotal = 0;
                 for (var produit in produitsPanier) {

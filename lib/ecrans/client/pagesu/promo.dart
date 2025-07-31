@@ -96,9 +96,70 @@ class PromoState extends State<Promo> {
     );
   }
 
+  Future<void> _refreshData() async {
+    setState(() {
+      _produitsStream = _firestoreService.getProduitsStream();
+      _initPanierLocal();
+    });
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Styles.bleu,
+          content: Text('Page actualisée !'),
+          duration: Duration(seconds: 1),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: Builder(
+        builder: (context) {
+          return FloatingActionButton(
+            onPressed: () {
+              final RenderBox renderBox = context.findRenderObject() as RenderBox;
+              final Offset offset = renderBox.localToGlobal(Offset.zero);
+              showMenu(
+                context: context,
+                position: RelativeRect.fromLTRB(offset.dx, offset.dy - 120, offset.dx + renderBox.size.width, offset.dy),
+                items: [
+                  PopupMenuItem(
+                    value: 'rechercher',
+                    child: Row(
+                      children: const [
+                        Icon(Icons.search),
+                        SizedBox(width: 10),
+                        Text('Rechercher'),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'actualiser',
+                    child: Row(
+                      children: const [
+                        Icon(Icons.refresh),
+                        SizedBox(width: 10),
+                        Text('Actualiser'),
+                      ],
+                    ),
+                  ),
+                ],
+              ).then((value) {
+                if (value == 'rechercher') {
+                  Navigator.pushNamed(context, '/utilisateur/recherche');
+                } else if (value == 'actualiser') {
+                  _refreshData();
+                }
+              });
+            },
+            backgroundColor: const Color.fromARGB(255, 163, 14, 3),
+            child: const Icon(Icons.add, color: Colors.white),
+            tooltip: 'Options',
+          );
+        },
+      ),
       body: StreamBuilder<List<Produit>>(
         stream: _produitsStream,
         builder: (context, snapshot) {

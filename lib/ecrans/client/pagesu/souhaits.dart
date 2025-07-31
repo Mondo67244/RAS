@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:ras_app/basicdata/produit.dart';
-import 'package:ras_app/services/base%20de%20donn%C3%A9es/lienbd.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:ras_app/basicdata/produit.dart';
 import 'package:ras_app/basicdata/style.dart';
-import 'package:ras_app/services/souhaits/souhaits_local.dart';
+import 'package:ras_app/services/base%20de%20donn%C3%A9es/lienbd.dart';
 import 'package:ras_app/services/panier/panier_local.dart';
+import 'package:ras_app/services/souhaits/souhaits_local.dart';
 
 class Souhaits extends StatefulWidget {
   const Souhaits({Key? key}) : super(key: key);
@@ -20,14 +20,11 @@ class SouhaitsState extends State<Souhaits> {
   final FirestoreService _firestoreService = FirestoreService();
   late Stream<List<Produit>> _wishlistStream;
   final SouhaitsLocal _souhaitsLocal = SouhaitsLocal();
-
   final PanierLocal _panierLocal = PanierLocal();
+
   List<String> _idsSouhaits = [];
   List<String> _idsPanier = [];
-  
-  // Indicateur de chargement
   bool _isLoading = true;
-
   late Future<void> _initFuture;
 
   @override
@@ -38,7 +35,7 @@ class SouhaitsState extends State<Souhaits> {
     _initPanierLocal();
   }
 
-  Future<void> _refreshData() async {
+  Future<void> _actualiser() async {
     setState(() {
       _isLoading = true;
     });
@@ -47,7 +44,6 @@ class SouhaitsState extends State<Souhaits> {
     setState(() {
       _isLoading = false;
     });
-    // Afficher un SnackBar après le rafraîchissement
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -63,9 +59,8 @@ class SouhaitsState extends State<Souhaits> {
     final ids = await _souhaitsLocal.getSouhaits();
     setState(() {
       _idsSouhaits = ids;
-      _isLoading = false; // Marquer le chargement comme terminé
+      _isLoading = false;
     });
-    print('SouhaitsLocal IDs: $_idsSouhaits'); // ADDED LOG
   }
 
   Future<void> _initPanierLocal() async {
@@ -77,25 +72,14 @@ class SouhaitsState extends State<Souhaits> {
   }
 
   Future<void> _toggleJeVeut(Produit produit) async {
-    if (_idsSouhaits.contains(produit.idProduit)) {
-      await _souhaitsLocal.retirerDesSouhaits(produit.idProduit);
-      setState(() {
-        _idsSouhaits.remove(produit.idProduit);
-      });
-      _messageReponse(
-        '${produit.nomProduit} retiré de vos souhaits',
-        isSuccess: false,
-      );
-    } else {
-      await _souhaitsLocal.ajouterAuxSouhaits(produit.idProduit);
-      setState(() {
-        _idsSouhaits.add(produit.idProduit);
-      });
-      _messageReponse(
-        '${produit.nomProduit} ajouté à vos souhaits',
-        isSuccess: true,
-      );
-    }
+    await _souhaitsLocal.retirerDesSouhaits(produit.idProduit);
+    setState(() {
+      _idsSouhaits.remove(produit.idProduit);
+    });
+    _messageReponse(
+      '${produit.nomProduit} retiré de vos souhaits',
+      isSuccess: false,
+    );
   }
 
   Future<void> _addToCart(Produit produit) async {
@@ -116,16 +100,11 @@ class SouhaitsState extends State<Souhaits> {
       icon: Icons.add_shopping_cart_outlined,
     );
 
-    // Remove from wishlist if it was there
     if (_idsSouhaits.contains(produit.idProduit)) {
       await _souhaitsLocal.retirerDesSouhaits(produit.idProduit);
       setState(() {
         _idsSouhaits.remove(produit.idProduit);
       });
-      _messageReponse(
-        '${produit.nomProduit} retiré de vos souhaits',
-        isSuccess: false,
-      );
     }
   }
 
@@ -154,201 +133,118 @@ class SouhaitsState extends State<Souhaits> {
     );
   }
 
-  Widget _carteEquipement(Produit produit) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isWideScreen = screenWidth > 1298;
-
-    if (produit.idProduit.isEmpty) {
-      return const SizedBox.shrink();
-    }
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 300),
-      transitionBuilder: (Widget child, Animation<double> animation) {
-        return FadeTransition(opacity: animation, child: child);
-      },
-      child: Card(
-        key: ValueKey(produit.idProduit),
-        margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
-        elevation: 3,
-        clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: isWideScreen ? _carteOrdi(produit) : _carteMobile(produit),
-      ),
-    );
-  }
-
-  Widget _carteOrdi(Produit produit) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-      child: InkWell(
-        onTap: () => Navigator.pushNamed(context, '/details', arguments: produit),
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _image(produit.img1, 150.0, 150.0),
-              const SizedBox(width: 16),
-              Expanded(
-                child: SizedBox(
-                  height: 250,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        produit.nomProduit.isNotEmpty
-                            ? produit.nomProduit
-                            : 'Produit sans nom',
-                        style: const TextStyle(
-                          fontSize: 16.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        width: 250,
-                        child: Text(
-                          produit.descriptionCourte.isNotEmpty
-                              ? produit.descriptionCourte
-                              : 'Aucune description',
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 14.0,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [_ajouterPanier(produit, 12.0)],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _carteMobile(Produit produit) {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-      child: InkWell(
-        onTap: () => Navigator.pushNamed(context, '/details', arguments: produit),
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _image(produit.img1, 100.0, 100.0),
-              const SizedBox(width: 12),
-              Expanded(
-                child: SizedBox(
-                  height: 130,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        produit.nomProduit.isNotEmpty
-                            ? produit.nomProduit
-                            : 'Produit sans nom',
-                        style: const TextStyle(
-                          fontSize: 15.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 6),
-                      SizedBox(
-                        width: 250,
-                        child: Text(
-                          produit.descriptionCourte.isNotEmpty
-                              ? produit.descriptionCourte
-                              : 'Aucune description',
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 13.0,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [_ajouterPanier(produit, 5.0)],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _ajouterPanier(Produit produit, double size) {
+  
+  Widget _buildProductCard(Produit produit) {
     final bool isInPanier = _idsPanier.contains(produit.idProduit);
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        ElevatedButton.icon(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.white,
-            foregroundColor:  Styles.bleuvar,
-            side: BorderSide(color: Styles.bleuvar, width: 1.2),
-            elevation: 0,
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
+    final textTheme = Theme.of(context).textTheme;
+
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey.shade200, width: 1),
+      ),
+      clipBehavior:
+          Clip.antiAlias, // Assure que l'image respecte les bords arrondis
+      child: InkWell(
+        onTap:
+            () => Navigator.pushNamed(context, '/details', arguments: produit),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Section Image
+            AspectRatio(
+              aspectRatio:
+                  20 / 13, // Un ratio commun pour les images de produits
+              child: _image(produit.img1),
             ),
-          ),
-          onPressed: isInPanier ? null : () => _addToCart(produit),
-          label: Padding(
-            padding: const EdgeInsets.all(1.0),
-            child: Text('Ajouter au panier'),
-          ),
+
+            // Section Contenu (Titre, description et actions)
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Titre
+                    Text(
+                      produit.nomProduit.isNotEmpty
+                          ? produit.nomProduit
+                          : 'Produit sans nom',
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 6),
+
+                    // Description
+                    Text(
+                      produit.descriptionCourte.isNotEmpty
+                          ? produit.descriptionCourte
+                          : 'Aucune description',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: Colors.grey[700],
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    // Section des actions (Boutons)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // Bouton Ajouter au panier
+                        Expanded(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Styles.bleuvar.withOpacity(0.1),
+                              foregroundColor: Styles.bleuvar,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            onPressed:
+                                isInPanier ? null : () => _addToCart(produit),
+                            child: Text(
+                              isInPanier ? 'Déjà au panier' : 'Ajouter au panier',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Bouton Retirer des souhaits
+                        IconButton(
+                          iconSize: 17,
+                          onPressed: () => _toggleJeVeut(produit),
+                          icon: const Icon(
+                            FluentIcons.delete_24_regular,
+                            color: Styles.erreur,
+                            size: 20,
+                          ),
+                          tooltip: 'Retirer de la liste de souhaits',
+                          style: IconButton.styleFrom(
+                            backgroundColor: Styles.erreur.withOpacity(0.1),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
-        IconButton(
-          onPressed: () => _toggleJeVeut(produit),
-          icon: Icon(
-            FluentIcons.delete_12_filled,
-            color: Styles.erreur,
-            size: 18,
-          ),
-          tooltip: 'Retirer de la liste de souhaits',
-        ),
-      ],
+      ),
     );
   }
 
-  Widget _image(String? imageData, double width, double height) {
+  //Permet d'afficher les images des produits
+  Widget _image(String? imageData) {
     if (imageData == null || imageData.isEmpty) {
-      return SizedBox(
-        width: width,
-        height: height,
+      return Container(
+        color: Colors.grey[200],
         child: const Center(
           child: Icon(
             Icons.image_not_supported_outlined,
@@ -360,47 +256,44 @@ class SouhaitsState extends State<Souhaits> {
     }
 
     if (imageData.startsWith('http')) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: CachedNetworkImage(
-          imageUrl: imageData,
-          width: width,
-          height: height,
-          fit: BoxFit.cover,
-          placeholder:
-              (context, url) =>
-                  const Center(child: CircularProgressIndicator()),
-          errorWidget:
-              (context, url, error) =>
-                  const Icon(Icons.error_outline, color: Colors.grey, size: 50),
-          fadeInDuration: const Duration(milliseconds: 300),
-        ),
+      return CachedNetworkImage(
+        imageUrl: imageData,
+        fit: BoxFit.cover,
+        placeholder:
+            (context, url) => const Center(child: CircularProgressIndicator()),
+        errorWidget:
+            (context, url, error) => Container(
+              color: Colors.grey[200],
+              child: const Icon(
+                Icons.error_outline,
+                color: Colors.grey,
+                size: 50,
+              ),
+            ),
+        fadeInDuration: const Duration(milliseconds: 300),
       );
     }
 
     try {
       final Uint8List imageBytes = base64Decode(imageData);
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Image.memory(
-          imageBytes,
-          fit: BoxFit.cover,
-          width: width,
-          height: height,
-          errorBuilder:
-              (context, error, stackTrace) => const Center(
+      return Image.memory(
+        imageBytes,
+        fit: BoxFit.cover,
+        errorBuilder:
+            (context, error, stackTrace) => Container(
+              color: Colors.grey[200],
+              child: const Center(
                 child: Icon(
                   Icons.broken_image_outlined,
                   color: Colors.red,
                   size: 50,
                 ),
               ),
-        ),
+            ),
       );
     } catch (e) {
-      return SizedBox(
-        width: width,
-        height: height,
+      return Container(
+        color: Colors.grey[200],
         child: const Center(
           child: Icon(Icons.broken_image_outlined, color: Colors.red, size: 50),
         ),
@@ -410,8 +303,9 @@ class SouhaitsState extends State<Souhaits> {
 
   @override
   Widget build(BuildContext context) {
+    
     final screenWidth = MediaQuery.of(context).size.width;
-    final isWideScreen = screenWidth > 1298;
+     bool isWideScreen = screenWidth > 500;
 
     return FutureBuilder(
       future: _initFuture,
@@ -432,99 +326,79 @@ class SouhaitsState extends State<Souhaits> {
         }
 
         return Scaffold(
-          // Ajout de l'AppBar avec le bouton de rafraîchissement
-          appBar: AppBar(
-            title: const Text('Ma Liste de Souhaits'),
-            backgroundColor: Colors.white,
-            foregroundColor: Colors.black,
-            elevation: 0,
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.refresh),
-                onPressed: _refreshData,
-                tooltip: 'Rafraîchir la liste',
-              ),
-            ],
-          ),
-          body: RefreshIndicator(
-            onRefresh: _refreshData,
-            child: Center(
-              child: ConstrainedBox(
-                constraints:
-                    isWideScreen
-                        ? const BoxConstraints(maxWidth: 1200)
-                        : const BoxConstraints(maxWidth: 400),
-                child: StreamBuilder<List<Produit>>(
-                  stream: _wishlistStream,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                        child: CircularProgressIndicator.adaptive(),
-                      );
-                    }
-                    if (snapshot.hasError) {
-                      print('Firestore Stream Error: ${snapshot.error}'); // ADDED LOG
-                      return const Center(
-                        child: Text('Erreur de chargement des souhaits.'),
-                      );
-                    }
-                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      print('Firestore Stream: No data or empty.'); // ADDED LOG
-                      return const Center(
-                        child: Text('Votre liste de souhaits est vide.'),
-                      );
-                    }
-
-                    print(
-                      'Firestore Stream Data received. Total products: ${snapshot.data!.length}',
-                    ); // ADDED LOG
-                    for (var p in snapshot.data!) {
-                      print('Firestore Product ID: ${p.idProduit}'); // ADDED LOG
-                    }
-
-                    final produitsSouhaites =
-                        (snapshot.data ?? [])
-                            .where((p) => _idsSouhaits.contains(p.idProduit))
-                            .toList();
-
-                    print(
-                      'Filtered Wishlist Products Count: ${produitsSouhaites.length}',
-                    ); // ADDED LOG
-                    for (var p in produitsSouhaites) {
-                      print(
-                        'Filtered Wishlist Product ID: ${p.idProduit}',
-                      ); // ADDED LOG
-                    }
-                    if (produitsSouhaites.isEmpty) {
-                      return const Center(
-                        child: Text('Votre liste de souhaits est vide.'),
-                      );
-                    }
-
-                    return isWideScreen
-                        ? GridView.builder(
-                          padding: const EdgeInsets.all(16),
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 3,
-                                childAspectRatio: 1.9,
-                                crossAxisSpacing: 16,
-                                mainAxisSpacing: 16,
-                              ),
-                          itemCount: produitsSouhaites.length,
-                          itemBuilder:
-                              (context, index) =>
-                                  _carteEquipement(produitsSouhaites[index]),
-                        )
-                        : ListView.builder(
-                          padding: const EdgeInsets.all(8),
-                          itemCount: produitsSouhaites.length,
-                          itemBuilder:
-                              (context, index) =>
-                                  _carteEquipement(produitsSouhaites[index]),
-                        );
-                  },
+          backgroundColor: Styles.blanc,
+          floatingActionButton: FloatingActionButton.extended(
+            foregroundColor: Styles.bleu,
+            backgroundColor: Styles.blanc,
+            label: const Row(
+              children: [
+                Icon(Icons.refresh),
+                SizedBox(width: 10),
+                Text(
+                  'Actualiser',
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
+              ],
+            ),
+            onPressed: _actualiser,
+            tooltip: 'Rafraîchir la liste',
+          ),
+          body: Center(
+            child: RefreshIndicator(
+              onRefresh: _actualiser,
+              child: StreamBuilder<List<Produit>>(
+                stream: _wishlistStream,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting &&
+                      _isLoading) {
+                    return const Center(
+                      child: CircularProgressIndicator.adaptive(),
+                    );
+                  }
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Erreur: ${snapshot.error}'));
+                  }
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(child: Text('Aucun produit trouvé.'));
+                  }
+            
+                  final produitsSouhaites =
+                      (snapshot.data ?? [])
+                          .where((p) => _idsSouhaits.contains(p.idProduit))
+                          .toList();
+            
+                  if (produitsSouhaites.isEmpty) {
+                    return const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Text(
+                          'Votre liste de souhaits est vide.\nLes produits ajoutés s\'afficherons ici',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ),
+                    );
+                  }
+            
+                  //Afficher les cartes en fonction de la taille de l'écran
+                  return Container(
+                    constraints: isWideScreen ? BoxConstraints(maxWidth: 1000) : BoxConstraints(maxWidth: 280),
+                    child: GridView.builder(
+                      padding: const EdgeInsets.all(8),
+                      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: 290.0,
+                        childAspectRatio: 0.85,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 5,
+                      ),
+                      itemCount: produitsSouhaites.length,
+                      // Appel du widget de cartes
+                      itemBuilder:
+                          (context, index) =>
+                              _buildProductCard(produitsSouhaites[index]),
+                    ),
+                  );
+                },
               ),
             ),
           ),
