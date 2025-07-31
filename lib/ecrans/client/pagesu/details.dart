@@ -22,17 +22,17 @@ class _DetailsState extends State<Details> {
   late PageController _pageController;
   int _currentPage = 0;
   List<String> _images = [];
-  late Produit _currentProduit;
-
+  late Produit produit;
+  final bool _clic = false;
   @override
   void initState() {
     super.initState();
-    _currentProduit = widget.produit;
+    produit = widget.produit;
     _images =
         [
-          _currentProduit.img1,
-          _currentProduit.img2,
-          _currentProduit.img3,
+          produit.img1,
+          produit.img2,
+          produit.img3,
         ].where((img) => img.isNotEmpty).toList();
     _pageController = PageController();
     _pageController.addListener(() {
@@ -52,9 +52,9 @@ class _DetailsState extends State<Details> {
     final souhaitsIds = await _souhaitsLocal.getSouhaits();
 
     setState(() {
-      _currentProduit = _currentProduit.copyWith(
-        auPanier: panierIds.contains(_currentProduit.idProduit),
-        jeVeut: souhaitsIds.contains(_currentProduit.idProduit),
+      produit = produit.copyWith(
+        auPanier: panierIds.contains(produit.idProduit),
+        jeVeut: souhaitsIds.contains(produit.idProduit),
       );
     });
   }
@@ -70,27 +70,36 @@ class _DetailsState extends State<Details> {
     try {
       if (isCurrentlyWished) {
         await _souhaitsLocal.retirerDesSouhaits(produit.idProduit);
-        _messageReponse('Retiré des souhaits',
-            icon: FluentIcons.book_star_24_regular);
+        _messageReponse(
+          'Retiré des souhaits',
+          icon: FluentIcons.book_star_24_regular,
+        );
       } else {
         // If adding to wishlist, remove from cart if present
         if (produit.auPanier) {
           await _panierLocal.retirerDuPanier(produit.idProduit);
-          
         }
         await _souhaitsLocal.ajouterAuxSouhaits(produit.idProduit);
-        _messageReponse('Ajouté aux souhaits',
-            icon: FluentIcons.class_20_filled);
+        _messageReponse(
+          'Ajouté aux souhaits',
+          icon: FluentIcons.class_20_filled,
+        );
       }
       setState(() {
-        _currentProduit = _currentProduit.copyWith(
+        produit = produit.copyWith(
           jeVeut: !isCurrentlyWished,
-          auPanier: isCurrentlyWished ? _currentProduit.auPanier : false, // If adding to wishlist, ensure not in cart
+          auPanier:
+              isCurrentlyWished
+                  ? produit.auPanier
+                  : false, // If adding to wishlist, ensure not in cart
         );
       });
     } catch (e) {
-      _messageReponse('Erreur: Impossible de modifier les souhaits',
-          isSuccess: false, icon: Icons.error);
+      _messageReponse(
+        'Erreur: Impossible de modifier les souhaits',
+        isSuccess: false,
+        icon: Icons.error,
+      );
     }
   }
 
@@ -99,27 +108,36 @@ class _DetailsState extends State<Details> {
     try {
       if (isCurrentlyInCart) {
         await _panierLocal.retirerDuPanier(produit.idProduit);
-        _messageReponse('Retiré du panier',
-            icon: FluentIcons.shopping_bag_tag_24_regular);
+        _messageReponse(
+          'Retiré du panier',
+          icon: FluentIcons.shopping_bag_tag_24_regular,
+        );
       } else {
         // If adding to cart, remove from wishlist if present
         if (produit.jeVeut) {
           await _souhaitsLocal.retirerDesSouhaits(produit.idProduit);
-          
         }
         await _panierLocal.ajouterAuPanier(produit.idProduit);
-        _messageReponse('Ajouté au panier',
-            icon: FluentIcons.shopping_bag_tag_24_filled);
+        _messageReponse(
+          'Ajouté au panier',
+          icon: FluentIcons.shopping_bag_tag_24_filled,
+        );
       }
       setState(() {
-        _currentProduit = _currentProduit.copyWith(
+        produit = produit.copyWith(
           auPanier: !isCurrentlyInCart,
-          jeVeut: isCurrentlyInCart ? _currentProduit.jeVeut : false, // If adding to cart, ensure not in wishlist
+          jeVeut:
+              isCurrentlyInCart
+                  ? produit.jeVeut
+                  : false, // If adding to cart, ensure not in wishlist
         );
       });
     } catch (e) {
-      _messageReponse('Erreur: Impossible de modifier le panier',
-          isSuccess: false, icon: Icons.error);
+      _messageReponse(
+        'Erreur: Impossible de modifier le panier',
+        isSuccess: false,
+        icon: Icons.error,
+      );
     }
   }
 
@@ -263,7 +281,7 @@ class _DetailsState extends State<Details> {
               ? const SizedBox(height: 150)
               : const SizedBox(height: 10),
           Text(
-            _currentProduit.nomProduit,
+            produit.nomProduit,
             style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
@@ -274,37 +292,59 @@ class _DetailsState extends State<Details> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                '${_currentProduit.prix} CFA',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w700,
-                  color: Styles.rouge,
+              if (produit.enPromo)
+                Row(
+                  children: [
+                    Text(
+                      '${produit.prix} CFA',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Styles.rouge,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${produit.ancientPrix} CFA',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey,
+                        decoration: TextDecoration.lineThrough,
+                      ),
+                    ),
+                  ],
+                )
+              else
+                Text(
+                  '${produit.prix} CFA',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Styles.rouge,
+                  ),
                 ),
-              ),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                 decoration: BoxDecoration(
                   color:
                       produit.enStock
                           ? Styles.vert.withAlpha((0.1 * 255).round())
-                          : Styles.rouge.withAlpha((0.1 * 255).round()),
-                  borderRadius: BorderRadius.circular(8),
+                          : Styles.erreur.withAlpha((0.1 * 255).round()),
+                  borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  _currentProduit.enStock ? 'En stock' : 'Rupture',
+                  produit.enStock ? 'En stock' : 'Rupture',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: _currentProduit.enStock ? Styles.vert : Styles.erreur,
+                    color: produit.enStock ? Styles.vert : Styles.erreur,
                   ),
                 ),
               ),
             ],
           ),
+
           const SizedBox(height: 24),
           Text(
             'Caractéristiques du produit :',
@@ -316,7 +356,7 @@ class _DetailsState extends State<Details> {
           ),
           const SizedBox(height: 10),
 
-          _carteDetails(_currentProduit),
+          _carteDetails(produit),
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -337,15 +377,15 @@ class _DetailsState extends State<Details> {
                   ),
                 ),
                 onPressed:
-                    _currentProduit.enStock ? () => _toggleSouhait(_currentProduit) : null,
+                    produit.enStock ? () => _toggleSouhait(produit) : null,
                 icon: Icon(
-                  _currentProduit.jeVeut
+                  produit.jeVeut
                       ? FluentIcons.class_20_filled
                       : FluentIcons.book_star_24_regular,
                   size: 20,
                 ),
                 label: Text(
-                  _currentProduit.jeVeut ? 'Souhaité' : 'Je Souhaite',
+                  produit.jeVeut ? 'Souhaité' : 'Je Souhaite',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -356,7 +396,7 @@ class _DetailsState extends State<Details> {
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor:
-                      _currentProduit.enStock ? Styles.bleu : Colors.grey.shade400,
+                      produit.enStock ? Styles.bleu : Colors.grey.shade400,
                   foregroundColor: Colors.white,
                   elevation: 2,
                   padding: const EdgeInsets.symmetric(
@@ -368,15 +408,15 @@ class _DetailsState extends State<Details> {
                   ),
                 ),
                 onPressed:
-                    _currentProduit.enStock ? () => _togglePanier(_currentProduit) : null,
+                    produit.enStock ? () => _togglePanier(produit) : null,
                 icon: Icon(
-                  _currentProduit.auPanier
+                  produit.auPanier
                       ? FluentIcons.shopping_bag_tag_24_filled
                       : FluentIcons.shopping_bag_tag_24_regular,
                   size: 20,
                 ),
                 label: Text(
-                  _currentProduit.auPanier ? 'Ajouté ! ' : 'Ajouter au Panier',
+                  produit.auPanier ? 'Ajouté ! ' : 'Ajouter au Panier',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -394,7 +434,7 @@ class _DetailsState extends State<Details> {
     final constraints = MediaQuery.of(context).size.width > 1200;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -402,9 +442,9 @@ class _DetailsState extends State<Details> {
               ? const SizedBox(height: 150)
               : const SizedBox(height: 10),
           Text(
-            _currentProduit.nomProduit,
+            produit.nomProduit,
             style: const TextStyle(
-              fontSize: 28,
+              fontSize: 25,
               fontWeight: FontWeight.bold,
               letterSpacing: -0.5,
             ),
@@ -413,37 +453,59 @@ class _DetailsState extends State<Details> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                '${_currentProduit.prix} CFA',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w700,
-                  color: Styles.rouge,
+              if (produit.enPromo)
+                Row(
+                  children: [
+                    Text(
+                      '${produit.prix} CFA',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Styles.rouge,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${produit.ancientPrix} CFA',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey,
+                        decoration: TextDecoration.lineThrough,
+                      ),
+                    ),
+                  ],
+                )
+              else
+                Text(
+                  '${produit.prix} CFA',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Styles.rouge,
+                  ),
                 ),
-              ),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                 decoration: BoxDecoration(
                   color:
                       produit.enStock
                           ? Styles.vert.withAlpha((0.1 * 255).round())
-                          : Styles.rouge.withAlpha((0.1 * 255).round()),
-                  borderRadius: BorderRadius.circular(8),
+                          : Styles.erreur.withAlpha((0.1 * 255).round()),
+                  borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  _currentProduit.enStock ? 'En stock' : 'Rupture',
+                  produit.enStock ? 'En stock' : 'Rupture',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 11,
                     fontWeight: FontWeight.bold,
-                    color: _currentProduit.enStock ? Styles.vert : Styles.erreur,
+                    color: produit.enStock ? Styles.vert : Styles.erreur,
                   ),
                 ),
               ),
             ],
           ),
+
           const SizedBox(height: 24),
           Text(
             'Caractéristiques du produit :',
@@ -455,37 +517,70 @@ class _DetailsState extends State<Details> {
           ),
           const SizedBox(height: 10),
 
-          _carteDetails(_currentProduit),
+          _carteDetails(produit),
           const SizedBox(height: 24),
           Center(
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Styles.rouge,
-                side: BorderSide(color: Styles.rouge, width: 1.5),
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(
-                  vertical: 16,
-                  horizontal: 12,
+            child: Row(
+              children: [
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: const Color.fromARGB(255, 0, 0, 0),
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 16,
+                      horizontal: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: (){},
+                  icon: Icon(
+                    _clic
+                        ? FluentIcons.heart_24_filled
+                        : FluentIcons.heart_24_regular,
+                    size: 20,
+                  ),
+                  label: Text(
+                    _clic ? 'Aimé' : 'J\'aime',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+
+                //Le bouton j'aime
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Styles.rouge,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 16,
+                      horizontal: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: produit.enStock ? () => _toggleSouhait(produit) : null,
+                  icon: Icon(
+                    produit.jeVeut
+                        ? FluentIcons.class_20_filled
+                        : FluentIcons.book_star_24_regular,
+                    size: 20,
+                  ),
+                  label: Text(
+                    produit.jeVeut ? 'Enregistré !' : 'Enregistrer',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
-              ),
-              onPressed: _currentProduit.enStock ? () => _toggleSouhait(_currentProduit) : null,
-              icon: Icon(
-                _currentProduit.jeVeut
-                    ? FluentIcons.class_20_filled
-                    : FluentIcons.book_star_24_regular,
-                size: 20,
-              ),
-              label: Text(
-                _currentProduit.jeVeut ? 'Article Souhaité !' : 'Ajouter aux souhaits',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              ],
             ),
           ),
 
@@ -500,8 +595,8 @@ class _DetailsState extends State<Details> {
           ),
           const SizedBox(height: 12),
           Text(
-            _currentProduit.description.isNotEmpty
-                ? _currentProduit.description
+            produit.description.isNotEmpty
+                ? produit.description
                 : "Aucune description fournie pour ce produit.",
             style: TextStyle(
               fontSize: 16,
@@ -509,17 +604,18 @@ class _DetailsState extends State<Details> {
               color: Colors.grey.shade800,
             ),
           ),
-          _methodePaiment(_currentProduit),
+          _methodePaiment(produit),
 
           if (MediaQuery.of(context).size.width > 600) ...[
             const SizedBox(height: 32),
-            _boutons(_currentProduit),
+            _boutons(produit),
           ],
         ],
       ),
     );
   }
 
+  //Description détaillée
   Widget _detailsTxt(Produit produit) {
     final constraints = MediaQuery.of(context).size.width > 1200;
     return SingleChildScrollView(
@@ -540,8 +636,8 @@ class _DetailsState extends State<Details> {
             ),
             const SizedBox(height: 12),
             Text(
-              _currentProduit.description.isNotEmpty
-                  ? _currentProduit.description
+              produit.description.isNotEmpty
+                  ? produit.description
                   : "Aucune description fournie pour ce produit.",
               style: TextStyle(
                 fontSize: 16,
@@ -557,8 +653,8 @@ class _DetailsState extends State<Details> {
 
   //Méthode de paiement
   Widget _methodePaiment(Produit produit) {
-    final cash = _currentProduit.cash;
-    final electro = _currentProduit.electronique;
+    final cash = produit.cash;
+    final electro = produit.electronique;
     String methode = '';
 
     if (cash == true && electro == true) {
@@ -602,19 +698,19 @@ class _DetailsState extends State<Details> {
             _detailsIndividuels(
               FluentIcons.tag_24_regular,
               'Marque',
-              _currentProduit.marque,
+              produit.marque,
             ),
             const Divider(height: 24),
             _detailsIndividuels(
               FluentIcons.box_24_regular,
               'Modèle',
-              _currentProduit.modele,
+              produit.modele,
             ),
             const Divider(height: 24),
             _detailsIndividuels(
               FluentIcons.apps_list_detail_24_regular,
               'Type',
-              _currentProduit.type,
+              produit.type,
             ),
             const Divider(height: 24),
 
@@ -622,14 +718,14 @@ class _DetailsState extends State<Details> {
               FluentIcons.send_clock_20_regular,
 
               'Livrable',
-              _currentProduit.livrable ? 'Oui' : 'Non',
+              produit.livrable ? 'Oui' : 'Non',
             ),
             const Divider(height: 24),
 
             _detailsIndividuels(
               FluentIcons.document_bullet_list_16_regular,
               'Quantité Dispo',
-              _currentProduit.quantite,
+              produit.quantite,
             ),
             const SizedBox(height: 12),
           ],
@@ -668,7 +764,7 @@ class _DetailsState extends State<Details> {
           child: ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
               backgroundColor:
-                  _currentProduit.enStock ? Styles.bleu : Colors.grey.shade400,
+                  produit.enStock ? Styles.bleu : Colors.grey.shade400,
               foregroundColor: Colors.white,
               elevation: 2,
               padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
@@ -676,15 +772,15 @@ class _DetailsState extends State<Details> {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            onPressed: _currentProduit.enStock ? () => _togglePanier(_currentProduit) : null,
+            onPressed: produit.enStock ? () => _togglePanier(produit) : null,
             icon: Icon(
-              _currentProduit.auPanier
+              produit.auPanier
                   ? FluentIcons.shopping_bag_tag_24_filled
                   : FluentIcons.shopping_bag_tag_24_regular,
               size: 20,
             ),
             label: Text(
-              _currentProduit.auPanier ? 'Ajouté au Panier ' : 'Ajouter au Panier',
+              produit.auPanier ? 'Ajouté au Panier ' : 'Ajouter au Panier',
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),
@@ -761,60 +857,60 @@ class _DetailsState extends State<Details> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: LayoutBuilder(
-        builder: (context, constraints) {
-          if (constraints.maxWidth > 1200) {
-            return Center(
-              child: Container(
-                constraints: BoxConstraints(maxWidth: 1300),
-                child: Row(
-                  key: const Key('layout Web'),
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(flex: 3, child: _montreLesImages()),
-                    Expanded(flex: 3, child: _detailsContenu(_currentProduit)),
-                    Expanded(flex: 3, child: _detailsTxt(_currentProduit)),
-                  ],
+          builder: (context, constraints) {
+            if (constraints.maxWidth > 1200) {
+              return Center(
+                child: Container(
+                  constraints: BoxConstraints(maxWidth: 1300),
+                  child: Row(
+                    key: const Key('layout Web'),
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(flex: 3, child: _montreLesImages()),
+                      Expanded(flex: 3, child: _detailsContenu(produit)),
+                      Expanded(flex: 3, child: _detailsTxt(produit)),
+                    ],
+                  ),
                 ),
-              ),
-            );
-          }
-          if (constraints.maxWidth > 964) {
+              );
+            }
+            if (constraints.maxWidth > 964) {
+              return Center(
+                child: Container(
+                  constraints: BoxConstraints(maxWidth: 900),
+                  child: Row(
+                    key: const Key('layout tablet'),
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(flex: 2, child: _montreLesImages()),
+                      Expanded(flex: 2, child: _detailsContenumob(produit)),
+                    ],
+                  ),
+                ),
+              );
+            }
             return Center(
               child: Container(
-                constraints: BoxConstraints(maxWidth: 900),
-                child: Row(
-                  key: const Key('layout tablet'),
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                constraints: BoxConstraints(maxWidth: 500),
+                child: Column(
+                  key: const Key('layout Mobile'),
                   children: [
                     Expanded(flex: 2, child: _montreLesImages()),
-                    Expanded(flex: 2, child: _detailsContenumob(_currentProduit)),
+                    Expanded(flex: 3, child: _detailsContenumob(produit)),
                   ],
                 ),
               ),
             );
-          }
-          return Center(
-            child: Container(
-              constraints: BoxConstraints(maxWidth: 500),
-              child: Column(
-                key: const Key('layout Mobile'),
-                children: [
-                  Expanded(flex: 3, child: _montreLesImages()),
-                  Expanded(flex: 3, child: _detailsContenumob(_currentProduit)),
-                ],
-              ),
-            ),
-          );
-        },
-      )
+          },
+        ),
       ),
       bottomNavigationBar:
           MediaQuery.of(context).size.width <= 600
               ? BottomAppBar(
-                  elevation: 8,
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-                  child: _boutons(_currentProduit),
-                )
+                elevation: 8,
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+                child: _boutons(produit),
+              )
               : null,
     );
   }

@@ -28,7 +28,7 @@ class MainApp extends StatelessWidget {
           Theme.of(context).textTheme,
         ),
       ),
-      initialRoute: '/',
+      initialRoute: '/admin/nouveau produit',
       routes: {
         '/': (context) => const EcranDemarrage(),
         '/admin': (context) => const Accueila(),

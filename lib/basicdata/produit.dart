@@ -6,6 +6,7 @@ class Produit {
   String description;
   String descriptionCourte;
   String prix;
+  String ancientPrix;
   String vues;
   String modele;
   String marque;
@@ -32,6 +33,7 @@ class Produit {
     required this.description,
     required this.descriptionCourte,
     required this.prix,
+    required this.ancientPrix,
     required this.vues,
     required this.modele,
     required this.marque,
@@ -59,6 +61,7 @@ class Produit {
       'description': description,
       'descriptionCourte': descriptionCourte,
       'prix': prix,
+      'ancientPrix': ancientPrix,
       'vues': vues,
       'modele': modele,
       'marque': marque,
@@ -88,6 +91,7 @@ class Produit {
       description: map['description'] ?? '',
       descriptionCourte: map['descriptionCourte'] ?? '',
       prix: map['prix'] ?? '',
+      ancientPrix: map['ancientPrix'] ?? '',
       vues: map['vues']?.toString() ?? '0',
       modele: map['modele'] ?? '',
       marque: map['marque'] ?? '',
@@ -118,6 +122,7 @@ class Produit {
       description: data['description'] ?? '',
       descriptionCourte: data['descriptionCourte'] ?? '',
       prix: data['prix']?.toString() ?? '',
+      ancientPrix: data['ancientPrix']?.toString() ?? '',
       vues: data['vues']?.toString() ?? '0',
       modele: data['modele'] ?? '',
       marque: data['marque'] ?? '',
@@ -146,6 +151,7 @@ class Produit {
     String? description,
     String? descriptionCourte,
     String? prix,
+    String? ancientPrix,
     String? vues,
     String? modele,
     String? marque,
@@ -172,6 +178,7 @@ class Produit {
       description: description ?? this.description,
       descriptionCourte: descriptionCourte ?? this.descriptionCourte,
       prix: prix ?? this.prix,
+      ancientPrix: ancientPrix ?? this.ancientPrix,
       vues: vues ?? this.vues,
       modele: modele ?? this.modele,
       marque: marque ?? this.marque,
@@ -194,3 +201,4 @@ class Produit {
     );
   }
 }
+

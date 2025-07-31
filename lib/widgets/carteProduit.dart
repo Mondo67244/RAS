@@ -24,13 +24,16 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<String> images = [produit.img1, produit.img2, produit.img3]
-        .where((img) => img.isNotEmpty)
-        .toList();
+    final List<String> images =
+        [
+          produit.img1,
+          produit.img2,
+          produit.img3,
+        ].where((img) => img.isNotEmpty).toList();
     final PageController pageController = PageController();
 
     return SizedBox(
-      width: isWideScreen ? 280 : 260,
+      width: isWideScreen ? 280 : 275,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
@@ -43,8 +46,9 @@ class ProductCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(8)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(8),
+                ),
                 child: SizedBox(
                   height: isWideScreen ? 250 : 225,
                   width: double.infinity,
@@ -53,15 +57,19 @@ class ProductCard extends StatelessWidget {
                     children: [
                       images.isEmpty
                           ? Center(
-                              child: Icon(Icons.image_not_supported_outlined,
-                                  color: Colors.grey.shade400, size: 50),
-                            )
-                          : PageView.builder(
-                              controller: pageController,
-                              itemCount: images.length,
-                              itemBuilder: (context, index) =>
-                                  _appelImages(images[index], context),
+                            child: Icon(
+                              Icons.image_not_supported_outlined,
+                              color: Colors.grey.shade400,
+                              size: 50,
                             ),
+                          )
+                          : PageView.builder(
+                            controller: pageController,
+                            itemCount: images.length,
+                            itemBuilder:
+                                (context, index) =>
+                                    _appelImages(images[index], context),
+                          ),
                       if (produit.enPromo)
                         Positioned(
                           top: 8,
@@ -78,8 +86,16 @@ class ProductCard extends StatelessWidget {
                               label: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.whatshot_outlined,
-                                      size: 14, color: const Color.fromARGB(255, 222, 118, 7)),
+                                  Icon(
+                                    Icons.whatshot_outlined,
+                                    size: 14,
+                                    color: const Color.fromARGB(
+                                      255,
+                                      222,
+                                      118,
+                                      7,
+                                    ),
+                                  ),
                                   const SizedBox(width: 4),
                                   Text(
                                     'En Promo!',
@@ -94,7 +110,6 @@ class ProductCard extends StatelessWidget {
                             ),
                           ),
                         ),
-                        
                     ],
                   ),
                 ),
@@ -116,21 +131,50 @@ class ProductCard extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          '${produit.prix} CFA',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: Styles.rouge,
+                        if (produit.enPromo)
+                          Row(
+                            children: [
+                              Text(
+                                '${produit.prix} CFA',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: Styles.rouge,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '${produit.ancientPrix} CFA',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.grey,
+                                  decoration: TextDecoration.lineThrough,
+                                ),
+                              ),
+                            ],
+                          )
+                        else
+                          Text(
+                            '${produit.prix} CFA',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: Styles.rouge,
+                            ),
                           ),
-                        ),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 3),
+                            horizontal: 6,
+                            vertical: 3,
+                          ),
                           decoration: BoxDecoration(
-                            color: produit.enStock
-                                ?Styles.vert.withAlpha((0.1 * 255).round())
-                                : Styles.erreur.withAlpha((0.1 * 255).round()),
+                            color:
+                                produit.enStock
+                                    ? Styles.vert.withAlpha((0.1 * 255).round())
+                                    : Styles.erreur.withAlpha(
+                                      (0.1 * 255).round(),
+                                    ),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
@@ -138,16 +182,17 @@ class ProductCard extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
-                              color: produit.enStock ? Styles.vert : Styles.erreur,
+                              color:
+                                  produit.enStock ? Styles.vert : Styles.erreur,
                             ),
                           ),
                         ),
                       ],
                     ),
+
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        
                         Expanded(
                           child: ElevatedButton.icon(
                             onPressed: produit.enStock ? onTogglePanier : null,
@@ -158,13 +203,38 @@ class ProductCard extends StatelessWidget {
                               size: 16,
                             ),
                             label: Text(
-                              isPanier ? 'Ajouté' : 'Ajouter au Panier',
-                              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                              produit.enStock
+                                  ? (isPanier ? 'Ajouté' : 'Ajouter au Panier')
+                                  : 'Indisponible',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                                color:
+                                    produit.enStock
+                                        ? (isPanier
+                                            ? Styles.bleu
+                                            : Styles.blanc)
+                                        : Styles.rouge,
+                              ),
                             ),
                             style: OutlinedButton.styleFrom(
-                              backgroundColor: isPanier ? Colors.blue.shade50 : Styles.bleu,
-                              foregroundColor: isPanier ? Styles.bleu : Styles.blanc,
-                              side: BorderSide(color: const Color.fromARGB(255, 11, 7, 115), width: 1.2),
+                              backgroundColor:
+                                  produit.enStock
+                                      ? (isPanier
+                                          ? Colors.blue.shade50
+                                          : Styles.bleu)
+                                      : Colors.red.shade100,
+                              foregroundColor:
+                                  produit.enStock
+                                      ? (isPanier ? Styles.bleu : Styles.blanc)
+                                      : Styles.rouge,
+                              side: BorderSide(
+                                color:
+                                    produit.enStock
+                                        ? const Color.fromARGB(255, 11, 7, 115)
+                                        : Styles.rouge,
+                                width: 1.2,
+                              ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
@@ -174,7 +244,6 @@ class ProductCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                  
                   ],
                 ),
               ),
@@ -185,13 +254,17 @@ class ProductCard extends StatelessWidget {
     );
   }
 
+  //Widget pour appeler les images depuis le document Firestore du produit
   Widget _appelImages(String imageData, BuildContext context) {
     if (imageData.isEmpty) {
       return SizedBox(
         width: MediaQuery.of(context).size.width > 400 ? 300 : 280,
         child: const Center(
-          child: Icon(Icons.image_not_supported_outlined,
-              color: Colors.grey, size: 60),
+          child: Icon(
+            Icons.image_not_supported_outlined,
+            color: Colors.grey,
+            size: 60,
+          ),
         ),
       );
     }
@@ -201,10 +274,11 @@ class ProductCard extends StatelessWidget {
         imageUrl: imageData,
         fit: BoxFit.cover,
         width: MediaQuery.of(context).size.width > 400 ? 300 : 280,
-        placeholder: (context, url) =>
-            const Center(child: CircularProgressIndicator()),
-        errorWidget: (context, url, error) =>
-            const Icon(Icons.error_outline, color: Colors.grey, size: 60),
+        placeholder:
+            (context, url) => const Center(child: CircularProgressIndicator()),
+        errorWidget:
+            (context, url, error) =>
+                const Icon(Icons.error_outline, color: Colors.grey, size: 60),
         fadeInDuration: const Duration(milliseconds: 300),
       );
     }
@@ -220,19 +294,19 @@ class ProductCard extends StatelessWidget {
         imageBytes,
         fit: BoxFit.cover,
         width: MediaQuery.of(context).size.width > 400 ? 300 : 280,
-        errorBuilder: (context, error, stackTrace) => const Icon(
-          Icons.broken_image_outlined,
-          color: Colors.red,
-          size: 60,
-        ),
+        errorBuilder:
+            (context, error, stackTrace) => const Icon(
+              Icons.broken_image_outlined,
+              color: Colors.red,
+              size: 60,
+            ),
       );
     } catch (e) {
       print('Erreur de décodage Base64: $e');
       return SizedBox(
         width: MediaQuery.of(context).size.width > 400 ? 300 : 280,
         child: const Center(
-          child:
-              Icon(Icons.broken_image_outlined, color: Colors.red, size: 60),
+          child: Icon(Icons.broken_image_outlined, color: Colors.red, size: 60),
         ),
       );
     }

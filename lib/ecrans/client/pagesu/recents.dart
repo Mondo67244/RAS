@@ -179,6 +179,8 @@ class RecentsState extends State<Recents> {
     final produitDivers = produits.where((p) => p.sousCategorie == 'Divers').toList();
     final produitsPopulaires =
         produits.where((p) => (int.tryParse(p.vues) ?? 0) > 15).toList();
+    final produitsAccessoires =
+        produits.where((p) => p.sousCategorie == 'Accessoires').toList();
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -247,8 +249,8 @@ class RecentsState extends State<Recents> {
               ? const Text('')
               : _imagesEntetes('assets/images/AG.png', isWide: isWideScreen),
           ProductSection(
-            title: 'Produit Divers',
-            produits: produitDivers,
+            title: 'Accessoires',
+            produits: produitsAccessoires,
             isWideScreen: isWideScreen,
             onTogglePanier: _toggleAuPanier,
             onTap: (produit) {

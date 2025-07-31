@@ -27,6 +27,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
   final _modeleController = TextEditingController();
 
   final _prixController = TextEditingController();
+  final _ancientPrixController = TextEditingController();
   final _quantiteController = TextEditingController();
   final List<File?> _imageFiles = [null, null, null];
   final ImagePicker _picker = ImagePicker();
@@ -111,6 +112,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
     _marqueController.dispose();
     _modeleController.dispose();
     _prixController.dispose();
+    _ancientPrixController.dispose();
     _quantiteController.dispose();
     super.dispose();
   }
@@ -175,6 +177,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
         marque: _selectedBrand!,
         modele: _modeleController.text.trim(),
         prix: _prixController.text.trim(),
+        ancientPrix: _ancientPrixController.text.trim(),
         categorie: _selectedCategory!,
         type: _selectedType!,
         sousCategorie: _selectedSousCat!,
@@ -191,7 +194,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
         auPanier: false,
         enStock: true,
         createdAt: Timestamp.now(), 
-        methodeLivraison: '',
+        methodeLivraison: '', 
       );
 
       await FirestoreService().addProduit(produit);
@@ -403,7 +406,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
         //Prix
         TextFormField(
           controller: _prixController,
-          decoration: _titresChamps('Prix (en CFA)'),
+          decoration: _titresChamps('Prix hors promo (en CFA)'),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           inputFormatters: [
             FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
@@ -419,6 +422,8 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
           },
         ),
         const SizedBox(height: 16),
+
+        
 
         //List des catégories
         DropdownButton2<String>(
@@ -575,6 +580,27 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
           ],
         ),
         const SizedBox(height: 16),
+
+        if (enPromo) ...[
+          TextFormField(
+            controller: _ancientPrixController,
+            decoration: _titresChamps('Ancien Prix (en CFA)'),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+            ],
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Veuillez entrer un ancien prix';
+              }
+              if (double.tryParse(value) == null) {
+                return 'Veuillez entrer un prix valide';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+        ],
 
         //Champ description courte
         TextFormField(

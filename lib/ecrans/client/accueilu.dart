@@ -100,7 +100,6 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
     }
 
     return Scaffold(
-      
       backgroundColor: Colors.white,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
@@ -110,7 +109,11 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
         icon: const Icon(Icons.search, color: Colors.white),
         label: const Text(
           'Rechercher',
-          style: TextStyle(color: Colors.white,fontSize: 15,fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 15,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
 
@@ -118,20 +121,18 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
         foregroundColor: Styles.blanc,
         backgroundColor: const Color.fromARGB(255, 163, 14, 3),
         title: Image.asset(
-                    'assets/images/kanjad.png',
-                    key: const ValueKey('logo'),
-                    width: 140,
-                    height: 50,
-                  ),
-        
-        
+          'assets/images/kanjad.png',
+          key: const ValueKey('logo'),
+          width: 140,
+          height: 50,
+        ),
+
         centerTitle: true,
         bottom:
             isLargeScreen
                 ? PreferredSize(
                   preferredSize: const Size.fromHeight(kToolbarHeight),
                   child: Container(
-                    
                     color: Colors.white,
                     width: double.infinity,
                     child: Center(
@@ -141,7 +142,7 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                           dividerHeight: 0,
                           controller: _tabController,
                           isScrollable: false,
-                          
+
                           indicatorColor: Styles.rouge,
                           labelColor: Styles.rouge,
                           unselectedLabelColor: Colors.grey[600],
@@ -152,6 +153,11 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                   ),
                 )
                 : null,
+                actions: [
+                  IconButton(onPressed: (){
+                    Navigator.pushNamed(context, '/admin/nouveau produit');
+                  }, icon: Icon(Icons.settings))
+                ],
       ),
 
       drawer: const Drawer(),
