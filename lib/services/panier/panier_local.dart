@@ -64,4 +64,9 @@ class PanierLocal {
   Future<String?> getPaymentMethod() async {
     return _prefs?.getString('payment_method');
   }
+
+  Future<void> viderPanier() async {
+    await _prefs?.remove('panier');
+    await _prefs?.remove('quantities');
+  }
 }

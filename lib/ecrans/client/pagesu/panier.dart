@@ -1,10 +1,20 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:ras_app/basicdata/commande.dart';
 import 'package:ras_app/basicdata/style.dart';
-import 'package:ras_app/services/base%20de%20donn%C3%A9es/lienbd.dart';
+import 'package:ras_app/basicdata/utilisateur.dart';
+import 'package:ras_app/services/base de données/lienbd.dart';
 import 'package:ras_app/basicdata/produit.dart';
 import 'package:intl/intl.dart';
 import 'package:ras_app/services/panier/panier_local.dart';
 import 'dart:async';
+
+// Custom exception for cart-related errors
+class CartException implements Exception {
+  final String message;
+  CartException(this.message);
+}
 
 class Panier extends StatefulWidget {
   const Panier({Key? key}) : super(key: key);
@@ -17,16 +27,14 @@ class PanierState extends State<Panier> {
   late Stream<List<Produit>> _cartProductsStream;
   final FirestoreService _firestoreService = FirestoreService();
   final PanierLocal _panierLocal = PanierLocal();
-  // Variables d'état pour gérer les sélections de l'utilisateur
   String? _selectedPaymentMethod;
   String? _selectedDeliveryMethod;
   bool _confirmTerms = false;
   final TextEditingController _paymentNumberController = TextEditingController();
-  // Map pour gérer localement les quantités
   final Map<String, int> _productQuantities = {};
   List<String> _idsPanier = [];
-  // Indicateur de chargement
   bool _isLoading = true;
+  bool _isProcessingOrder = false;
   late Future<void> _initFuture;
 
   @override
@@ -37,78 +45,173 @@ class PanierState extends State<Panier> {
   }
 
   Future<void> _actualiser() async {
-    setState(() {
-      _isLoading = true;
-    });
-    await _initPanierLocal();
-    setState(() {
-      _isLoading = false;
-    });
-    // --- Bonus : Afficher un SnackBar après le rafraîchissement ---
-    if (mounted) { // Vérifier si le widget est encore dans l'arbre
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          backgroundColor: Styles.bleu,
-          content: Text('Panier mis à jour !'),
-          duration: Duration(seconds: 1),
-        ),
-      );
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+      await _initPanierLocal();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Styles.bleu,
+            content: Text('Panier mis à jour !'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
+    } catch (e) {
+      _handleError('Erreur lors de l\'actualisation du panier: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
-    // ---------------------------------------------------------------
   }
 
   Future<void> _loadSavedMethods() async {
-    final deliveryMethod = await _panierLocal.getDeliveryMethod();
-    final paymentMethod = await _panierLocal.getPaymentMethod();
-    setState(() {
-      _selectedDeliveryMethod = deliveryMethod;
-      _selectedPaymentMethod = paymentMethod;
-    });
+    try {
+      final deliveryMethod = await _panierLocal.getDeliveryMethod();
+      final paymentMethod = await _panierLocal.getPaymentMethod();
+      setState(() {
+        _selectedDeliveryMethod = deliveryMethod;
+        _selectedPaymentMethod = paymentMethod;
+      });
+    } catch (e) {
+      _handleError('Erreur lors du chargement des méthodes sauvegardées: $e');
+    }
   }
 
   Future<void> _initPanierLocal() async {
-    await _panierLocal.init();
-    final ids = await _panierLocal.getPanier();
-    final quantities = await _panierLocal.getQuantities();
-    setState(() {
-      _idsPanier = ids;
-      _productQuantities.clear();
-      _productQuantities.addAll(quantities);
-      // Ajouter une quantité par défaut de 1 pour les produits sans quantité
-      for (var id in ids) {
-        _productQuantities[id] = _productQuantities[id] ?? 1;
-      }
-      _isLoading = false; // Marquer le chargement comme terminé
-      _loadSavedMethods();
-    });
+    try {
+      await _panierLocal.init();
+      final ids = await _panierLocal.getPanier();
+      final quantities = await _panierLocal.getQuantities();
+      setState(() {
+        _idsPanier = ids;
+        _productQuantities.clear();
+        _productQuantities.addAll(quantities);
+        for (var id in ids) {
+          _productQuantities[id] = _productQuantities[id] ?? 1;
+        }
+        _isLoading = false;
+      });
+      await _loadSavedMethods();
+    } catch (e) {
+      _handleError('Erreur lors de l\'initialisation du panier local: $e');
+    }
   }
 
   Future<void> _retirerDuPanier(String idProduit) async {
-    await _panierLocal.retirerDuPanier(idProduit);
-    setState(() {
-      _idsPanier.remove(idProduit);
-      _productQuantities.remove(idProduit);
-    });
+    try {
+      await _panierLocal.retirerDuPanier(idProduit);
+      setState(() {
+        _idsPanier.remove(idProduit);
+        _productQuantities.remove(idProduit);
+      });
+    } catch (e) {
+      _handleError('Erreur lors du retrait du produit: $e');
+    }
+  }
+
+  Future<void> _viderPanier() async {
+    try {
+      await _panierLocal.viderPanier();
+      setState(() {
+        _idsPanier.clear();
+        _productQuantities.clear();
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Styles.vert,
+            content: Text('Panier vidé avec succès !'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      _handleError('Erreur lors du vidage du panier: $e');
+    }
+  }
+
+  void _showClearCartDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Vider le panier'),
+          content: Text('Êtes-vous sûr de vouloir vider votre panier ? Cette action est irréversible.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Annuler'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await _viderPanier();
+              },
+              child: Text(
+                'Vider',
+                style: TextStyle(color: Styles.rouge),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _updateQuantity(String productId, int newQuantity) {
-    if (newQuantity > 0) {
-      setState(() {
-        _productQuantities[productId] = newQuantity;
-      });
-      _panierLocal.updateQuantity(productId, newQuantity); // Persister la quantité
-    } else {
-      _retirerDuPanier(productId);
+    try {
+      if (newQuantity < 0) {
+        throw CartException('La quantité ne peut pas être négative');
+      }
+      if (newQuantity > 100) {
+        throw CartException('La quantité maximale est de 100 par article');
+      }
+      if (newQuantity > 0) {
+        setState(() {
+          _productQuantities[productId] = newQuantity;
+        });
+        _panierLocal.updateQuantity(productId, newQuantity);
+      } else {
+        _retirerDuPanier(productId);
+      }
+    } catch (e) {
+      _handleError('Erreur lors de la mise à jour de la quantité: $e');
     }
   }
 
   String _formatPrice(double price) {
-    final format = NumberFormat("#,##0", "fr_FR");
-    return "${format.format(price)} CFA";
+    try {
+      final format = NumberFormat("#,##0", "fr_FR");
+      return "${format.format(price)} CFA";
+    } catch (e) {
+      return "Erreur de formatage";
+    }
+  }
+
+  void _handleError(String errorMessage, {bool showSnackBar = true}) {
+    debugPrint(errorMessage);
+    if (mounted && showSnackBar) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Styles.erreur,
+          content: Text(errorMessage),
+          duration: Duration(seconds: 5),
+        ),
+      );
+    }
   }
 
   @override
   void dispose() {
+    _paymentNumberController.clear();
     _paymentNumberController.dispose();
     super.dispose();
   }
@@ -123,10 +226,27 @@ class PanierState extends State<Panier> {
             body: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+                children: const [
                   CircularProgressIndicator(),
                   SizedBox(height: 16),
                   Text('Chargement du panier...'),
+                ],
+              ),
+            ),
+          );
+        }
+        if (snapshot.hasError) {
+          return Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Erreur: ${snapshot.error}'),
+                  SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _actualiser,
+                    child: Text('Réessayer'),
+                  ),
                 ],
               ),
             ),
@@ -137,14 +257,18 @@ class PanierState extends State<Panier> {
           floatingActionButton: FloatingActionButton.extended(
             foregroundColor: Styles.bleu,
             backgroundColor: Styles.blanc,
-            label: Row(children: [
-              Icon(Icons.refresh),
-              const SizedBox(width: 10),
-              Text('Actualiser',style: TextStyle(fontWeight: FontWeight.bold),)
-            ],),
+            label: Row(
+              children: const [
+                Icon(Icons.refresh),
+                SizedBox(width: 10),
+                Text(
+                  'Actualiser',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
             onPressed: _actualiser,
             tooltip: 'Rafraîchir le panier',
-            
           ),
           body: RefreshIndicator(
             onRefresh: _actualiser,
@@ -155,42 +279,42 @@ class PanierState extends State<Panier> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (snapshot.hasError) {
+                  _handleError('Erreur de chargement des produits: ${snapshot.error}');
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text('Erreur de chargement du panier : ${snapshot.error}'),
-                        const SizedBox(height: 16),
+                        Text('Erreur de chargement des produits'),
+                        SizedBox(height: 16),
                         ElevatedButton(
                           onPressed: _actualiser,
-                          child: const Text('Actualiser'),
+                          child: Text('Réessayer'),
                         ),
                       ],
                     ),
                   );
                 }
-                final produitsPanier =
-                    (snapshot.data ?? []).where((p) => _idsPanier.contains(p.idProduit)).toList();
+                final produitsPanier = (snapshot.data ?? []).where((p) => _idsPanier.contains(p.idProduit)).toList();
                 if (produitsPanier.isEmpty) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text('Actualiser la page'),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: _actualiser,
-                          child: const Text('Actualiser'),
-                        ),
+                        Text('Votre panier est vide.'),
+                       
                       ],
                     ),
                   );
                 }
                 double grandTotal = 0;
-                for (var produit in produitsPanier) {
-                  double prix = double.tryParse(produit.prix) ?? 0.0;
-                  int currentQuantity = _productQuantities[produit.idProduit] ?? 1;
-                  grandTotal += prix * currentQuantity;
+                try {
+                  for (var produit in produitsPanier) {
+                    double prix = double.tryParse(produit.prix) ?? 0.0;
+                    int currentQuantity = _productQuantities[produit.idProduit] ?? 1;
+                    grandTotal += prix * currentQuantity;
+                  }
+                } catch (e) {
+                  _handleError('Erreur lors du calcul du total: $e');
                 }
                 return Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -219,10 +343,7 @@ class PanierState extends State<Panier> {
                                 flex: 2,
                                 child: SingleChildScrollView(
                                   padding: const EdgeInsets.all(24.0),
-                                  child: _buildCartDetailsColumn(
-                                    produitsPanier,
-                                    grandTotal,
-                                  ),
+                                  child: _buildCartDetailsColumn(produitsPanier, grandTotal),
                                 ),
                               ),
                               const VerticalDivider(width: 1),
@@ -248,27 +369,36 @@ class PanierState extends State<Panier> {
     );
   }
 
-  Widget _buildCartDetailsColumn(
-    List<Produit> produitsPanier,
-    double grandTotal,
-  ) {
+  Widget _buildCartDetailsColumn(List<Produit> produitsPanier, double grandTotal) {
     final taille = MediaQuery.of(context).size.width;
     final estGrand = taille > 650;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Prêt à Commander ?',
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Prêt à Commander ?',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+            TextButton(
+              onPressed: _showClearCartDialog,
+              child: Text(
+                'Vider le panier',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Styles.rouge,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 16),
         const Text(
           'Récapitulatif des choix :',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: Colors.black54,
-          ),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.black54),
         ),
         const SizedBox(height: 10),
         ListView.builder(
@@ -280,58 +410,40 @@ class PanierState extends State<Panier> {
           },
         ),
         const SizedBox(height: 20),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: Colors.amber[300],
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: estGrand
-              ? Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Total sans frais de livraison :',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    Text(
-                      _formatPrice(grandTotal),
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ],
-                )
-              : Center(
-                  child: Column(
+        Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.amber[300],
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: estGrand
+                ? Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
                         'Total sans frais de livraison :',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
                       ),
-                      
-                      Text( _selectedDeliveryMethod == 'domicile' ?
-                        _formatPrice(grandTotal + 1000) : _formatPrice(grandTotal),
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
+                      Text(
+                        _formatPrice(grandTotal),
+                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
+                      ),
+                    ],
+                  )
+                : Column(
+                    children: [
+                      const Text(
+                        'Total sans frais de livraison :',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+                      ),
+                      Text(
+                        _formatPrice(grandTotal),
+                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
                       ),
                     ],
                   ),
-                ),
+          ),
         ),
       ],
     );
@@ -349,57 +461,39 @@ class PanierState extends State<Panier> {
         _buildConfirmationSection(),
         const SizedBox(height: 32),
         ElevatedButton(
-          onPressed: _confirmTerms ? () {
-            if (_selectedDeliveryMethod == null) {
-              print('Erreur: Aucune méthode de livraison sélectionnée.');
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  backgroundColor: Styles.erreur,
-                  content: Text('Veuillez choisir une méthode de livraison.'),
-                ),
-              );
-              return;
-            }
-
-            if (_selectedPaymentMethod == null) {
-              print('Erreur: Aucune méthode de paiement sélectionnée.');
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  backgroundColor: Styles.erreur,
-                  content: Text('Veuillez choisir une méthode de paiement.'),
-                ),
-              );
-              return;
-            }
-
-            if ((_selectedPaymentMethod == 'MTN' || _selectedPaymentMethod == 'ORANGE') &&
-                _paymentNumberController.text.isEmpty) {
-              print('Erreur: Numéro de paiement manquant pour le paiement mobile.');
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  backgroundColor: Styles.erreur,
-                  content: Text('Veuillez entrer un numéro de paiement.'),
-                ),
-              );
-              return;
-            }
-
-            if (_selectedDeliveryMethod != null) {
-              _panierLocal.saveDeliveryMethod(_selectedDeliveryMethod!);
-            }
-            if (_selectedPaymentMethod != null) {
-              _panierLocal.savePaymentMethod(_selectedPaymentMethod!);
-            }
-            
-            // If all checks pass, you can proceed with the order
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                backgroundColor: Styles.vert,
-                content: Text('Commande validée avec succès!'),
-              ),
-            );
-
-          } : null,
+          onPressed: (_confirmTerms && !_isProcessingOrder && _isFormValid())
+              ? () async {
+                  try {
+                    setState(() {
+                      _isProcessingOrder = true;
+                    });
+                    final user = FirebaseAuth.instance.currentUser;
+                    if (user == null) {
+                      _showLoginDialog();
+                      return;
+                    }
+                    await _validateAndProcessOrder();
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          backgroundColor: Styles.vert,
+                          content: Text('Commande validée avec succès !'),
+                        ),
+                      );
+                      _paymentNumberController.clear();
+                      Navigator.pushNamed(context, '/commandes');
+                    }
+                  } catch (e) {
+                    _handleError('Erreur lors de la validation de la commande: $e');
+                  } finally {
+                    if (mounted) {
+                      setState(() {
+                        _isProcessingOrder = false;
+                      });
+                    }
+                  }
+                }
+              : null,
           style: ElevatedButton.styleFrom(
             backgroundColor: Styles.bleu,
             padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
@@ -407,13 +501,131 @@ class PanierState extends State<Panier> {
               borderRadius: BorderRadius.circular(30),
             ),
           ),
-          child: const Text(
-            'Valider Commander',
-            style: TextStyle(fontSize: 18, color: Colors.white),
-          ),
+          child: _isProcessingOrder
+              ? const SizedBox(
+                  height: 24,
+                  width: 24,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 3,
+                  ),
+                )
+              : const Text(
+                  'Valider Commander',
+                  style: TextStyle(fontSize: 18, color: Colors.white),
+                ),
         ),
+        const SizedBox(height: 50),
       ],
     );
+  }
+
+  bool _isFormValid() {
+    if (_selectedDeliveryMethod == null) {
+      return false;
+    }
+    if (_selectedPaymentMethod == null) {
+      return false;
+    }
+    if ((_selectedPaymentMethod == 'MTN' || _selectedPaymentMethod == 'ORANGE') &&
+        !_isValidPhoneNumber(_paymentNumberController.text)) {
+      return false;
+    }
+    return true;
+  }
+
+  void _showLoginDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Connexion requise'),
+          content: Text('Veuillez vous connecter pour valider votre commande.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.pushNamed(context, '/connexion');
+              },
+              child: Text('Se connecter'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _validateAndProcessOrder() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      throw CartException('Utilisateur non connecté');
+    }
+
+    if (!_isFormValid()) {
+      throw CartException('Veuillez remplir tous les champs requis.');
+    }
+
+    final userDoc = await FirebaseFirestore.instance.collection('Utilisateurs').doc(user.uid).get();
+    if (!userDoc.exists) {
+      throw CartException('Impossible de récupérer les informations de l\'utilisateur.');
+    }
+
+    final utilisateur = Utilisateur.fromMap(userDoc.data()!);
+    final produitsPanier = (await _cartProductsStream.first)
+        .where((p) => _idsPanier.contains(p.idProduit))
+        .toList();
+
+    if (produitsPanier.isEmpty) {
+      throw CartException('Votre panier est vide.');
+    }
+
+    double grandTotal = 0;
+    final produitsAvecQuantite = produitsPanier.map((produit) {
+      int quantite = _productQuantities[produit.idProduit] ?? 1;
+      double prix = double.tryParse(produit.prix) ?? 0.0;
+      grandTotal += prix * quantite;
+      return {
+        'idProduit': produit.idProduit,
+        'nomProduit': produit.nomProduit,
+        'prix': produit.prix,
+        'quantite': quantite,
+      };
+    }).toList();
+
+    if (produitsAvecQuantite.any((p) =>
+        p['idProduit'] == null ||
+        p['nomProduit'] == null ||
+        p['prix'] == null ||
+        p['quantite'] == null)) {
+      throw CartException('Données de produit invalides dans la commande.');
+    }
+
+    try {
+      final docRef = await FirebaseFirestore.instance.collection('Commandes').add({
+        'idCommande': '',
+        'dateCommande': DateTime.now(),
+        'noteCommande': '',
+        'pays': 'Cameroun',
+        'rue': '',
+        'prixCommande': grandTotal.toStringAsFixed(2),
+        'ville': utilisateur.villeUtilisateur,
+        'codePostal': '',
+        'utilisateur': utilisateur.toMap(),
+        'produits': produitsAvecQuantite,
+        'methodePaiment': _selectedPaymentMethod!,
+        'choixLivraison': _selectedDeliveryMethod!,
+      });
+      await docRef.update({'idCommande': docRef.id});
+      await _panierLocal.viderPanier();
+    } catch (e) {
+      throw CartException('Impossible d\'enregistrer la commande: $e');
+    }
+  }
+
+  bool _isValidPhoneNumber(String number) {
+    final phoneRegex = RegExp(r'^\+?\d{8,15}$');
+    return phoneRegex.hasMatch(number);
   }
 
   Widget _buildCartItemCard(Produit produit) {
@@ -437,43 +649,28 @@ class PanierState extends State<Panier> {
                 children: [
                   Text(
                     'x$quantiteSouhaitee',
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black54,
-                    ),
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black54),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          child: Text(
-                            produit.nomProduit,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                        Text(
+                          produit.nomProduit,
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 3),
                         Row(
                           children: [
                             _buildQuantityButton(
                               icon: Icons.add,
-                              onPressed: () => _updateQuantity(
-                                produit.idProduit,
-                                quantiteSouhaitee + 1,
-                              ),
+                              onPressed: () => _updateQuantity(produit.idProduit, quantiteSouhaitee + 1),
                             ),
                             const SizedBox(width: 10),
                             _buildQuantityButton(
                               icon: Icons.remove,
-                              onPressed: () => _updateQuantity(
-                                produit.idProduit,
-                                quantiteSouhaitee - 1,
-                              ),
+                              onPressed: () => _updateQuantity(produit.idProduit, quantiteSouhaitee - 1),
                             ),
                             const SizedBox(width: 10),
                             IconButton(
@@ -489,14 +686,9 @@ class PanierState extends State<Panier> {
                 ],
               ),
             ),
-            const SizedBox(width: 8),
             Text(
               _formatPrice(itemTotal),
-              style: const TextStyle(
-                fontSize: 15,
-                color: Colors.red,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 15, color: Colors.red, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -504,10 +696,7 @@ class PanierState extends State<Panier> {
     );
   }
 
-  Widget _buildQuantityButton({
-    required IconData icon,
-    required VoidCallback onPressed,
-  }) {
+  Widget _buildQuantityButton({required IconData icon, required VoidCallback onPressed}) {
     return InkWell(
       onTap: onPressed,
       borderRadius: BorderRadius.circular(4),
@@ -540,8 +729,13 @@ class PanierState extends State<Panier> {
             labelText: 'Entrer le numéro de paiement',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
             contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+            errorText: (_selectedPaymentMethod == 'MTN' || _selectedPaymentMethod == 'ORANGE') &&
+                    !_isValidPhoneNumber(_paymentNumberController.text)
+                ? 'Numéro de téléphone invalide'
+                : null,
           ),
           keyboardType: TextInputType.phone,
+          onChanged: (value) => setState(() {}),
         ),
       ],
     );
@@ -553,7 +747,12 @@ class PanierState extends State<Panier> {
       value: value,
       groupValue: _selectedPaymentMethod,
       onChanged: (newValue) {
-        setState(() => _selectedPaymentMethod = newValue);
+        setState(() {
+          _selectedPaymentMethod = newValue;
+          if (newValue == 'CASH') {
+            _paymentNumberController.clear();
+          }
+        });
         if (newValue != null) {
           _panierLocal.savePaymentMethod(newValue);
         }
@@ -575,9 +774,7 @@ class PanierState extends State<Panier> {
           title: const Text('Je veux être livré à Domicile'),
           value: _selectedDeliveryMethod == 'domicile',
           onChanged: (value) {
-            setState(
-              () => _selectedDeliveryMethod = value! ? 'domicile' : null,
-            );
+            setState(() => _selectedDeliveryMethod = value! ? 'domicile' : null);
             if (_selectedDeliveryMethod != null) {
               _panierLocal.saveDeliveryMethod(_selectedDeliveryMethod!);
             }
@@ -590,9 +787,7 @@ class PanierState extends State<Panier> {
           title: const Text('Je viendrai prendre en boutique'),
           value: _selectedDeliveryMethod == 'boutique',
           onChanged: (value) {
-            setState(
-              () => _selectedDeliveryMethod = value! ? 'boutique' : null,
-            );
+            setState(() => _selectedDeliveryMethod = value! ? 'boutique' : null);
             if (_selectedDeliveryMethod != null) {
               _panierLocal.saveDeliveryMethod(_selectedDeliveryMethod!);
             }
@@ -610,7 +805,9 @@ class PanierState extends State<Panier> {
       children: [
         Checkbox(
           value: _confirmTerms,
-          onChanged: (value) => setState(() => _confirmTerms = value!),
+          onChanged: (value) {
+            setState(() => _confirmTerms = value!);
+          },
           activeColor: Styles.rouge,
         ),
         const Expanded(

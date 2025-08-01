@@ -117,11 +117,11 @@ class _ResultatsState extends State<Resultats> {
   @override
   /// Libère les ressources des contrôleurs et du timer.
   void dispose() {
+    super.dispose();
     _searchController.dispose();
     _minPriceController.dispose();
     _maxPriceController.dispose();
     _debounce?.cancel();
-    super.dispose();
   }
 
   /// Déclenchée lorsque le texte de la barre de recherche change.
@@ -145,10 +145,7 @@ class _ResultatsState extends State<Resultats> {
     _debounce = Timer(const Duration(milliseconds: 300), _performSearch);
   }
 
-  /// Construit le stream de recherche en fonction des critères actuels.
-  ///
-  /// Effectue les requêtes Firestore et filtre les résultats localement
-  /// pour le texte et les prix.
+  //Flux de recherche
   Stream<List<Produit>> _buildSearchStream() {
     Query<Map<String, dynamic>> query = FirebaseFirestore.instance.collection(
       'Produits',

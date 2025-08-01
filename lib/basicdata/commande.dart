@@ -1,5 +1,5 @@
-import 'package:ras_app/basicdata/utilisateur.dart';
 import 'package:ras_app/basicdata/produit.dart';
+import 'package:ras_app/basicdata/utilisateur.dart';
 
 class Commande {
   String idCommande;
@@ -11,28 +11,23 @@ class Commande {
   String ville;
   String codePostal;
   final Utilisateur utilisateur;
-  final List<Produit> produit;
-  bool methodePaiment;
-  bool choixLivraison;
-  bool enPromo;
-  bool enSouhait;
-  bool auPanier;
+  final List<Map<String, dynamic>> produits;
+  String methodePaiment;
+  String choixLivraison;
+
   Commande({
-    required this.enSouhait,
-    required this.auPanier,
     required this.methodePaiment,
-    required this.enPromo,
     required this.prixCommande,
     required this.choixLivraison,
     required this.dateCommande,
-    required this.produit,
+    required this.produits,
     required this.idCommande,
     required this.utilisateur,
     required this.noteCommande,
     required this.pays,
     required this.rue,
     required this.ville,
-    required this.codePostal
+    required this.codePostal,
   });
 
   Map<String, dynamic> toMap() {
@@ -46,12 +41,9 @@ class Commande {
       'ville': ville,
       'codePostal': codePostal,
       'utilisateur': utilisateur.toMap(),
-      'produit': produit.map((p) => p.toMap()).toList(),
+      'produits': produits,
       'methodePaiment': methodePaiment,
       'choixLivraison': choixLivraison,
-      'enPromo': enPromo,
-      'enSouhait': enSouhait,
-      'auPanier': auPanier,
     };
   }
 
@@ -65,13 +57,10 @@ class Commande {
       prixCommande: map['prixCommande'] ?? '',
       ville: map['ville'] ?? '',
       codePostal: map['codePostal'] ?? '',
-      utilisateur: Utilisateur.fromMap(map['utilisateur']),
-      produit: (map['produit'] as List).map((p) => Produit.fromMap(p as Map<String, dynamic>, p['idProduit'])).toList(),
-      methodePaiment: map['methodePaiment'] ?? false,
-      choixLivraison: map['choixLivraison'] ?? false,
-      enPromo: map['enPromo'] ?? false,
-      enSouhait: map['enSouhait'] ?? false,
-      auPanier: map['auPanier'] ?? false,
+      utilisateur: Utilisateur.fromMap(map['utilisateur'] ?? {}),
+      produits: List<Map<String, dynamic>>.from(map['produits'] ?? []),
+      methodePaiment: map['methodePaiment'] ?? '',
+      choixLivraison: map['choixLivraison'] ?? '',
     );
   }
 }
