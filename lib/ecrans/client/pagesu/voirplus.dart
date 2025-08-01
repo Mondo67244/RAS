@@ -108,7 +108,7 @@ class _VoirplusState extends State<Voirplus> {
                 ),
               )
             : Container(
-                constraints: isWideScreen ? BoxConstraints(maxWidth: 900) : BoxConstraints(maxWidth: 270),
+                constraints: isWideScreen ? BoxConstraints(maxWidth: 900) : BoxConstraints(maxWidth: 280),
                 child: GridView.builder(
                   padding: const EdgeInsets.all(8),
                   gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
