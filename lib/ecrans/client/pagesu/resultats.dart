@@ -4,8 +4,8 @@ import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
-import 'package:ras_app/basicdata/produit.dart';
-import 'package:ras_app/basicdata/style.dart';
+import 'package:RAS/basicdata/produit.dart';
+import 'package:RAS/basicdata/style.dart';
 
 /// Widget pour afficher les résultats de la recherche de produits.
 class Resultats extends StatefulWidget {
@@ -565,7 +565,7 @@ class _ResultatsState extends State<Resultats> {
               onTap: () {
                 Navigator.pushNamed(
                   context,
-                  '/details',
+                  '/utilisateur/produit/details',
                   arguments: produit,
                 ).then((_) => _performSearch());
               },

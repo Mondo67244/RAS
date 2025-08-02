@@ -3,11 +3,11 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:ras_app/basicdata/produit.dart';
-import 'package:ras_app/basicdata/style.dart';
-import 'package:ras_app/services/base%20de%20donn%C3%A9es/lienbd.dart';
-import 'package:ras_app/services/panier/panier_local.dart';
-import 'package:ras_app/services/souhaits/souhaits_local.dart';
+import 'package:RAS/basicdata/produit.dart';
+import 'package:RAS/basicdata/style.dart';
+import 'package:RAS/services/base%20de%20donn%C3%A9es/lienbd.dart';
+import 'package:RAS/services/panier/panier_local.dart';
+import 'package:RAS/services/souhaits/souhaits_local.dart';
 
 class Souhaits extends StatefulWidget {
   const Souhaits({Key? key}) : super(key: key);
@@ -148,7 +148,7 @@ class SouhaitsState extends State<Souhaits> {
           Clip.antiAlias, // Assure que l'image respecte les bords arrondis
       child: InkWell(
         onTap:
-            () => Navigator.pushNamed(context, '/details', arguments: produit),
+            () => Navigator.pushNamed(context, '/utilisateur/produit/details', arguments: produit),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

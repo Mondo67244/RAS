@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:ras_app/basicdata/produit.dart';
-import 'package:ras_app/basicdata/style.dart';
-import 'package:ras_app/services/panier/panier_local.dart';
-import 'package:ras_app/services/souhaits/souhaits_local.dart';
-import 'package:ras_app/widgets/carteProduit.dart';
+import 'package:RAS/basicdata/produit.dart';
+import 'package:RAS/basicdata/style.dart';
+import 'package:RAS/services/panier/panier_local.dart';
+import 'package:RAS/services/souhaits/souhaits_local.dart';
+import 'package:RAS/widgets/carteProduit.dart';
 
 class Voirplus extends StatefulWidget {
   final String title;
@@ -126,7 +126,7 @@ class _VoirplusState extends State<Voirplus> {
                       isPanier: isPanier,
                       isWideScreen: isWideScreen,
                       onTogglePanier: () => _togglePanier(produit),
-                      onTap: () => Navigator.pushNamed(context, '/details', arguments: produit),
+                      onTap: () => Navigator.pushNamed(context, '/utilisateur/produit/details', arguments: produit),
                     );
                   },
                 ),

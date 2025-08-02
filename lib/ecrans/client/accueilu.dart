@@ -1,12 +1,12 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:ras_app/basicdata/style.dart';
-import 'package:ras_app/ecrans/client/pagesu/commandes.dart';
-import 'package:ras_app/ecrans/client/pagesu/panier.dart';
-import 'package:ras_app/ecrans/client/pagesu/promo.dart';
-import 'package:ras_app/ecrans/client/pagesu/recents.dart';
-import 'package:ras_app/ecrans/client/pagesu/resultats.dart';
-import 'package:ras_app/ecrans/client/pagesu/souhaits.dart';
+import 'package:RAS/basicdata/style.dart';
+import 'package:RAS/ecrans/client/pagesu/commandes.dart';
+import 'package:RAS/ecrans/client/pagesu/panier.dart';
+import 'package:RAS/ecrans/client/pagesu/promo.dart';
+import 'package:RAS/ecrans/client/pagesu/recents.dart';
+import 'package:RAS/ecrans/client/pagesu/resultats.dart';
+import 'package:RAS/ecrans/client/pagesu/souhaits.dart';
 
 class Accueilu extends StatefulWidget {
   const Accueilu({super.key});
@@ -25,7 +25,7 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
     Promo(),
     Panier(),
     Souhaits(),
-    const Commandes(),
+    // Commandes() - Retiré du PageView pour éviter les conflits
   ];
 
   final List<Tab> _tabs = const [
@@ -65,15 +65,16 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
         ],
       ),
     ),
-    Tab(
-      child: Row(
-        children: [
-          Icon(FluentIcons.receipt_bag_24_filled),
-          const SizedBox(width: 3),
-          Text('Commandes'),
-        ],
-      ),
-    ),
+    // Tab commandes retiré du PageView
+    // Tab(
+    //   child: Row(
+    //     children: [
+    //       Icon(FluentIcons.receipt_bag_24_filled),
+    //       const SizedBox(width: 3),
+    //       Text('Commandes'),
+    //     ],
+    //   ),
+    // ),
   ];
 
   void _onTapNav(int index) {
@@ -141,9 +142,17 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
         actions: [
           IconButton(
             onPressed: () {
+              Navigator.pushNamed(context, '/utilisateur/commandes');
+            },
+            icon: Icon(FluentIcons.receipt_bag_24_filled),
+            tooltip: 'Mes Commandes',
+          ),
+          IconButton(
+            onPressed: () {
               Navigator.pushNamed(context, '/admin/nouveau produit');
             },
             icon: Icon(Icons.settings),
+            tooltip: 'Paramètres',
           ),
         ],
       ),
@@ -183,10 +192,11 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                     icon: Icon(FluentIcons.class_20_filled),
                     label: 'Souhaits',
                   ),
-                  BottomNavigationBarItem(
-                    icon: Icon(FluentIcons.receipt_bag_24_filled),
-                    label: 'Passés',
-                  ),
+                  // BottomNavigationBarItem commandes retiré
+                  // BottomNavigationBarItem(
+                  //   icon: Icon(FluentIcons.receipt_bag_24_filled),
+                  //   label: 'Passés',
+                  // ),
                 ],
               ),
     );

@@ -1,5 +1,5 @@
-import 'package:ras_app/basicdata/produit.dart';
-import 'package:ras_app/basicdata/utilisateur.dart';
+// basicdata/commande.dart
+import 'package:RAS/basicdata/utilisateur.dart';
 
 class Commande {
   String idCommande;
@@ -14,6 +14,8 @@ class Commande {
   final List<Map<String, dynamic>> produits;
   String methodePaiment;
   String choixLivraison;
+  String numeroPaiement;
+  String statutPaiement; // <-- CHAMP AJOUTÉ
 
   Commande({
     required this.methodePaiment,
@@ -28,6 +30,8 @@ class Commande {
     required this.rue,
     required this.ville,
     required this.codePostal,
+    required this.numeroPaiement,
+    this.statutPaiement = 'En attente', // <-- Valeur par défaut
   });
 
   Map<String, dynamic> toMap() {
@@ -44,6 +48,8 @@ class Commande {
       'produits': produits,
       'methodePaiment': methodePaiment,
       'choixLivraison': choixLivraison,
+      'numeroPaiement': numeroPaiement,
+      'statutPaiement': statutPaiement, // <-- Ajouté à la map pour Firestore
     };
   }
 
@@ -61,6 +67,9 @@ class Commande {
       produits: List<Map<String, dynamic>>.from(map['produits'] ?? []),
       methodePaiment: map['methodePaiment'] ?? '',
       choixLivraison: map['choixLivraison'] ?? '',
+      numeroPaiement: map['numeroPaiement'] ?? '',
+      // Récupère le statut, sinon utilise la valeur par défaut
+      statutPaiement: map['statutPaiement'] ?? 'En attente', // <-- Ajouté ici
     );
   }
 }

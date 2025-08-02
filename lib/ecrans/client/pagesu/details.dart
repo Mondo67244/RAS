@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:ras_app/basicdata/produit.dart';
-import 'package:ras_app/basicdata/style.dart';
-import 'package:ras_app/services/panier/panier_local.dart';
-import 'package:ras_app/services/souhaits/souhaits_local.dart';
+import 'package:RAS/basicdata/produit.dart';
+import 'package:RAS/basicdata/style.dart';
+import 'package:RAS/services/panier/panier_local.dart';
+import 'package:RAS/services/souhaits/souhaits_local.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class Details extends StatefulWidget {

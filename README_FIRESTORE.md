@@ -75,7 +75,7 @@ Deux classes de service ont été créées pour interagir avec Firestore :
 ### Exemple d'utilisation dans votre code
 
 ```dart
-import 'package:ras_app/services/firestore_service.dart';
+import 'package:RAS/services/firestore_service.dart';
 
 class MonEcran extends StatefulWidget {
   @override

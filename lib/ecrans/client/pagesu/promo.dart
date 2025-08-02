@@ -1,10 +1,10 @@
-import 'package:ras_app/widgets/SectionProduit.dart';
+import 'package:RAS/widgets/SectionProduit.dart';
 import 'package:flutter/material.dart';
-import 'package:ras_app/basicdata/produit.dart';
-import 'package:ras_app/basicdata/style.dart';
-import 'package:ras_app/services/base%20de%20donn%C3%A9es/lienbd.dart';
+import 'package:RAS/basicdata/produit.dart';
+import 'package:RAS/basicdata/style.dart';
+import 'package:RAS/services/base%20de%20donn%C3%A9es/lienbd.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:ras_app/services/panier/panier_local.dart';
+import 'package:RAS/services/panier/panier_local.dart';
 
 class Promo extends StatefulWidget {
   const Promo({Key? key}) : super(key: key);
@@ -270,7 +270,7 @@ class PromoState extends State<Promo> {
             isWideScreen: isWideScreen,
             onTogglePanier: _toggleAuPanier,
             onTap: (produit) {
-              Navigator.pushNamed(context, '/details', arguments: produit);
+              Navigator.pushNamed(context, '/utilisateur/produit/details', arguments: produit);
             },
             idsPanier: _idsPanier,
           ),
@@ -285,7 +285,7 @@ class PromoState extends State<Promo> {
             isWideScreen: isWideScreen,
             onTogglePanier: _toggleAuPanier,
             onTap: (produit) {
-              Navigator.pushNamed(context, '/details', arguments: produit);
+              Navigator.pushNamed(context, '/utilisateur/produit/details', arguments: produit);
             },
             idsPanier: _idsPanier,
           ),
@@ -300,7 +300,7 @@ class PromoState extends State<Promo> {
             isWideScreen: isWideScreen,
             onTogglePanier: _toggleAuPanier,
             onTap: (produit) {
-              Navigator.pushNamed(context, '/details', arguments: produit);
+              Navigator.pushNamed(context, '/utilisateur/produit/details', arguments: produit);
             },
             idsPanier: _idsPanier,
           ),
@@ -314,7 +314,7 @@ class PromoState extends State<Promo> {
             isWideScreen: isWideScreen,
             onTogglePanier: _toggleAuPanier,
             onTap: (produit) {
-              Navigator.pushNamed(context, '/details', arguments: produit);
+              Navigator.pushNamed(context, '/utilisateur/produit/details', arguments: produit);
             },
             idsPanier: _idsPanier,
           ),
@@ -328,7 +328,7 @@ class PromoState extends State<Promo> {
             isWideScreen: isWideScreen,
             onTogglePanier: _toggleAuPanier,
             onTap: (produit) {
-              Navigator.pushNamed(context, '/details', arguments: produit);
+              Navigator.pushNamed(context, '/utilisateur/produit/details', arguments: produit);
             },
             idsPanier: _idsPanier,
           ),

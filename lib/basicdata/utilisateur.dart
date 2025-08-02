@@ -36,4 +36,6 @@ class Utilisateur {
       villeUtilisateur: map['villeUtilisateur'] ?? '',
     );
   }
+
+
 }

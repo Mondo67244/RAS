@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:ras_app/basicdata/produit.dart';
-import 'package:ras_app/ecrans/admin/accueila.dart';
-import 'package:ras_app/ecrans/client/accueilu.dart';
-import 'package:ras_app/ecrans/admin/ajouterequip.dart';
-import 'package:ras_app/ecrans/client/pagesu/commandes.dart';
-import 'package:ras_app/ecrans/client/pagesu/details.dart';
-import 'package:ras_app/ecrans/client/pagesu/resultats.dart';
-import 'package:ras_app/ecrans/pageconnexion.dart';
-import 'package:ras_app/ecrans/pageinscription.dart';
-import 'package:ras_app/ecrans/client/pagesu/voirplus.dart';
-import 'package:ras_app/ecrans/ecrandemarrage.dart';
-import 'package:ras_app/firebase_options.dart';
+import 'package:RAS/basicdata/produit.dart';
+import 'package:RAS/ecrans/admin/accueila.dart';
+import 'package:RAS/ecrans/client/accueilu.dart';
+import 'package:RAS/ecrans/admin/ajouterequip.dart';
+import 'package:RAS/ecrans/client/pagesu/commandes.dart';
+import 'package:RAS/ecrans/client/pagesu/details.dart';
+import 'package:RAS/ecrans/client/pagesu/resultats.dart';
+import 'package:RAS/ecrans/pageconnexion.dart';
+import 'package:RAS/ecrans/pageinscription.dart';
+import 'package:RAS/ecrans/client/pagesu/voirplus.dart';
+import 'package:RAS/ecrans/ecrandemarrage.dart';
+import 'package:RAS/firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

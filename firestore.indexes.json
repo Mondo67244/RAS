@@ -1,77 +1,143 @@
 {
-  
   "indexes": [
     {
-      "collectionGroup": "Produits",
+      "collectionGroup": "clients",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "categorie", "order": "ASCENDING" },
-        { "fieldPath": "prix", "order": "ASCENDING" }
+        {
+          "fieldPath": "villeClient",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "nomClient",
+          "order": "ASCENDING"
+        }
       ]
     },
     {
-      "collectionGroup": "Produits",
+      "collectionGroup": "commandes",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "categorie", "order": "ASCENDING" },
-        { "fieldPath": "prix", "order": "DESCENDING" }
+        {
+          "fieldPath": "client.idClient",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "dateCommande",
+          "order": "DESCENDING"
+        }
       ]
     },
     {
-      "collectionGroup": "Produits",
+      "collectionGroup": "commandes",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "marque", "order": "ASCENDING" },
-        { "fieldPath": "modele", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "Produits",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "type", "order": "ASCENDING" },
-        { "fieldPath": "vues", "order": "DESCENDING" }
+        {
+          "fieldPath": "methodePaiment",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "prixCommande",
+          "order": "DESCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "Commandes",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "utilisateur.idUtilisateur", "order": "ASCENDING" },
-        { "fieldPath": "dateCommande", "order": "DESCENDING" }
+        {
+          "fieldPath": "utilisateur.idUtilisateur",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "dateCommande",
+          "order": "DESCENDING"
+        }
       ]
     },
     {
-      "collectionGroup": "Commandes",
+      "collectionGroup": "factures",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "methodePaiment", "order": "ASCENDING" },
-        { "fieldPath": "prixCommande", "order": "DESCENDING" }
+        {
+          "fieldPath": "client.idClient",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "dateFacture",
+          "order": "DESCENDING"
+        }
       ]
     },
     {
-      "collectionGroup": "Factures",
+      "collectionGroup": "factures",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "utilisateur.idUtilisateur", "order": "ASCENDING" },
-        { "fieldPath": "dateFacture", "order": "DESCENDING" }
+        {
+          "fieldPath": "prixFacture",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "dateFacture",
+          "order": "ASCENDING"
+        }
       ]
     },
     {
-      "collectionGroup": "Factures",
+      "collectionGroup": "produits",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "prixFacture", "order": "DESCENDING" },
-        { "fieldPath": "dateFacture", "order": "ASCENDING" }
+        {
+          "fieldPath": "categorie",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "prix",
+          "order": "ASCENDING"
+        }
       ]
     },
-
     {
-      "collectionGroup": "Utilisateurs",
+      "collectionGroup": "produits",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "villeUtilisateur", "order": "ASCENDING" },
-        { "fieldPath": "nomUtilisateur", "order": "ASCENDING" }
+        {
+          "fieldPath": "categorie",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "prix",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "produits",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "marque",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "modele",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "produits",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "type",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "vues",
+          "order": "DESCENDING"
+        }
       ]
     }
   ],

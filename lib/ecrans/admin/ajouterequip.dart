@@ -4,10 +4,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:io';
 import 'dart:convert';
-import 'package:ras_app/basicdata/style.dart';
+import 'package:RAS/basicdata/style.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
-import 'package:ras_app/services/base de données/lienbd.dart';
-import 'package:ras_app/basicdata/produit.dart';
+import 'package:RAS/services/base de données/lienbd.dart';
+import 'package:RAS/basicdata/produit.dart';
 
 class AjouterEquipPage extends StatefulWidget {
   const AjouterEquipPage({super.key});
@@ -48,7 +48,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
     'Apple',
     'Canon',
     'Dell',
-    'HPE'
+    'HPE',
     'D-link',
     'Tp-Link',
     'HP',

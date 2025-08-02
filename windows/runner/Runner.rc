@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "ras_app" "\0"
+            VALUE "FileDescription", "RAS" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "ras_app" "\0"
+            VALUE "InternalName", "RAS" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2025 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "ras_app.exe" "\0"
-            VALUE "ProductName", "ras_app" "\0"
+            VALUE "OriginalFilename", "RAS.exe" "\0"
+            VALUE "ProductName", "RAS" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

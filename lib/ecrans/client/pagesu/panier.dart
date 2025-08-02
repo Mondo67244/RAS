@@ -1,13 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:ras_app/basicdata/commande.dart';
-import 'package:ras_app/basicdata/style.dart';
-import 'package:ras_app/basicdata/utilisateur.dart';
-import 'package:ras_app/services/base de données/lienbd.dart';
-import 'package:ras_app/basicdata/produit.dart';
+import 'package:RAS/basicdata/commande.dart';
+import 'package:RAS/basicdata/style.dart';
+import 'package:RAS/basicdata/utilisateur.dart';
+import 'package:RAS/services/base de données/lienbd.dart';
+import 'package:RAS/basicdata/produit.dart';
 import 'package:intl/intl.dart';
-import 'package:ras_app/services/panier/panier_local.dart';
+import 'package:RAS/services/panier/panier_local.dart';
 import 'dart:async';
 
 // Custom exception for cart-related errors
@@ -34,7 +34,6 @@ class PanierState extends State<Panier> {
   final Map<String, int> _productQuantities = {};
   List<String> _idsPanier = [];
   bool _isLoading = true;
-  bool _isProcessingOrder = false;
   late Future<void> _initFuture;
 
   @override
@@ -461,12 +460,9 @@ class PanierState extends State<Panier> {
         _buildConfirmationSection(),
         const SizedBox(height: 32),
         ElevatedButton(
-          onPressed: (_confirmTerms && !_isProcessingOrder && _isFormValid())
+          onPressed: (_confirmTerms && _isFormValid())
               ? () async {
                   try {
-                    setState(() {
-                      _isProcessingOrder = true;
-                    });
                     final user = FirebaseAuth.instance.currentUser;
                     if (user == null) {
                       _showLoginDialog();
@@ -480,17 +476,9 @@ class PanierState extends State<Panier> {
                           content: Text('Commande validée avec succès !'),
                         ),
                       );
-                      _paymentNumberController.clear();
-                      Navigator.pushNamed(context, '/commandes');
                     }
                   } catch (e) {
                     _handleError('Erreur lors de la validation de la commande: $e');
-                  } finally {
-                    if (mounted) {
-                      setState(() {
-                        _isProcessingOrder = false;
-                      });
-                    }
                   }
                 }
               : null,
@@ -501,19 +489,10 @@ class PanierState extends State<Panier> {
               borderRadius: BorderRadius.circular(30),
             ),
           ),
-          child: _isProcessingOrder
-              ? const SizedBox(
-                  height: 24,
-                  width: 24,
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    strokeWidth: 3,
-                  ),
-                )
-              : const Text(
-                  'Valider Commander',
-                  style: TextStyle(fontSize: 18, color: Colors.white),
-                ),
+          child: const Text(
+            'Valider Commander',
+            style: TextStyle(fontSize: 18, color: Colors.white),
+          ),
         ),
         const SizedBox(height: 50),
       ],
@@ -521,16 +500,29 @@ class PanierState extends State<Panier> {
   }
 
   bool _isFormValid() {
+    // Vérifier que la méthode de livraison est sélectionnée
     if (_selectedDeliveryMethod == null) {
       return false;
     }
+    
+    // Vérifier que la méthode de paiement est sélectionnée
     if (_selectedPaymentMethod == null) {
       return false;
     }
-    if ((_selectedPaymentMethod == 'MTN' || _selectedPaymentMethod == 'ORANGE') &&
-        !_isValidPhoneNumber(_paymentNumberController.text)) {
+    
+    // Vérifier le numéro de paiement pour les paiements mobiles
+    if (_selectedPaymentMethod == 'MTN' || _selectedPaymentMethod == 'ORANGE') {
+      final numero = _paymentNumberController.text.trim();
+      if (numero.isEmpty || !_isValidPhoneNumber(numero)) {
+        return false;
+      }
+    }
+    
+    // Vérifier que le panier n'est pas vide
+    if (_idsPanier.isEmpty) {
       return false;
     }
+    
     return true;
   }
 
@@ -541,14 +533,24 @@ class PanierState extends State<Panier> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Connexion requise'),
-          content: Text('Veuillez vous connecter pour valider votre commande.'),
+          content: Text('Vous devez vous connecter pour valider votre commande. Vos données de commande seront sauvegardées.'),
           actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Annuler'),
+            ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
                 Navigator.pushNamed(context, '/connexion');
               },
+              style: TextButton.styleFrom(
+                foregroundColor: Styles.rouge,
+              ),
               child: Text('Se connecter'),
+
             ),
           ],
         );
@@ -557,69 +559,93 @@ class PanierState extends State<Panier> {
   }
 
   Future<void> _validateAndProcessOrder() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      throw CartException('Utilisateur non connecté');
-    }
-
-    if (!_isFormValid()) {
-      throw CartException('Veuillez remplir tous les champs requis.');
-    }
-
-    final userDoc = await FirebaseFirestore.instance.collection('Utilisateurs').doc(user.uid).get();
-    if (!userDoc.exists) {
-      throw CartException('Impossible de récupérer les informations de l\'utilisateur.');
-    }
-
-    final utilisateur = Utilisateur.fromMap(userDoc.data()!);
-    final produitsPanier = (await _cartProductsStream.first)
-        .where((p) => _idsPanier.contains(p.idProduit))
-        .toList();
-
-    if (produitsPanier.isEmpty) {
-      throw CartException('Votre panier est vide.');
-    }
-
-    double grandTotal = 0;
-    final produitsAvecQuantite = produitsPanier.map((produit) {
-      int quantite = _productQuantities[produit.idProduit] ?? 1;
-      double prix = double.tryParse(produit.prix) ?? 0.0;
-      grandTotal += prix * quantite;
-      return {
-        'idProduit': produit.idProduit,
-        'nomProduit': produit.nomProduit,
-        'prix': produit.prix,
-        'quantite': quantite,
-      };
-    }).toList();
-
-    if (produitsAvecQuantite.any((p) =>
-        p['idProduit'] == null ||
-        p['nomProduit'] == null ||
-        p['prix'] == null ||
-        p['quantite'] == null)) {
-      throw CartException('Données de produit invalides dans la commande.');
-    }
-
     try {
-      final docRef = await FirebaseFirestore.instance.collection('Commandes').add({
-        'idCommande': '',
-        'dateCommande': DateTime.now(),
-        'noteCommande': '',
-        'pays': 'Cameroun',
-        'rue': '',
-        'prixCommande': grandTotal.toStringAsFixed(2),
-        'ville': utilisateur.villeUtilisateur,
-        'codePostal': '',
-        'utilisateur': utilisateur.toMap(),
-        'produits': produitsAvecQuantite,
-        'methodePaiment': _selectedPaymentMethod!,
-        'choixLivraison': _selectedDeliveryMethod!,
-      });
-      await docRef.update({'idCommande': docRef.id});
+      // 1. Vérifier l'utilisateur connecté
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw CartException('Utilisateur non connecté');
+      }
+
+      // 2. Vérifier la validité du formulaire
+      if (!_isFormValid()) {
+        throw CartException('Veuillez remplir tous les champs requis.');
+      }
+
+      // 3. Récupérer les données utilisateur
+      Utilisateur utilisateur;
+      try {
+        final userDoc = await FirebaseFirestore.instance.collection('Utilisateurs').doc(user.uid).get();
+        if (!userDoc.exists) {
+          throw CartException('Utilisateur non trouvé dans la base de données. Veuillez vous connecter.');
+        }
+        utilisateur = Utilisateur.fromMap(userDoc.data()!);
+      } catch (e) {
+        throw CartException('Erreur lors de la récupération des données utilisateur: $e');
+      }
+
+      // 4. Récupérer les produits du panier
+      List<Produit> produitsPanier = [];
+      try {
+        final allProduits = await _firestoreService.getProduits();
+        produitsPanier = allProduits.where((p) => _idsPanier.contains(p.idProduit)).toList();
+      } catch (e) {
+        throw CartException('Erreur lors de la récupération des produits: $e');
+      }
+
+      if (produitsPanier.isEmpty) {
+        throw CartException('Votre panier est vide.');
+      }
+
+      // 5. Calculer le total et préparer les données
+      double grandTotal = 0;
+      final produitsAvecQuantite = produitsPanier.map((produit) {
+        int quantite = _productQuantities[produit.idProduit] ?? 1;
+        double prix = double.tryParse(produit.prix) ?? 0.0;
+        grandTotal += prix * quantite;
+        
+        return {
+          'idProduit': produit.idProduit,
+          'nomProduit': produit.nomProduit,
+          'prix': produit.prix,
+          'quantite': quantite,
+        };
+      }).toList();
+
+      // 6. Créer la commande
+      final commande = Commande(
+        idCommande: '',
+        dateCommande: DateTime.now().toIso8601String(),
+        noteCommande: '',
+        pays: 'Cameroun',
+        rue: '',
+        prixCommande: grandTotal.toStringAsFixed(2),
+        ville: utilisateur.villeUtilisateur,
+        codePostal: '',
+        utilisateur: utilisateur,
+        produits: produitsAvecQuantite,
+        methodePaiment: _selectedPaymentMethod!,
+        choixLivraison: _selectedDeliveryMethod!,
+        numeroPaiement: _paymentNumberController.text.trim(),
+      );
+
+      // 7. Ajouter la commande à Firestore
+      await _firestoreService.addCommande(commande);
+
+      // 8. Vider le panier local
       await _panierLocal.viderPanier();
+
+      // 9. Mettre à jour l'état local
+      setState(() {
+        _idsPanier.clear();
+        _productQuantities.clear();
+        _selectedPaymentMethod = null;
+        _selectedDeliveryMethod = null;
+        _confirmTerms = false;
+        _paymentNumberController.clear();
+      });
+
     } catch (e) {
-      throw CartException('Impossible d\'enregistrer la commande: $e');
+      throw CartException('Erreur lors de la validation de la commande: $e');
     }
   }
 

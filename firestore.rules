@@ -3,24 +3,33 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Les utilisateurs peuvent lire tous les produits, mais seul un administrateur peut les modifier.
+    // Les utilisateurs peuvent lire et écrire dans leur propre document
+    match /Utilisateurs/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Tout le monde peut lire les produits, mais seuls les administrateurs peuvent les créer, les mettre à jour ou les supprimer
     match /Produits/{produitId} {
-      allow read: if request.auth != null;
-      allow write: if get(/databases/$(database)/documents/Utilisateurs/$(request.auth.uid)).data.role == 'admin';
+      allow read: if true;
+      allow create, update, delete: if request.auth != null && get(/databases/$(database)/documents/Utilisateurs/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // Les utilisateurs peuvent créer et gérer leurs propres commandes.
+    // Tout le monde peut lire les catégories, mais seuls les administrateurs peuvent les créer, les mettre à jour ou les supprimer
+    match /Categories/{categorieId} {
+      allow read: if true;
+      allow create, update, delete: if request.auth != null && get(/databases/$(database)/documents/Utilisateurs/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Les utilisateurs peuvent créer des commandes pour eux-mêmes et lire leurs propres commandes
     match /Commandes/{commandeId} {
-      allow read, write: if request.auth.uid == resource.data.utilisateur.idUtilisateur;
-      // Les administrateurs peuvent lire toutes les commandes.
-      allow read: if get(/databases/$(database)/documents/Utilisateurs/$(request.auth.uid)).data.role == 'admin';
+      allow create: if request.auth != null && request.resource.data.utilisateur.idUtilisateur == request.auth.uid;
+      allow read: if request.auth != null && resource.data.utilisateur.idUtilisateur == request.auth.uid;
+      allow update, delete: if false; // Personne ne peut modifier ou supprimer des commandes
     }
 
-    // Les utilisateurs peuvent lire et mettre à jour leurs propres informations.
-    match /Utilisateurs/{utilisateurId} {
-      allow read, update: if request.auth.uid == utilisateurId;
-      // Les administrateurs peuvent lire tous les utilisateurs.
-      allow list: if get(/databases/$(database)/documents/Utilisateurs/$(request.auth.uid)).data.role == 'admin';
+    // Seuls les administrateurs peuvent créer, lire, mettre à jour et supprimer des factures
+    match /Factures/{factureId} {
+      allow read, write: if request.auth != null && get(/databases/$(database)/documents/Utilisateurs/$(request.auth.uid)).data.role == 'admin';
     }
   }
 }

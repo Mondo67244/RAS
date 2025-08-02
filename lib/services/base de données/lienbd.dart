@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:ras_app/basicdata/categorie.dart';
-import 'package:ras_app/basicdata/utilisateur.dart';
-import 'package:ras_app/basicdata/commande.dart';
-import 'package:ras_app/basicdata/facture.dart';
-import 'package:ras_app/basicdata/produit.dart';
+import 'package:RAS/basicdata/categorie.dart';
+import 'package:RAS/basicdata/utilisateur.dart';
+import 'package:RAS/basicdata/commande.dart';
+import 'package:RAS/basicdata/facture.dart';
+import 'package:RAS/basicdata/produit.dart';
 
 class FirestoreService {
   final CollectionReference categoriesCollection = FirebaseFirestore.instance.collection('Categories');
@@ -145,21 +145,25 @@ class FirestoreService {
     }
   }
 
-  // Future<void> addCommande(Commande commande) async {
-  //   try {
-  //     final commandeMap = commande.toMap();
-  //     print('Ajout de la commande: $commandeMap');
+  Future<void> addCommande(Commande commande) async {
+    try {
+      // Générer un ID unique pour la commande
+      final commandeId = commandesCollection.doc().id;
       
-  //     // Simplified approach - just add the command without extensive validation
-  //     // Let Firestore handle data validation
-  //     final docRef = await commandesCollection.add(commandeMap);
-  //     await docRef.update({'idCommande': docRef.id});
-  //     print('Commande ajoutée avec succès: ${docRef.id}');
-  //   } catch (e, stackTrace) {
-  //     print('Erreur dans addCommande: $e\n$stackTrace');
-  //     rethrow;
-  //   }
-  // }
+      // Créer la commande avec l'ID correct dès le début
+      final commandeMap = commande.toMap();
+      commandeMap['idCommande'] = commandeId;
+      
+      print('Ajout de la commande: $commandeMap');
+      
+      // Créer directement le document avec l'ID
+      await commandesCollection.doc(commandeId).set(commandeMap);
+      print('Commande ajoutée avec succès: $commandeId');
+    } catch (e, stackTrace) {
+      print('Erreur dans addCommande: $e\n$stackTrace');
+      rethrow;
+    }
+  }
 
   Future<List<Commande>> recupCommandes() async {
     try {

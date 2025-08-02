@@ -1,6 +1,6 @@
 {
-    "name": "ras_app",
-    "short_name": "ras_app",
+    "name": "RAS",
+    "short_name": "RAS",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

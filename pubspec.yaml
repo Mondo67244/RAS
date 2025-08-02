@@ -1,4 +1,4 @@
-name: ras_app
+name: RAS
 description: "A new Flutter project."
 publish_to: 'none'
 version: 0.1.0
@@ -11,7 +11,6 @@ dependencies:
     sdk: flutter
   firebase_core: ^3.15.0
   firebase_auth: ^5.6.1
-  firebase_ui_auth: ^1.17.0
   cloud_firestore: ^5.6.10
   fluentui_system_icons: ^1.1.273
   iconsax_plus: ^1.0.0
@@ -22,6 +21,7 @@ dependencies:
   web: ^1.1.1
   carousel_slider: ^5.1.1
   google_fonts: ^6.2.1
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:

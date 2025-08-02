@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:ras_app/ecrans/client/accueilU.dart';
+import 'package:RAS/ecrans/client/accueilu.dart';
 
 class EcranDemarrage extends StatefulWidget {
   const EcranDemarrage({super.key});
