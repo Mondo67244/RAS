@@ -1,8 +1,12 @@
+// commandes.dart
+
+import 'package:RAS/ecrans/client/pagesu/payment_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:RAS/basicdata/commande.dart';
 import 'package:RAS/basicdata/utilisateur.dart';
 import 'package:RAS/basicdata/style.dart';
@@ -32,43 +36,25 @@ class _CommandesState extends State<Commandes> {
           .where('utilisateur.idUtilisateur', isEqualTo: user.uid)
           .orderBy('dateCommande', descending: true)
           .snapshots()
-          .map(
-            (snapshot) =>
-                snapshot.docs.map((doc) {
-                  try {
-                    return Commande.fromMap(doc.data());
-                  } catch (e) {
-                    print('Erreur de parsing pour le document ${doc.id}: $e');
-                    return Commande(
+          .map((snapshot) => snapshot.docs.map((doc) {
+                try {
+                  return Commande.fromMap(doc.data());
+                } catch (e) {
+                  print('Erreur de parsing pour le document ${doc.id}: $e');
+                  return Commande(
                       idCommande: doc.id,
                       dateCommande: DateTime.now().toIso8601String(),
-                      noteCommande: 'Erreur de chargement',
-                      pays: '',
-                      rue: '',
-                      prixCommande: '0',
-                      ville: '',
-                      codePostal: '',
-                      utilisateur: Utilisateur(
-                        idUtilisateur: user.uid,
-                        nomUtilisateur: 'N/A',
-                        prenomUtilisateur: '',
-                        emailUtilisateur: '',
-                        numeroUtilisateur: '',
-                        villeUtilisateur: '',
-                      ),
-                      produits: [],
-                      methodePaiment: '',
-                      choixLivraison: '',
-                      numeroPaiement: '',
-                      statutPaiement: 'erreur',
-                    );
-                  }
-                }).toList(),
-          );
+                      noteCommande: 'Erreur de chargement', pays: '', rue: '',
+                      prixCommande: '0', ville: '', codePostal: '',
+                      utilisateur: Utilisateur(idUtilisateur: user.uid, nomUtilisateur: 'N/A', prenomUtilisateur: '', emailUtilisateur: '', numeroUtilisateur: '', villeUtilisateur: ''),
+                      produits: [], methodePaiment: '', choixLivraison: '',
+                      numeroPaiement: '', statutPaiement: 'erreur'
+                  );
+                }
+              }).toList());
     }
   }
 
-  // Widget pour le "chip" de statut
   Widget _buildStatusChip(String status) {
     Color chipColor;
     String displayText;
@@ -77,364 +63,736 @@ class _CommandesState extends State<Commandes> {
     switch (status.toLowerCase()) {
       case 'payé':
       case 'paye':
-        chipColor = Styles.vert;
+        chipColor = Colors.green;
         displayText = 'Payé';
-        icon = Icons.check_circle_outline;
+        icon = FluentIcons.checkmark_circle_24_filled;
         break;
       case 'erreur':
-        chipColor = Styles.erreur;
+        chipColor = Colors.red;
         displayText = 'Erreur';
-        icon = Icons.warning_amber_rounded;
+        icon = FluentIcons.error_circle_24_filled;
         break;
       case 'en attente':
       default:
-        chipColor = Styles.bleu;
+        chipColor = Colors.orange;
         displayText = 'En attente';
-        icon = Icons.hourglass_empty_rounded;
+        icon = FluentIcons.clock_24_filled;
     }
 
-    return Chip(
-      avatar: Icon(icon, color: Styles.blanc, size: 18),
-      label: Text(displayText, style: Styles.textebas.copyWith(fontSize: 12)),
-      backgroundColor: chipColor,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: chipColor,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: Colors.white, size: 16),
+          const SizedBox(width: 6),
+          Text(
+            displayText,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(String message, IconData icon) {
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.all(30),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 60,
+              color: Colors.grey.shade400,
+            ),
+            const SizedBox(height: 20),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey.shade600,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.all(30),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: const Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
+            ),
+            SizedBox(height: 20),
+            Text(
+              'Chargement des commandes...',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCommandeCard(Commande commande) {
+    final date = DateTime.parse(commande.dateCommande);
+    final formattedDate = DateFormat('dd MMMM yyyy à HH:mm', 'fr_FR').format(date);
+    final String displayId = commande.idCommande.length >= 5
+        ? commande.idCommande.substring(0, 5).toUpperCase()
+        : commande.idCommande.toUpperCase();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () => _showCommandeDetails(context, commande),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Styles.rouge.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(
+                                FluentIcons.receipt_bag_24_filled,
+                                color: Styles.rouge,
+                                size: 20,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Commande #$displayId',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          formattedDate,
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  _buildStatusChip(commande.statutPaiement),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        FluentIcons.shopping_bag_24_filled,
+                        color: Colors.grey.shade600,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '${commande.produits.length} articles',
+                        style: TextStyle(
+                          color: Colors.grey.shade700,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    '${commande.prixCommande} CFA',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: const Text('Mes Commandes', style: Styles.textebas),
+        title: const Text('Mes Commandes'),
         backgroundColor: Styles.rouge,
-        foregroundColor: Styles.blanc,
+        foregroundColor: Colors.white,
+        elevation: 0,
         centerTitle: true,
-        elevation: 3.0,
       ),
-      body:
-          _commandesStream == null
-              ? _buildMessageCentral("Veuillez vous connecter.", Icons.login)
-              : StreamBuilder<List<Commande>>(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Styles.rouge, Colors.red.shade700],
+          ),
+        ),
+        child: _commandesStream == null
+            ? _buildEmptyState("Veuillez vous connecter pour voir vos commandes.", FluentIcons.person_24_filled)
+            : StreamBuilder<List<Commande>>(
                 stream: _commandesStream,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                      child: CircularProgressIndicator(color: Styles.rouge),
-                    );
+                    return _buildLoadingState();
                   }
                   if (snapshot.hasError) {
-                    return _buildMessageCentral(
-                      "Une erreur est survenue.",
-                      Icons.error_outline,
-                    );
+                    return _buildEmptyState("Une erreur est survenue.", FluentIcons.error_circle_24_filled);
                   }
                   if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return _buildMessageCentral(
-                      "Vous n'avez aucune commande.",
-                      Icons.receipt_long_outlined,
-                    );
+                    return _buildEmptyState("Vous n'avez aucune commande.", FluentIcons.receipt_bag_24_filled);
                   }
 
                   final commandes = snapshot.data!;
                   return ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(12, 16, 12, 16),
+                    padding: const EdgeInsets.all(16),
                     itemCount: commandes.length,
                     itemBuilder: (context, index) {
-                      final commande = commandes[index];
-                      final date = DateTime.parse(commande.dateCommande);
-                      final formattedDate = DateFormat(
-                        'dd MMMM yyyy à HH:mm',
-                        'fr_FR',
-                      ).format(date);
-
-                      final String displayId =
-                          commande.idCommande.length >= 6
-                              ? commande.idCommande
-                                  .substring(0, 6)
-                                  .toUpperCase()
-                              : commande.idCommande.toUpperCase();
-
-                      return Card(
-                        key: ValueKey(commande.idCommande),
-                        margin: const EdgeInsets.only(bottom: 16),
-                        elevation: 4,
-                        shadowColor: Colors.black.withOpacity(0.15),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(12),
-                          onTap: () => _showCommandeDetails(context, commande),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        'Commande #$displayId',
-                                        style: Styles.styleTitre.copyWith(
-                                          fontSize: 18,
-                                        ),
-                                      ),
-                                    ),
-                                    _buildStatusChip(commande.statutPaiement),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  formattedDate,
-                                  style: TextStyle(
-                                    color: Colors.grey.shade600,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                                const Divider(height: 24),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      '${commande.produits.length} articles',
-                                      style: TextStyle(
-                                        color: Colors.grey.shade700,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    Text(
-                                      '${commande.prixCommande} CFA',
-                                      style: Styles.stylePrix.copyWith(
-                                        fontSize: 20,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
+                      return _buildCommandeCard(commandes[index]);
                     },
                   );
                 },
               ),
-    );
-  }
-
-  Widget _buildMessageCentral(String message, IconData icon) {
-    return Center(
-      child: Opacity(
-        opacity: 0.7,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 50, color: Colors.grey[600]),
-            const SizedBox(height: 16),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, color: Colors.grey[700]),
-            ),
-          ],
-        ),
       ),
     );
   }
 
-  // Affiche la boîte de dialogue de confirmation de suppression
+
+
   void _showDeleteConfirmationDialog(BuildContext context, Commande commande) {
     showDialog(
       context: context,
       builder: (dialogContext) {
-        // Utiliser un contexte différent pour le dialogue interne
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          title: const Text(
-            'Confirmer la suppression',
-            style: Styles.styleTitre,
-          ),
-          content: const Text(
-            'Voulez-vous vraiment supprimer cette commande ? Cette action est irréversible.',
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text(
-                'Annuler',
-                style: TextStyle(
-                  color: Colors.grey.shade700,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              onPressed: () {
-                Navigator.of(
-                  dialogContext,
-                ).pop(); // Ferme seulement ce dialogue
-              },
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: Colors.white,
             ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Styles.erreur,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: const Text('Supprimer', style: Styles.textebas),
-              onPressed: () async {
-                try {
-                  // Supprimer la commande de Firestore
-                  await FirebaseFirestore.instance
-                      .collection('Commandes')
-                      .doc(commande.idCommande)
-                      .delete();
-
-                  // Fermer les deux boîtes de dialogue
-                  Navigator.of(
-                    dialogContext,
-                  ).pop(); // Ferme le dialogue de confirmation
-                  Navigator.of(context).pop(); // Ferme le dialogue des détails
-
-                  // Afficher un message de succès
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Commande supprimée avec succès.'),
-                      backgroundColor: Styles.vert,
-                    ),
-                  );
-                } catch (e) {
-                  // Afficher un message d'erreur en cas de problème
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Erreur lors de la suppression de la commande.',
-                      ),
-                      backgroundColor: Styles.erreur,
-                    ),
-                  );
-                }
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  // Placeholder pour la logique de paiement
-  void _handlePayment(BuildContext context, Commande commande) {
-    // Ferme le dialogue des détails
-    Navigator.of(context).pop();
-
-    // Affiche une SnackBar pour simuler le début du paiement
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Initialisation du paiement pour la commande #${commande.idCommande.substring(0, 6)}...',
-        ),
-        backgroundColor: Styles.bleu,
-      ),
-    );
-
-    // C'est ici que vous appellerez votre API de paiement
-    // exemple: paymentApi.initiatePayment(commande.numeroPaiement, commande.prixCommande);
-  }
-
-  // Boîte de dialogue des détails, maintenant avec les boutons d'action
-  void _showCommandeDetails(BuildContext context, Commande commande) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          // Le titre contient maintenant le bouton supprimer
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Détails', style: Styles.styleTitre),
-              IconButton(
-                icon: const Icon(Icons.delete_outline, color: Styles.erreur),
-                onPressed: () {
-                  // Appelle le dialogue de confirmation de suppression
-                  _showDeleteConfirmationDialog(context, commande);
-                },
-              ),
-            ],
-          ),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Center(child: _buildStatusChip(commande.statutPaiement)),
-                const Divider(height: 25),
-                const Text('Articles:', style: Styles.styleTitre),
-                const SizedBox(height: 5),
-                ...commande.produits.map(
-                  (p) => ListTile(
-                    title: Text(
-                      p['nomProduit'] ?? 'Produit inconnu',
-                      style: const TextStyle(fontSize: 14),
-                    ),
-                    trailing: Text(
-                      '${p['prix'] ?? '0'} CFA x ${p['quantite'] ?? '1'}',
-                      style: const TextStyle(fontSize: 14),
-                    ),
-                    contentPadding: EdgeInsets.zero,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Icône d'avertissement
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    FluentIcons.warning_24_filled,
+                    size: 40,
+                    color: Colors.red,
                   ),
                 ),
-                const Divider(height: 25),
+                const SizedBox(height: 20),
+                
+                // Titre
+                const Text(
+                  'Confirmer la suppression',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                
+                // Message
+                Text(
+                  'Voulez-vous vraiment supprimer cette commande ?\nCette action est irréversible.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                
+                // Boutons
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Total:', style: Styles.styleTitre),
-                    Text(
-                      '${commande.prixCommande} CFA',
-                      style: Styles.stylePrix.copyWith(fontSize: 16),
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => Navigator.of(dialogContext).pop(),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Text(
+                          'Annuler',
+                          style: TextStyle(
+                            color: Colors.grey.shade700,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          try {
+                            await FirebaseFirestore.instance
+                                .collection('Commandes')
+                                .doc(commande.idCommande)
+                                .delete();
+                            Navigator.of(dialogContext).pop();
+                            Navigator.of(context).pop();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Text('Commande supprimée.'),
+                                backgroundColor: Colors.green,
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            );
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Text('Erreur lors de la suppression.'),
+                                backgroundColor: Colors.red,
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: const Text(
+                          'Supprimer',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ],
             ),
           ),
-          // Les actions contiennent maintenant le bouton "Payer" de manière conditionnelle
-          actions: <Widget>[
-            TextButton(
-              child: const Text(
-                'Fermer',
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            // Affiche le bouton "Payer" seulement si le statut est "En attente"
-            if (commande.statutPaiement.toLowerCase() == 'en attente')
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Styles.vert,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                onPressed: () {
-                  _handlePayment(context, commande);
-                },
-                child: const Text('Payer Maintenant', style: Styles.textebas),
-              ),
-          ],
         );
       },
+    );
+  }
+  
+  // NOUVELLE LOGIQUE DE PAIEMENT
+  void _handlePayment(BuildContext context, Commande commande) async {
+    // Ferme le dialogue des détails de la commande
+    Navigator.of(context).pop();
+
+    // Navigue vers la page de paiement et attend un résultat
+    final paymentResult = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PaymentPage(commande: commande),
+      ),
+    );
+
+    // Affiche un message en fonction du résultat du paiement
+    if (paymentResult == 'ACCEPTED') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Paiement effectué avec succès !'),
+          backgroundColor: Styles.vert,
+        ),
+      );
+    } else if (paymentResult != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Le paiement a échoué ou a été annulé.'),
+          backgroundColor: Styles.erreur,
+        ),
+      );
+    }
+  }
+
+
+  void _showCommandeDetails(BuildContext context, Commande commande) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Colors.white, Colors.grey.shade50],
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // En-tête avec gradient
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Styles.rouge, Colors.red.shade700],
+                    ),
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            //Row du titre et de l'id de la commande
+                            Row(
+                              children: [
+                                Icon(
+                                  FluentIcons.receipt_bag_24_filled,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  'Détails de la commande',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Commande #${commande.idCommande.substring(0, 5).toUpperCase()}',
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            _buildStatusChip(commande.statutPaiement),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 10,),
+                      //Row du bouton de suppression et du statut de la commande
+                      Row(
+                        children: [
+                          const SizedBox(width: 10),
+                          IconButton(
+                            icon: const Icon(
+                              FluentIcons.delete_24_filled,
+                              color: Colors.white,
+                            ),
+                            onPressed: () {
+                              _showDeleteConfirmationDialog(dialogContext, commande);
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                
+                // Contenu
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Informations de la commande
+                        _buildInfoSection(
+                          'Informations',
+                          [
+                            _buildInfoRow('Date', DateFormat('dd MMMM yyyy à HH:mm', 'fr_FR').format(DateTime.parse(commande.dateCommande))),
+                            _buildInfoRow('Méthode de paiement', commande.methodePaiment),
+                            _buildInfoRow('Livraison', commande.choixLivraison),
+                            if (commande.numeroPaiement.isNotEmpty)
+                              _buildInfoRow('Numéro de paiement', commande.numeroPaiement),
+                          ],
+                        ),
+                        
+                        const SizedBox(height: 20),
+                        
+                        // Articles
+                        _buildInfoSection(
+                          'Articles (${commande.produits.length})',
+                          commande.produits.map((produit) {
+                            return _buildProductRow(
+                              produit['nomProduit'] ?? 'Produit inconnu',
+                              produit['prix'] ?? '0',
+                              produit['quantite'] ?? 1,
+                            );
+                          }).toList(),
+                        ),
+                        
+                        const SizedBox(height: 20),
+                        
+                        // Total
+                        Container(
+                          padding: const EdgeInsets.all(15),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.green.withOpacity(0.3)),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Total',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green,
+                                ),
+                              ),
+                              Text(
+                                '${commande.prixCommande} CFA',
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                
+                // Actions
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => Navigator.of(dialogContext).pop(),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: const Text(
+                            'Fermer',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (commande.statutPaiement.toLowerCase() == 'en attente') ...[
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () => _handlePayment(dialogContext, commande),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: const Text(
+                              'Payer maintenant',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildInfoSection(String title, List<Widget> children) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 10),
+        ...children,
+      ],
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: Colors.grey.shade600,
+              fontSize: 14,
+            ),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+              fontWeight: FontWeight.w500,
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProductRow(String name, String price, int quantity) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(
+              name,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Text(
+            '$price CFA x $quantity',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey.shade600,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:RAS/basicdata/produit.dart';
+import 'package:RAS/basicdata/commande.dart';
 import 'package:RAS/ecrans/admin/accueila.dart';
 import 'package:RAS/ecrans/client/accueilu.dart';
 import 'package:RAS/ecrans/admin/ajouterequip.dart';
@@ -11,6 +12,7 @@ import 'package:RAS/ecrans/client/pagesu/resultats.dart';
 import 'package:RAS/ecrans/pageconnexion.dart';
 import 'package:RAS/ecrans/pageinscription.dart';
 import 'package:RAS/ecrans/client/pagesu/voirplus.dart';
+import 'package:RAS/ecrans/client/pagesu/payment_page.dart';
 import 'package:RAS/ecrans/ecrandemarrage.dart';
 import 'package:RAS/firebase_options.dart';
 
@@ -20,7 +22,6 @@ void main() async {
   runApp(const MainApp());
 }
 
-@override
 class MainApp extends StatelessWidget {
   const MainApp({super.key});
 
@@ -37,7 +38,12 @@ class MainApp extends StatelessWidget {
         '/': (context) => const EcranDemarrage(),
         '/admin': (context) => const Accueila(),
         '/utilisateur': (context) => const Accueilu(),
+
         '/utilisateur/recherche' : (context) => const Resultats(),
+        '/utilisateur/payment': (context) {
+          final commande = ModalRoute.of(context)!.settings.arguments as Commande;
+          return PaymentPage(commande: commande);
+        },
         '/admin/nouveau produit': (context) => const AjouterEquipPage(),
         '/connexion': (context) => const Pageconnexion(),
         '/inscription': (context) => const PageInscription(),
