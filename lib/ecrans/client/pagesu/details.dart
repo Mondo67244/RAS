@@ -585,6 +585,21 @@ class _DetailsState extends State<Details> {
                     ),
                   ),
                 ),
+                //Bouton chat
+              IconButton(
+                icon: const Icon(FluentIcons.chat_24_regular),
+                onPressed: () {
+                  // Ouvrir le chat avec le produit concerné
+                  Navigator.pushNamed(
+                    context,
+                    '/utilisateur/chat',
+                    arguments: {
+                      'idProduit': produit.idProduit,
+                      'nomProduit': produit.nomProduit,
+                    },
+                  );
+                },
+              ),
               ],
             ),
           ),
@@ -858,6 +873,7 @@ class _DetailsState extends State<Details> {
         foregroundColor: Colors.black87,
         elevation: 2,
         shadowColor: Colors.black.withAlpha((0.1 * 255).round()),
+        
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
