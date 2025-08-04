@@ -14,6 +14,8 @@ import 'package:RAS/ecrans/pageinscription.dart';
 import 'package:RAS/ecrans/client/pagesu/voirplus.dart';
 import 'package:RAS/ecrans/client/pagesu/payment_page.dart';
 import 'package:RAS/ecrans/ecrandemarrage.dart';
+import 'package:RAS/ecrans/client/pagesu/chat.dart';
+import 'package:RAS/ecrans/client/pagesu/profile.dart'; // Ajout de l'import du profil
 import 'package:RAS/firebase_options.dart';
 
 void main() async {
@@ -52,6 +54,14 @@ class MainApp extends StatelessWidget {
           final produit = ModalRoute.of(context)!.settings.arguments as Produit;
           return Details(produit: produit);
         },
+        '/utilisateur/chat': (context) {
+          final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ?? {};
+          return ChatPage(
+            idProduit: args['idProduit'] as String?,
+            nomProduit: args['nomProduit'] as String?,
+          );
+        },
+        '/utilisateur/profile': (context) => const ProfilePage(), // Ajout de la route du profil
         '/all_products': (context) {
           final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
           final title = args['title'] as String;

@@ -1,0 +1,305 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:RAS/basicdata/message.dart';
+import 'package:RAS/basicdata/utilisateur.dart';
+import 'package:RAS/basicdata/style.dart';
+import 'package:RAS/services/base%20de%20donn%C3%A9es/lienbd.dart'; // Ajout de l'import du service Firestore
+
+class ChatPage extends StatefulWidget {
+  final String? idProduit; // Optionnel : ID du produit concerné
+  final String? nomProduit; // Optionnel : Nom du produit concerné
+
+  const ChatPage({Key? key, this.idProduit, this.nomProduit}) : super(key: key);
+
+  @override
+  State<ChatPage> createState() => _ChatPageState();
+}
+
+class _ChatPageState extends State<ChatPage> {
+  final _messageController = TextEditingController();
+  final _scrollController = ScrollController();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirestoreService _firestoreService = FirestoreService(); // Ajout du service Firestore
+
+  Utilisateur? _currentUser;
+  Utilisateur? _adminUser;
+  String _conversationId = '';
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        // Charger les données de l'utilisateur courant
+        final userDoc = await _firestore
+            .collection('Utilisateurs')
+            .doc(user.uid)
+            .get();
+
+        if (userDoc.exists) {
+          setState(() {
+            _currentUser = Utilisateur.fromMap(userDoc.data()!);
+          });
+        }
+
+        // Trouver l'administrateur
+        final adminQuery = await _firestore
+            .collection('Utilisateurs')
+            .where('role', isEqualTo: 'admin')
+            .limit(1)
+            .get();
+
+        if (adminQuery.docs.isNotEmpty) {
+          setState(() {
+            _adminUser = Utilisateur.fromMap(adminQuery.docs.first.data());
+          });
+        }
+
+        // Générer l'ID de conversation
+        if (_currentUser != null && _adminUser != null) {
+          // Créer un ID de conversation basé sur les IDs des utilisateurs
+          List<String> userIds = [_currentUser!.idUtilisateur, _adminUser!.idUtilisateur];
+          userIds.sort();
+          _conversationId = 'conv_${userIds[0]}_${userIds[1]}${widget.idProduit != null ? '_${widget.idProduit}' : ''}';
+        }
+
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur lors du chargement: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _sendMessage() async {
+    if (_messageController.text.trim().isEmpty ||
+        _currentUser == null ||
+        _adminUser == null ||
+        _conversationId.isEmpty) {
+      return;
+    }
+
+    try {
+      final message = Message(
+        idMessage: '',
+        contenuMessage: _messageController.text.trim(),
+        idExpediteur: _currentUser!.idUtilisateur,
+        idDestinataire: _adminUser!.idUtilisateur,
+        idProduit: widget.idProduit ?? '',
+        idConversation: _conversationId,
+        timestamp: Timestamp.now(),
+      );
+
+      // Envoyer le message via le service Firestore
+      await _firestoreService.sendMessage(message);
+
+      // Effacer le champ de texte
+      _messageController.clear();
+
+      // Faire défiler vers le bas
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur lors de l\'envoi du message: $e')),
+        );
+      }
+    }
+  }
+
+  Stream<List<Message>> _getMessagesStream() {
+    if (_conversationId.isEmpty) {
+      // Retourner un stream vide
+      return Stream.value(<Message>[]);
+    }
+
+    return _firestoreService.getMessagesStream(_conversationId);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.nomProduit != null 
+            ? 'Question sur: ${widget.nomProduit}' 
+            : 'Chat avec l\'administrateur'),
+        backgroundColor: Styles.rouge,
+        foregroundColor: Colors.white,
+      ),
+      body: Column(
+        children: [
+          // Zone des messages
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : StreamBuilder<List<Message>>(
+                    stream: _getMessagesStream(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasError) {
+                        return Center(child: Text('Erreur: ${snapshot.error}'));
+                      }
+
+                      if (!snapshot.hasData) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+
+                      final messages = snapshot.data!;
+
+                      if (messages.isEmpty) {
+                        return const Center(
+                          child: Text(
+                            'Aucun message pour le moment.\nCommencez la conversation!',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        );
+                      }
+
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (_scrollController.hasClients) {
+                          _scrollController.animateTo(
+                            _scrollController.position.maxScrollExtent,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeOut,
+                          );
+                        }
+                      });
+
+                      return ListView.builder(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.all(16),
+                        itemCount: messages.length,
+                        itemBuilder: (context, index) {
+                          final message = messages[index];
+                          final isMe = message.idExpediteur == _currentUser?.idUtilisateur;
+                          
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            child: Row(
+                              mainAxisAlignment: isMe 
+                                  ? MainAxisAlignment.end 
+                                  : MainAxisAlignment.start,
+                              children: [
+                                Flexible(
+                                  child: Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: isMe ? Styles.rouge : Colors.grey[300],
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          message.contenuMessage,
+                                          style: TextStyle(
+                                            color: isMe ? Colors.white : Colors.black87,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          _formatTimestamp(message.timestamp),
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: isMe ? Colors.white70 : Colors.grey[600],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+          ),
+          
+          // Zone de saisie
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.2),
+                  spreadRadius: 1,
+                  blurRadius: 5,
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _messageController,
+                    decoration: const InputDecoration(
+                      hintText: 'Tapez votre message...',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(20)),
+                      ),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                    ),
+                    maxLines: null,
+                    keyboardType: TextInputType.multiline,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  onPressed: _sendMessage,
+                  icon: const Icon(Icons.send, color: Colors.blue),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Styles.rouge,
+                    foregroundColor: Colors.white,
+                    shape: const CircleBorder(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatTimestamp(Timestamp timestamp) {
+    final dateTime = timestamp.toDate();
+    return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
+  }
+
+  @override
+  void dispose() {
+    _messageController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+}

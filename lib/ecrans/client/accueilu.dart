@@ -1,7 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:RAS/basicdata/style.dart';
-import 'package:RAS/ecrans/client/pagesu/commandes.dart';
 import 'package:RAS/ecrans/client/pagesu/panier.dart';
 import 'package:RAS/ecrans/client/pagesu/promo.dart';
 import 'package:RAS/ecrans/client/pagesu/recents.dart';
@@ -19,14 +20,35 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
   TabController? _tabController;
   int _selectedIndex = 0;
   final bool _isClick = false;
+  final List<Widget> _cachedPages = [];
+  final Set<int> _loadedPages = <int>{};
+  User? _currentUser;
+  Map<String, dynamic>? _userData;
 
-  final List<Widget> _pages = [
-    Recents(),
-    Promo(),
-    Panier(),
-    Souhaits(),
-    // Commandes() - Retiré du PageView pour éviter les conflits
-  ];
+  // Create pages with AutomaticKeepAliveClientMixin to preserve state
+  Widget _buildPage(Widget page, int index) {
+    if (_loadedPages.contains(index)) {
+      return _cachedPages[index];
+    } else {
+      _loadedPages.add(index);
+      _cachedPages[index] = page;
+      return page;
+    }
+  }
+
+  List<Widget> get _pages {
+    // Initialize cached pages list if empty
+    if (_cachedPages.isEmpty) {
+      _cachedPages.addAll(List.filled(4, Container())); // 4 pages: Recents, Promo, Panier, Souhaits
+    }
+    
+    return [
+      _buildPage(const Recents(), 0),
+      _buildPage(const Promo(), 1),
+      _buildPage(const Panier(), 2),
+      _buildPage(const Souhaits(), 3),
+    ];
+  }
 
   final List<Tab> _tabs = const [
     Tab(
@@ -52,7 +74,7 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
         children: [
           Icon(FluentIcons.shopping_bag_tag_24_filled),
           SizedBox(width: 3),
-          Text('Mon Panier'),
+          Text('Panier'),
         ],
       ),
     ),
@@ -61,7 +83,7 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
         children: [
           Icon(FluentIcons.class_20_filled),
           SizedBox(width: 3),
-          Text('Liste Souhaits'),
+          Text('Souhaits'),
         ],
       ),
     ),
@@ -76,6 +98,40 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
     //   ),
     // ),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      setState(() {
+        _currentUser = user;
+      });
+      if (user != null) {
+        _loadUserData();
+      }
+    });
+  }
+
+  Future<void> _loadUserData() async {
+    final User? user = _currentUser;
+    if (user != null) {
+      try {
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('Utilisateurs')
+            .doc(user.uid)
+            .get();
+        
+        if (userDoc.exists && mounted) {
+          setState(() {
+            _userData = userDoc.data() as Map<String, dynamic>?;
+          });
+        }
+      } catch (e) {
+        print('Erreur lors du chargement des données utilisateur: $e');
+      }
+    }
+  }
 
   void _onTapNav(int index) {
     setState(() {
@@ -97,7 +153,7 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
 
     // Initialisation conditionnelle du TabController
     if (isLargeScreen && _tabController == null) {
-      _tabController = TabController(length: _pages.length, vsync: this);
+      _tabController = TabController(length: _tabs.length, vsync: this);
     }
 
     return Scaffold(
@@ -128,7 +184,6 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                           dividerHeight: 0,
                           controller: _tabController,
                           isScrollable: false,
-
                           indicatorColor: Styles.rouge,
                           labelColor: Styles.rouge,
                           unselectedLabelColor: Colors.grey[600],
@@ -144,24 +199,135 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
             onPressed: () {
               Navigator.pushNamed(context, '/utilisateur/commandes');
             },
-            icon: Icon(FluentIcons.receipt_bag_24_filled),
+            icon: const Icon(FluentIcons.receipt_bag_24_filled),
             tooltip: 'Mes Commandes',
           ),
           IconButton(
             onPressed: () {
-              Navigator.pushNamed(context, '/admin/nouveau produit');
+              // Removed navigation to admin settings for regular users
             },
-            icon: Icon(Icons.settings),
+            icon: const Icon(Icons.settings),
             tooltip: 'Paramètres',
           ),
         ],
       ),
 
-      drawer: const Drawer(),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Styles.rouge,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  CircleAvatar(
+                    radius: 30,
+                    backgroundColor: Colors.white,
+                    child: Icon(
+                      Icons.person,
+                      size: 30,
+                      color: Styles.rouge,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    _userData != null 
+                        ? '${_userData!['prenomUtilisateur'] ?? ''} ${_userData!['nomUtilisateur'] ?? ''}'.trim()
+                        : (_currentUser != null ? 'Utilisateur' : 'Invité'),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    _currentUser != null ? _currentUser!.email ?? 'Connecté' : 'Non connecté',
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (_currentUser != null) ...[
+              ListTile(
+                leading: const Icon(FluentIcons.person_24_regular),
+                title: const Text('Mon Profil'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, '/utilisateur/profile');
+                },
+              ),
+              ListTile(
+                leading: const Icon(FluentIcons.chat_24_regular),
+                title: const Text('Chat avec Admin'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, '/utilisateur/chat');
+                },
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(FluentIcons.settings_24_regular),
+                title: const Text('Paramètres'),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Removed navigation to admin settings for regular users
+                },
+              ),
+              ListTile(
+                leading: const Icon(FluentIcons.question_circle_24_regular),
+                title: const Text('Aide'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, '/utilisateur/chat');
+                },
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(FluentIcons.sign_out_24_regular),
+                title: const Text('Déconnexion'),
+                onTap: () async {
+                  await FirebaseAuth.instance.signOut();
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    Navigator.pushNamedAndRemoveUntil(
+                        context, '/connexion', (route) => false);
+                  }
+                },
+              ),
+            ] else ...[
+              ListTile(
+                leading: const Icon(FluentIcons.arrow_enter_left_24_regular),
+                title: const Text('Connexion'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamedAndRemoveUntil(
+                      context, '/connexion', (route) => false);
+                },
+              ),
+              ListTile(
+                leading: const Icon(FluentIcons.person_add_24_regular),
+                title: const Text('Inscription'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamedAndRemoveUntil(
+                      context, '/inscription', (route) => false);
+                },
+              ),
+            ],
+          ],
+        ),
+      ),
 
       body:
           _isClick
-              ? Resultats()
+              ? const Resultats()
               : isLargeScreen
               ? TabBarView(controller: _tabController!, children: _pages)
               : IndexedStack(index: _selectedIndex, children: _pages),

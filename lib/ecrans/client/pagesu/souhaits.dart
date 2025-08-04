@@ -16,7 +16,7 @@ class Souhaits extends StatefulWidget {
   State<Souhaits> createState() => SouhaitsState();
 }
 
-class SouhaitsState extends State<Souhaits> {
+class SouhaitsState extends State<Souhaits> with AutomaticKeepAliveClientMixin<Souhaits> {
   final FirestoreService _firestoreService = FirestoreService();
   late Stream<List<Produit>> _wishlistStream;
   final SouhaitsLocal _souhaitsLocal = SouhaitsLocal();
@@ -28,11 +28,19 @@ class SouhaitsState extends State<Souhaits> {
   late Future<void> _initFuture;
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   void initState() {
     super.initState();
     _wishlistStream = _firestoreService.getProduitsStream();
     _initFuture = _initSouhaitsLocal();
     _initPanierLocal();
+  }
+
+  @override
+  void didUpdateWidget(covariant Souhaits oldWidget) {
+    super.didUpdateWidget(oldWidget);
   }
 
   Future<void> _actualiser() async {

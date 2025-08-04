@@ -4,6 +4,7 @@ import 'package:RAS/basicdata/utilisateur.dart';
 import 'package:RAS/basicdata/commande.dart';
 import 'package:RAS/basicdata/facture.dart';
 import 'package:RAS/basicdata/produit.dart';
+import 'package:RAS/basicdata/message.dart'; // Ajout de l'import du modèle Message
 
 class FirestoreService {
   final CollectionReference categoriesCollection = FirebaseFirestore.instance.collection('Categories');
@@ -11,6 +12,7 @@ class FirestoreService {
   final CollectionReference produitsCollection = FirebaseFirestore.instance.collection('Produits');
   final CollectionReference commandesCollection = FirebaseFirestore.instance.collection('Commandes');
   final CollectionReference facturesCollection = FirebaseFirestore.instance.collection('Factures');
+  final CollectionReference messagesCollection = FirebaseFirestore.instance.collection('Messages'); // Ajout de la collection Messages
 
   Future<List<Categorie>> getCategories() async {
     try {
@@ -243,6 +245,47 @@ class FirestoreService {
     } catch (e) {
       print('Erreur dans recupFactures: $e');
       return [];
+    }
+  }
+  
+  // Ajout de méthodes pour gérer les messages
+  Future<void> sendMessage(Message message) async {
+    try {
+      await messagesCollection.add(message.toMap());
+    } catch (e) {
+      print('Erreur dans sendMessage: $e');
+      rethrow;
+    }
+  }
+
+  Stream<List<Message>> getMessagesStream(String conversationId) {
+    try {
+      return messagesCollection
+          .where('idConversation', isEqualTo: conversationId)
+          .orderBy('timestamp', descending: false)
+          .snapshots()
+          .map((snapshot) {
+        return snapshot.docs.map((doc) {
+          try {
+            final data = doc.data() as Map<String, dynamic>;
+            return Message.fromMap(data, doc.id);
+          } catch (e) {
+            // En cas d'erreur de conversion, créer un message par défaut
+            return Message(
+              idMessage: doc.id,
+              contenuMessage: 'Message non disponible',
+              idExpediteur: '',
+              idDestinataire: '',
+              idProduit: '',
+              idConversation: conversationId,
+              timestamp: Timestamp.now(),
+            );
+          }
+        }).toList();
+      });
+    } catch (e) {
+      print('Erreur dans getMessagesStream: $e');
+      return Stream.value([]);
     }
   }
 }

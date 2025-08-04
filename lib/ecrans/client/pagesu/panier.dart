@@ -23,7 +23,7 @@ class Panier extends StatefulWidget {
   State<Panier> createState() => PanierState();
 }
 
-class PanierState extends State<Panier> {
+class PanierState extends State<Panier> with AutomaticKeepAliveClientMixin<Panier> {
   late Stream<List<Produit>> _cartProductsStream;
   final FirestoreService _firestoreService = FirestoreService();
   final PanierLocal _panierLocal = PanierLocal();
@@ -37,10 +37,18 @@ class PanierState extends State<Panier> {
   late Future<void> _initFuture;
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   void initState() {
-    super.initState();
+    super.initState(); // Keeps the superclass behavior intact
     _cartProductsStream = _firestoreService.getProduitsStream();
     _initFuture = _initPanierLocal();
+  }
+
+  @override
+  void didUpdateWidget(covariant Panier oldWidget) {
+    super.didUpdateWidget(oldWidget); // Ensures AutomaticKeepAliveClientMixin works as intended
   }
 
   Future<void> _actualiser() async {

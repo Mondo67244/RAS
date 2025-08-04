@@ -13,18 +13,16 @@ class Promo extends StatefulWidget {
   State<Promo> createState() => PromoState();
 }
 
-class PromoState extends State<Promo> {
+class PromoState extends State<Promo> with AutomaticKeepAliveClientMixin<Promo> {
   late Stream<List<Produit>> _produitsStream;
   final FirestoreService _firestoreService = FirestoreService();
   final PanierLocal _panierLocal = PanierLocal();
   List<String> _idsPanier = [];
-  final Set<String> _souhaits = {};
-  final Set<String> _paniers = {};
-  final ScrollController _populairesScrollController = ScrollController();
-  final ScrollController _bureautiqueScrollController = ScrollController();
-
   List<Produit> _produits = [];
   List<Produit> get produits => _produits;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -36,130 +34,46 @@ class PromoState extends State<Promo> {
   Future<void> _initPanierLocal() async {
     await _panierLocal.init();
     final ids = await _panierLocal.getPanier();
-    setState(() {
-      _idsPanier = ids;
-    });
-  }
-
-  @override
-  void dispose() {
-    _populairesScrollController.dispose();
-    _bureautiqueScrollController.dispose();
-    super.dispose();
-  }
-
-  void _updateSets(List<Produit> produits) {
-    _souhaits.clear();
-    _paniers.clear();
-    for (var produit in produits) {
-      if (produit.jeVeut) _souhaits.add(produit.idProduit);
-      if (produit.auPanier) _paniers.add(produit.idProduit);
+    if (mounted) {
+      setState(() {
+        _idsPanier = ids;
+      });
     }
   }
-
-  
 
   Future<void> _toggleAuPanier(Produit produit) async {
-    if (_idsPanier.contains(produit.idProduit)) {
-      await _panierLocal.retirerDuPanier(produit.idProduit);
-      setState(() {
-        _idsPanier.remove(produit.idProduit);
-      });
-      _messageReponse('${produit.nomProduit} retiré du panier', isSuccess: false, icon: Icons.remove_shopping_cart_outlined);
-    } else {
-      await _panierLocal.ajouterAuPanier(produit.idProduit);
-      setState(() {
-        _idsPanier.add(produit.idProduit);
-      });
-      _messageReponse('${produit.nomProduit} ajouté au panier', isSuccess: true, icon: Icons.add_shopping_cart_outlined);
-    }
-  }
-
-  void _messageReponse(String message, {bool isSuccess = true, IconData? icon}) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        duration: const Duration(seconds: 2),
-        backgroundColor: isSuccess ? Styles.vert : Styles.erreur,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        content: Row(
-          children: [
-            if (icon != null) ...[
-              Icon(icon, color: Colors.white),
-              const SizedBox(width: 8),
-            ],
-            Expanded(child: Text(message, style: Styles.textebas)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _refreshData() async {
-    setState(() {
-      _produitsStream = _firestoreService.getProduitsStream();
-      _initPanierLocal();
-    });
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          backgroundColor: Styles.bleu,
-          content: Text('Page actualisée !'),
-          duration: Duration(seconds: 1),
-        ),
-      );
+    try {
+      if (_idsPanier.contains(produit.idProduit)) {
+        await _panierLocal.retirerDuPanier(produit.idProduit);
+        if (mounted) {
+          setState(() {
+            _idsPanier.remove(produit.idProduit);
+          });
+        }
+      } else {
+        await _panierLocal.ajouterAuPanier(produit.idProduit);
+        if (mounted) {
+          setState(() {
+            _idsPanier.add(produit.idProduit);
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: $e')),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
+    final isWideScreen = MediaQuery.of(context).size.width > 700;
+    
     return Scaffold(
-      floatingActionButton: Builder(
-        builder: (context) {
-          return FloatingActionButton(
-            onPressed: () {
-              final RenderBox renderBox = context.findRenderObject() as RenderBox;
-              final Offset offset = renderBox.localToGlobal(Offset.zero);
-              showMenu(
-                context: context,
-                position: RelativeRect.fromLTRB(offset.dx, offset.dy - 120, offset.dx + renderBox.size.width, offset.dy),
-                items: [
-                  PopupMenuItem(
-                    value: 'rechercher',
-                    child: Row(
-                      children: const [
-                        Icon(Icons.search),
-                        SizedBox(width: 10),
-                        Text('Rechercher'),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'actualiser',
-                    child: Row(
-                      children: const [
-                        Icon(Icons.refresh),
-                        SizedBox(width: 10),
-                        Text('Actualiser'),
-                      ],
-                    ),
-                  ),
-                ],
-              ).then((value) {
-                if (value == 'rechercher') {
-                  Navigator.pushNamed(context, '/utilisateur/recherche');
-                } else if (value == 'actualiser') {
-                  _refreshData();
-                }
-              });
-            },
-            backgroundColor: const Color.fromARGB(255, 163, 14, 3),
-            tooltip: 'Options',
-            child: const Icon(Icons.add, color: Colors.white),
-          );
-        },
-      ),
+      backgroundColor: Colors.white,
       body: StreamBuilder<List<Produit>>(
         stream: _produitsStream,
         builder: (context, snapshot) {
@@ -202,7 +116,7 @@ class PromoState extends State<Promo> {
           }
           final produits = snapshot.data!;
           _produits = produits;
-          _updateSets(produits);
+          
           return LayoutBuilder(
             builder: (context, constraints) {
               final bool isWideScreen = constraints.maxWidth > 600;
