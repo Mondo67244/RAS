@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:RAS/basicdata/message.dart';
 import 'package:RAS/basicdata/utilisateur.dart';
 import 'package:RAS/basicdata/style.dart';
-import 'package:RAS/services/base%20de%20donn%C3%A9es/lienbd.dart'; // Ajout de l'import du service Firestore
+import 'package:RAS/services/base%20de%20donn%C3%A9es/lienbd.dart';
 
 class ChatPage extends StatefulWidget {
-  final String? idProduit; // Optionnel : ID du produit concerné
-  final String? nomProduit; // Optionnel : Nom du produit concerné
+  final String? idProduit;
+  final String? nomProduit;
 
   const ChatPage({Key? key, this.idProduit, this.nomProduit}) : super(key: key);
 
@@ -21,7 +21,7 @@ class _ChatPageState extends State<ChatPage> {
   final _scrollController = ScrollController();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirestoreService _firestoreService = FirestoreService(); // Ajout du service Firestore
+  final FirestoreService _firestoreService = FirestoreService();
 
   Utilisateur? _currentUser;
   Utilisateur? _adminUser;
@@ -31,18 +31,15 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
-    _loadUserData();
+    _chargementDonnees();
   }
 
-  Future<void> _loadUserData() async {
+  Future<void> _chargementDonnees() async {
     try {
       final user = _auth.currentUser;
       if (user != null) {
-        // Charger les données de l'utilisateur courant
-        final userDoc = await _firestore
-            .collection('Utilisateurs')
-            .doc(user.uid)
-            .get();
+        final userDoc =
+            await _firestore.collection('Utilisateurs').doc(user.uid).get();
 
         if (userDoc.exists) {
           setState(() {
@@ -50,12 +47,12 @@ class _ChatPageState extends State<ChatPage> {
           });
         }
 
-        // Trouver l'administrateur
-        final adminQuery = await _firestore
-            .collection('Utilisateurs')
-            .where('role', isEqualTo: 'admin')
-            .limit(1)
-            .get();
+        final adminQuery =
+            await _firestore
+                .collection('Utilisateurs')
+                .where('role', isEqualTo: 'admin')
+                .limit(1)
+                .get();
 
         if (adminQuery.docs.isNotEmpty) {
           setState(() {
@@ -63,12 +60,14 @@ class _ChatPageState extends State<ChatPage> {
           });
         }
 
-        // Générer l'ID de conversation
         if (_currentUser != null && _adminUser != null) {
-          // Créer un ID de conversation basé sur les IDs des utilisateurs
-          List<String> userIds = [_currentUser!.idUtilisateur, _adminUser!.idUtilisateur];
+          List<String> userIds = [
+            _currentUser!.idUtilisateur,
+            _adminUser!.idUtilisateur,
+          ];
           userIds.sort();
-          _conversationId = 'conv_${userIds[0]}_${userIds[1]}${widget.idProduit != null ? '_${widget.idProduit}' : ''}';
+          _conversationId =
+              'conv_${userIds[0]}_${userIds[1]}${widget.idProduit != null ? '_${widget.idProduit}' : ''}';
         }
 
         setState(() {
@@ -87,7 +86,7 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  Future<void> _sendMessage() async {
+  Future<void> _envoiMessage() async {
     if (_messageController.text.trim().isEmpty ||
         _currentUser == null ||
         _adminUser == null ||
@@ -106,13 +105,10 @@ class _ChatPageState extends State<ChatPage> {
         timestamp: Timestamp.now(),
       );
 
-      // Envoyer le message via le service Firestore
       await _firestoreService.sendMessage(message);
 
-      // Effacer le champ de texte
       _messageController.clear();
 
-      // Faire défiler vers le bas
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (_scrollController.hasClients) {
           _scrollController.animateTo(
@@ -131,9 +127,8 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  Stream<List<Message>> _getMessagesStream() {
+  Stream<List<Message>> _chargementMessages() {
     if (_conversationId.isEmpty) {
-      // Retourner un stream vide
       return Stream.value(<Message>[]);
     }
 
@@ -144,104 +139,122 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.nomProduit != null 
-            ? 'Question sur: ${widget.nomProduit}' 
-            : 'Chat avec l\'administrateur'),
+        title: Text(
+          widget.nomProduit != null
+              ? 'Sujet: ${widget.nomProduit}'
+              : 'Posez votre question',
+        ),
         backgroundColor: Styles.rouge,
         foregroundColor: Colors.white,
       ),
       body: Column(
         children: [
-          // Zone des messages
           Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : StreamBuilder<List<Message>>(
-                    stream: _getMessagesStream(),
-                    builder: (context, snapshot) {
-                      if (snapshot.hasError) {
-                        return Center(child: Text('Erreur: ${snapshot.error}'));
-                      }
-
-                      if (!snapshot.hasData) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-
-                      final messages = snapshot.data!;
-
-                      if (messages.isEmpty) {
-                        return const Center(
-                          child: Text(
-                            'Aucun message pour le moment.\nCommencez la conversation!',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        );
-                      }
-
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (_scrollController.hasClients) {
-                          _scrollController.animateTo(
-                            _scrollController.position.maxScrollExtent,
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeOut,
+            child:
+                _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : StreamBuilder<List<Message>>(
+                      stream: _chargementMessages(),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasError) {
+                          return Center(
+                            child: Text('Erreur: ${snapshot.error}'),
                           );
                         }
-                      });
 
-                      return ListView.builder(
-                        controller: _scrollController,
-                        padding: const EdgeInsets.all(16),
-                        itemCount: messages.length,
-                        itemBuilder: (context, index) {
-                          final message = messages[index];
-                          final isMe = message.idExpediteur == _currentUser?.idUtilisateur;
-                          
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            child: Row(
-                              mainAxisAlignment: isMe 
-                                  ? MainAxisAlignment.end 
-                                  : MainAxisAlignment.start,
-                              children: [
-                                Flexible(
-                                  child: Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: isMe ? Styles.rouge : Colors.grey[300],
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          message.contenuMessage,
-                                          style: TextStyle(
-                                            color: isMe ? Colors.white : Colors.black87,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          _formatTimestamp(message.timestamp),
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: isMe ? Colors.white70 : Colors.grey[600],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
+                        if (!snapshot.hasData) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+
+                        final messages = snapshot.data!;
+
+                        if (messages.isEmpty) {
+                          return const Center(
+                            child: Text(
+                              'Aucun message pour le moment.\nCommencez la conversation!',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.grey),
                             ),
                           );
-                        },
-                      );
-                    },
-                  ),
+                        }
+
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (_scrollController.hasClients) {
+                            _scrollController.animateTo(
+                              _scrollController.position.maxScrollExtent,
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeOut,
+                            );
+                          }
+                        });
+
+                        return ListView.builder(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.all(16),
+                          itemCount: messages.length,
+                          itemBuilder: (context, index) {
+                            final message = messages[index];
+                            final isMe =
+                                message.idExpediteur ==
+                                _currentUser?.idUtilisateur;
+
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              child: Row(
+                                mainAxisAlignment:
+                                    isMe
+                                        ? MainAxisAlignment.end
+                                        : MainAxisAlignment.start,
+                                children: [
+                                  Flexible(
+                                    child: Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color:
+                                            isMe
+                                                ? Styles.rouge
+                                                : Colors.grey[300],
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            message.contenuMessage,
+                                            style: TextStyle(
+                                              color:
+                                                  isMe
+                                                      ? Colors.white
+                                                      : Colors.black87,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            _formatDate(message.timestamp),
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color:
+                                                  isMe
+                                                      ? Colors.white70
+                                                      : Colors.grey[600],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
           ),
-          
-          // Zone de saisie
+
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -275,8 +288,8 @@ class _ChatPageState extends State<ChatPage> {
                 ),
                 const SizedBox(width: 8),
                 IconButton(
-                  onPressed: _sendMessage,
-                  icon: const Icon(Icons.send, color: Colors.blue),
+                  onPressed: _envoiMessage,
+                  icon: const Icon(Icons.send, color: Styles.blanc),
                   style: IconButton.styleFrom(
                     backgroundColor: Styles.rouge,
                     foregroundColor: Colors.white,
@@ -291,7 +304,7 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
-  String _formatTimestamp(Timestamp timestamp) {
+  String _formatDate(Timestamp timestamp) {
     final dateTime = timestamp.toDate();
     return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
   }

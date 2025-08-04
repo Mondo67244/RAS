@@ -25,10 +25,10 @@ class _CommandesState extends State<Commandes> {
   void initState() {
     super.initState();
     initializeDateFormatting('fr_FR', null);
-    _initializeCommandesStream();
+    _chargementCommandes();
   }
 
-  void _initializeCommandesStream() {
+  void _chargementCommandes() {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       _commandesStream = FirebaseFirestore.instance
@@ -72,7 +72,7 @@ class _CommandesState extends State<Commandes> {
     }
   }
 
-  Widget _buildStatusChip(String status) {
+  Widget _statut(String status) {
     Color chipColor;
     String displayText;
     IconData icon;
@@ -120,7 +120,7 @@ class _CommandesState extends State<Commandes> {
     );
   }
 
-  Widget _buildEmptyState(String message, IconData icon) {
+  Widget _vide(String message, IconData icon) {
     return Center(
       child: Container(
         padding: const EdgeInsets.all(30),
@@ -155,7 +155,7 @@ class _CommandesState extends State<Commandes> {
     );
   }
 
-  Widget _buildLoadingState() {
+  Widget _chargement() {
     return Center(
       child: Container(
         padding: const EdgeInsets.all(30),
@@ -187,7 +187,7 @@ class _CommandesState extends State<Commandes> {
     );
   }
 
-  Widget _buildCommandeCard(Commande commande) {
+  Widget _carteCommande(Commande commande) {
     final date = DateTime.parse(commande.dateCommande);
     final formattedDate = DateFormat(
       'dd MMMM yyyy à HH:mm',
@@ -213,7 +213,7 @@ class _CommandesState extends State<Commandes> {
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
-        onTap: () => _showCommandeDetails(context, commande),
+        onTap: () => _details(context, commande),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -263,7 +263,7 @@ class _CommandesState extends State<Commandes> {
                       ],
                     ),
                   ),
-                  _buildStatusChip(commande.statutPaiement),
+                  _statut(commande.statutPaiement),
                 ],
               ),
               const SizedBox(height: 20),
@@ -325,7 +325,7 @@ class _CommandesState extends State<Commandes> {
         ),
         child:
             _commandesStream == null
-                ? _buildEmptyState(
+                ? _vide(
                   "Veuillez vous connecter pour voir vos commandes.",
                   FluentIcons.person_24_filled,
                 )
@@ -333,16 +333,16 @@ class _CommandesState extends State<Commandes> {
                   stream: _commandesStream,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return _buildLoadingState();
+                      return _chargement();
                     }
                     if (snapshot.hasError) {
-                      return _buildEmptyState(
+                      return _vide(
                         "Une erreur est survenue.",
                         FluentIcons.error_circle_24_filled,
                       );
                     }
                     if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return _buildEmptyState(
+                      return _vide(
                         "Vous n'avez aucune commande.",
                         FluentIcons.receipt_bag_24_filled,
                       );
@@ -353,7 +353,7 @@ class _CommandesState extends State<Commandes> {
                       padding: const EdgeInsets.all(16),
                       itemCount: commandes.length,
                       itemBuilder: (context, index) {
-                        return _buildCommandeCard(commandes[index]);
+                        return _carteCommande(commandes[index]);
                       },
                     );
                   },
@@ -362,7 +362,7 @@ class _CommandesState extends State<Commandes> {
     );
   }
 
-  void _showDeleteConfirmationDialog(BuildContext context, Commande commande) {
+  void _suppression(BuildContext context, Commande commande) {
     showDialog(
       context: context,
       builder: (dialogContext) {
@@ -494,8 +494,7 @@ class _CommandesState extends State<Commandes> {
     );
   }
 
-  // NOUVELLE LOGIQUE DE PAIEMENT
-  void _handlePayment(BuildContext context, Commande commande) async {
+  void _paiement(BuildContext context, Commande commande) async {
     // Ferme le dialogue des détails de la commande
     Navigator.of(context).pop();
 
@@ -523,7 +522,7 @@ class _CommandesState extends State<Commandes> {
     }
   }
 
-  void _showCommandeDetails(BuildContext context, Commande commande) {
+  void _details(BuildContext context, Commande commande) {
     showDialog(
       context: context,
       builder: (dialogContext) {
@@ -590,7 +589,7 @@ class _CommandesState extends State<Commandes> {
                               ),
                             ),
                             const SizedBox(height: 8),
-                            _buildStatusChip(commande.statutPaiement),
+                            _statut(commande.statutPaiement),
                           ],
                         ),
                       ),
@@ -605,10 +604,7 @@ class _CommandesState extends State<Commandes> {
                               color: Colors.white,
                             ),
                             onPressed: () {
-                              _showDeleteConfirmationDialog(
-                                dialogContext,
-                                commande,
-                              );
+                              _suppression(dialogContext, commande);
                             },
                           ),
                         ],
@@ -625,21 +621,21 @@ class _CommandesState extends State<Commandes> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Informations de la commande
-                        _buildInfoSection('Informations', [
-                          _buildInfoRow(
+                        _section('Informations', [
+                          _ligne(
                             'Date',
                             DateFormat(
                               'dd MMMM yyyy à HH:mm',
                               'fr_FR',
                             ).format(DateTime.parse(commande.dateCommande)),
                           ),
-                          _buildInfoRow(
+                          _ligne(
                             'Méthode de paiement',
                             commande.methodePaiment,
                           ),
-                          _buildInfoRow('Livraison', commande.choixLivraison),
+                          _ligne('Livraison', commande.choixLivraison),
                           if (commande.numeroPaiement.isNotEmpty)
-                            _buildInfoRow(
+                            _ligne(
                               'Numéro de paiement',
                               commande.numeroPaiement,
                             ),
@@ -648,10 +644,10 @@ class _CommandesState extends State<Commandes> {
                         const SizedBox(height: 20),
 
                         // Articles
-                        _buildInfoSection(
+                        _section(
                           'Articles (${commande.produits.length})',
                           commande.produits.map((produit) {
-                            return _buildProductRow(
+                            return _ligneProduit(
                               produit['nomProduit'] ?? 'Produit inconnu',
                               produit['prix'] ?? '0',
                               produit['quantite'] ?? 1,
@@ -726,8 +722,7 @@ class _CommandesState extends State<Commandes> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: ElevatedButton(
-                            onPressed:
-                                () => _handlePayment(dialogContext, commande),
+                            onPressed: () => _paiement(dialogContext, commande),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.green,
                               foregroundColor: Colors.white,
@@ -754,7 +749,7 @@ class _CommandesState extends State<Commandes> {
     );
   }
 
-  Widget _buildInfoSection(String title, List<Widget> children) {
+  Widget _section(String title, List<Widget> children) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -772,7 +767,7 @@ class _CommandesState extends State<Commandes> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _ligne(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -791,7 +786,7 @@ class _CommandesState extends State<Commandes> {
     );
   }
 
-  Widget _buildProductRow(String name, String price, int quantity) {
+  Widget _ligneProduit(String name, String price, int quantity) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),

@@ -204,7 +204,7 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
           ),
           IconButton(
             onPressed: () {
-              // Removed navigation to admin settings for regular users
+              //Page de paramètres
             },
             icon: const Icon(Icons.settings),
             tooltip: 'Paramètres',
@@ -265,7 +265,7 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
               ),
               ListTile(
                 leading: const Icon(FluentIcons.chat_24_regular),
-                title: const Text('Chat avec Admin'),
+                title: const Text('Contactez-nous'),
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.pushNamed(context, '/utilisateur/chat');
@@ -277,7 +277,6 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                 title: const Text('Paramètres'),
                 onTap: () {
                   Navigator.pop(context);
-                  // Removed navigation to admin settings for regular users
                 },
               ),
               ListTile(
