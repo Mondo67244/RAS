@@ -17,7 +17,7 @@ class CartException implements Exception {
 }
 
 class Panier extends StatefulWidget {
-  const Panier({Key? key}) : super(key: key);
+  const Panier({super.key});
 
   @override
   State<Panier> createState() => PanierState();

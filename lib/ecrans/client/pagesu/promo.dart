@@ -7,7 +7,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:RAS/services/panier/panier_local.dart';
 
 class Promo extends StatefulWidget {
-  const Promo({Key? key}) : super(key: key);
+  const Promo({super.key});
 
   @override
   State<Promo> createState() => PromoState();
@@ -155,8 +155,8 @@ class PromoState extends State<Promo> {
               });
             },
             backgroundColor: const Color.fromARGB(255, 163, 14, 3),
-            child: const Icon(Icons.add, color: Colors.white),
             tooltip: 'Options',
+            child: const Icon(Icons.add, color: Colors.white),
           );
         },
       ),

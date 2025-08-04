@@ -145,6 +145,49 @@ class FirestoreService {
     }
   }
 
+  // Nouvelle méthode pour charger les produits avec pagination
+  Future<List<Produit>> getProduitsPaginated(int limit, DocumentSnapshot? lastDocument) async {
+    try {
+      Query query = produitsCollection.orderBy('createdAt', descending: true).limit(limit);
+      
+      if (lastDocument != null) {
+        query = query.startAfterDocument(lastDocument);
+      }
+      
+      QuerySnapshot snapshot = await query.get();
+      return snapshot.docs.map((doc) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        return Produit.fromMap(data, doc.id);
+      }).toList();
+    } catch (e) {
+      print('Erreur dans getProduitsPaginated: $e');
+      return [];
+    }
+  }
+
+  // Nouvelle méthode pour charger les produits par catégorie avec pagination
+  Future<List<Produit>> getProduitsByCategoryPaginated(String category, int limit, DocumentSnapshot? lastDocument) async {
+    try {
+      Query query = produitsCollection
+          .where('categorie', isEqualTo: category)
+          .orderBy('createdAt', descending: true)
+          .limit(limit);
+      
+      if (lastDocument != null) {
+        query = query.startAfterDocument(lastDocument);
+      }
+      
+      QuerySnapshot snapshot = await query.get();
+      return snapshot.docs.map((doc) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        return Produit.fromMap(data, doc.id);
+      }).toList();
+    } catch (e) {
+      print('Erreur dans getProduitsByCategoryPaginated: $e');
+      return [];
+    }
+  }
+
   Future<void> addCommande(Commande commande) async {
     try {
       // Générer un ID unique pour la commande

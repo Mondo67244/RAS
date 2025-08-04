@@ -8,7 +8,7 @@ import 'package:RAS/services/panier/panier_local.dart';
 
 
 class Recents extends StatefulWidget {
-  const Recents({Key? key}) : super(key: key);
+  const Recents({super.key});
 
   @override
   State<Recents> createState() => RecentsState();
@@ -146,8 +146,8 @@ class RecentsState extends State<Recents> {
               });
             },
             backgroundColor: const Color.fromARGB(255, 163, 14, 3),
-            child: const Icon(Icons.add, color: Colors.white),
             tooltip: 'Options',
+            child: const Icon(Icons.add, color: Colors.white),
           );
         },
       ),

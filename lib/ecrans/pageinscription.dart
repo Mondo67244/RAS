@@ -278,7 +278,7 @@ class _PageInscriptionState extends State<PageInscription> {
                                 ),
                               )
                               : const Text(
-                                "S\'inscrire",
+                                "S'inscrire",
                                 style: TextStyle(
                                   fontSize: 18,
                                   color: Colors.white,

@@ -18,7 +18,12 @@ class PanierLocal {
   Future<Map<String, int>> getQuantities() async {
     final String? quantitiesJson = _prefs?.getString('quantities');
     if (quantitiesJson != null) {
-      return Map<String, int>.from(jsonDecode(quantitiesJson));
+      try {
+        return Map<String, int>.from(jsonDecode(quantitiesJson));
+      } catch (e) {
+        print('Erreur de décodage des quantités: $e');
+        return {};
+      }
     }
     return {};
   }
@@ -68,5 +73,21 @@ class PanierLocal {
   Future<void> viderPanier() async {
     await _prefs?.remove('panier');
     await _prefs?.remove('quantities');
+  }
+  
+  // Nouvelle méthode pour obtenir le nombre total d'articles dans le panier
+  Future<int> getTotalItems() async {
+    final quantities = await getQuantities();
+    int total = 0;
+    for (var quantity in quantities.values) {
+      total += quantity;
+    }
+    return total;
+  }
+  
+  // Nouvelle méthode pour obtenir le nombre de produits uniques dans le panier
+  Future<int> getUniqueItemsCount() async {
+    final panier = await getPanier();
+    return panier.length;
   }
 }

@@ -36,22 +36,39 @@ class _CommandesState extends State<Commandes> {
           .where('utilisateur.idUtilisateur', isEqualTo: user.uid)
           .orderBy('dateCommande', descending: true)
           .snapshots()
-          .map((snapshot) => snapshot.docs.map((doc) {
-                try {
-                  return Commande.fromMap(doc.data());
-                } catch (e) {
-                  print('Erreur de parsing pour le document ${doc.id}: $e');
-                  return Commande(
+          .map(
+            (snapshot) =>
+                snapshot.docs.map((doc) {
+                  try {
+                    return Commande.fromMap(doc.data());
+                  } catch (e) {
+                    print('Erreur de parsing pour le document ${doc.id}: $e');
+                    return Commande(
                       idCommande: doc.id,
                       dateCommande: DateTime.now().toIso8601String(),
-                      noteCommande: 'Erreur de chargement', pays: '', rue: '',
-                      prixCommande: '0', ville: '', codePostal: '',
-                      utilisateur: Utilisateur(idUtilisateur: user.uid, nomUtilisateur: 'N/A', prenomUtilisateur: '', emailUtilisateur: '', numeroUtilisateur: '', villeUtilisateur: ''),
-                      produits: [], methodePaiment: '', choixLivraison: '',
-                      numeroPaiement: '', statutPaiement: 'erreur'
-                  );
-                }
-              }).toList());
+                      noteCommande: 'Erreur de chargement',
+                      pays: '',
+                      rue: '',
+                      prixCommande: '0',
+                      ville: '',
+                      codePostal: '',
+                      utilisateur: Utilisateur(
+                        idUtilisateur: user.uid,
+                        nomUtilisateur: 'N/A',
+                        prenomUtilisateur: '',
+                        emailUtilisateur: '',
+                        numeroUtilisateur: '',
+                        villeUtilisateur: '',
+                      ),
+                      produits: [],
+                      methodePaiment: '',
+                      choixLivraison: '',
+                      numeroPaiement: '',
+                      statutPaiement: 'erreur',
+                    );
+                  }
+                }).toList(),
+          );
     }
   }
 
@@ -121,11 +138,7 @@ class _CommandesState extends State<Commandes> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              size: 60,
-              color: Colors.grey.shade400,
-            ),
+            Icon(icon, size: 60, color: Colors.grey.shade400),
             const SizedBox(height: 20),
             Text(
               message,
@@ -166,10 +179,7 @@ class _CommandesState extends State<Commandes> {
             SizedBox(height: 20),
             Text(
               'Chargement des commandes...',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey,
-              ),
+              style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
           ],
         ),
@@ -179,10 +189,14 @@ class _CommandesState extends State<Commandes> {
 
   Widget _buildCommandeCard(Commande commande) {
     final date = DateTime.parse(commande.dateCommande);
-    final formattedDate = DateFormat('dd MMMM yyyy à HH:mm', 'fr_FR').format(date);
-    final String displayId = commande.idCommande.length >= 5
-        ? commande.idCommande.substring(0, 5).toUpperCase()
-        : commande.idCommande.toUpperCase();
+    final formattedDate = DateFormat(
+      'dd MMMM yyyy à HH:mm',
+      'fr_FR',
+    ).format(date);
+    final String displayId =
+        commande.idCommande.length >= 5
+            ? commande.idCommande.substring(0, 5).toUpperCase()
+            : commande.idCommande.toUpperCase();
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -309,43 +323,53 @@ class _CommandesState extends State<Commandes> {
             colors: [Styles.rouge, Colors.red.shade700],
           ),
         ),
-        child: _commandesStream == null
-            ? _buildEmptyState("Veuillez vous connecter pour voir vos commandes.", FluentIcons.person_24_filled)
-            : StreamBuilder<List<Commande>>(
-                stream: _commandesStream,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return _buildLoadingState();
-                  }
-                  if (snapshot.hasError) {
-                    return _buildEmptyState("Une erreur est survenue.", FluentIcons.error_circle_24_filled);
-                  }
-                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return _buildEmptyState("Vous n'avez aucune commande.", FluentIcons.receipt_bag_24_filled);
-                  }
+        child:
+            _commandesStream == null
+                ? _buildEmptyState(
+                  "Veuillez vous connecter pour voir vos commandes.",
+                  FluentIcons.person_24_filled,
+                )
+                : StreamBuilder<List<Commande>>(
+                  stream: _commandesStream,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return _buildLoadingState();
+                    }
+                    if (snapshot.hasError) {
+                      return _buildEmptyState(
+                        "Une erreur est survenue.",
+                        FluentIcons.error_circle_24_filled,
+                      );
+                    }
+                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return _buildEmptyState(
+                        "Vous n'avez aucune commande.",
+                        FluentIcons.receipt_bag_24_filled,
+                      );
+                    }
 
-                  final commandes = snapshot.data!;
-                  return ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: commandes.length,
-                    itemBuilder: (context, index) {
-                      return _buildCommandeCard(commandes[index]);
-                    },
-                  );
-                },
-              ),
+                    final commandes = snapshot.data!;
+                    return ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: commandes.length,
+                      itemBuilder: (context, index) {
+                        return _buildCommandeCard(commandes[index]);
+                      },
+                    );
+                  },
+                ),
       ),
     );
   }
-
-
 
   void _showDeleteConfirmationDialog(BuildContext context, Commande commande) {
     showDialog(
       context: context,
       builder: (dialogContext) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           child: Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
@@ -369,7 +393,7 @@ class _CommandesState extends State<Commandes> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                
+
                 // Titre
                 const Text(
                   'Confirmer la suppression',
@@ -380,18 +404,15 @@ class _CommandesState extends State<Commandes> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                
+
                 // Message
                 Text(
                   'Voulez-vous vraiment supprimer cette commande ?\nCette action est irréversible.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey.shade600,
-                  ),
+                  style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Boutons
                 Row(
                   children: [
@@ -437,7 +458,9 @@ class _CommandesState extends State<Commandes> {
                           } catch (e) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: const Text('Erreur lors de la suppression.'),
+                                content: const Text(
+                                  'Erreur lors de la suppression.',
+                                ),
                                 backgroundColor: Colors.red,
                                 behavior: SnackBarBehavior.floating,
                                 shape: RoundedRectangleBorder(
@@ -457,9 +480,7 @@ class _CommandesState extends State<Commandes> {
                         ),
                         child: const Text(
                           'Supprimer',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
                     ),
@@ -472,7 +493,7 @@ class _CommandesState extends State<Commandes> {
       },
     );
   }
-  
+
   // NOUVELLE LOGIQUE DE PAIEMENT
   void _handlePayment(BuildContext context, Commande commande) async {
     // Ferme le dialogue des détails de la commande
@@ -481,9 +502,7 @@ class _CommandesState extends State<Commandes> {
     // Navigue vers la page de paiement et attend un résultat
     final paymentResult = await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => PaymentPage(commande: commande),
-      ),
+      MaterialPageRoute(builder: (context) => PaymentPage(commande: commande)),
     );
 
     // Affiche un message en fonction du résultat du paiement
@@ -504,13 +523,14 @@ class _CommandesState extends State<Commandes> {
     }
   }
 
-
   void _showCommandeDetails(BuildContext context, Commande commande) {
     showDialog(
       context: context,
       builder: (dialogContext) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
@@ -574,7 +594,7 @@ class _CommandesState extends State<Commandes> {
                           ],
                         ),
                       ),
-                      const SizedBox(width: 10,),
+                      const SizedBox(width: 10),
                       //Row du bouton de suppression et du statut de la commande
                       Row(
                         children: [
@@ -585,7 +605,10 @@ class _CommandesState extends State<Commandes> {
                               color: Colors.white,
                             ),
                             onPressed: () {
-                              _showDeleteConfirmationDialog(dialogContext, commande);
+                              _showDeleteConfirmationDialog(
+                                dialogContext,
+                                commande,
+                              );
                             },
                           ),
                         ],
@@ -593,7 +616,7 @@ class _CommandesState extends State<Commandes> {
                     ],
                   ),
                 ),
-                
+
                 // Contenu
                 Flexible(
                   child: SingleChildScrollView(
@@ -602,19 +625,28 @@ class _CommandesState extends State<Commandes> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Informations de la commande
-                        _buildInfoSection(
-                          'Informations',
-                          [
-                            _buildInfoRow('Date', DateFormat('dd MMMM yyyy à HH:mm', 'fr_FR').format(DateTime.parse(commande.dateCommande))),
-                            _buildInfoRow('Méthode de paiement', commande.methodePaiment),
-                            _buildInfoRow('Livraison', commande.choixLivraison),
-                            if (commande.numeroPaiement.isNotEmpty)
-                              _buildInfoRow('Numéro de paiement', commande.numeroPaiement),
-                          ],
-                        ),
-                        
+                        _buildInfoSection('Informations', [
+                          _buildInfoRow(
+                            'Date',
+                            DateFormat(
+                              'dd MMMM yyyy à HH:mm',
+                              'fr_FR',
+                            ).format(DateTime.parse(commande.dateCommande)),
+                          ),
+                          _buildInfoRow(
+                            'Méthode de paiement',
+                            commande.methodePaiment,
+                          ),
+                          _buildInfoRow('Livraison', commande.choixLivraison),
+                          if (commande.numeroPaiement.isNotEmpty)
+                            _buildInfoRow(
+                              'Numéro de paiement',
+                              commande.numeroPaiement,
+                            ),
+                        ]),
+
                         const SizedBox(height: 20),
-                        
+
                         // Articles
                         _buildInfoSection(
                           'Articles (${commande.produits.length})',
@@ -626,16 +658,18 @@ class _CommandesState extends State<Commandes> {
                             );
                           }).toList(),
                         ),
-                        
+
                         const SizedBox(height: 20),
-                        
+
                         // Total
                         Container(
                           padding: const EdgeInsets.all(15),
                           decoration: BoxDecoration(
                             color: Colors.green.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.green.withOpacity(0.3)),
+                            border: Border.all(
+                              color: Colors.green.withOpacity(0.3),
+                            ),
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -663,7 +697,7 @@ class _CommandesState extends State<Commandes> {
                     ),
                   ),
                 ),
-                
+
                 // Actions
                 Container(
                   padding: const EdgeInsets.all(20),
@@ -687,11 +721,13 @@ class _CommandesState extends State<Commandes> {
                           ),
                         ),
                       ),
-                      if (commande.statutPaiement.toLowerCase() == 'en attente') ...[
+                      if (commande.statutPaiement.toLowerCase() ==
+                          'en attente') ...[
                         const SizedBox(width: 10),
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: () => _handlePayment(dialogContext, commande),
+                            onPressed:
+                                () => _handlePayment(dialogContext, commande),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.green,
                               foregroundColor: Colors.white,
@@ -702,9 +738,7 @@ class _CommandesState extends State<Commandes> {
                             ),
                             child: const Text(
                               'Payer maintenant',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),
@@ -746,17 +780,11 @@ class _CommandesState extends State<Commandes> {
         children: [
           Text(
             label,
-            style: TextStyle(
-              color: Colors.grey.shade600,
-              fontSize: 14,
-            ),
+            style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
           ),
           Text(
             value,
-            style: const TextStyle(
-              fontWeight: FontWeight.w500,
-              fontSize: 14,
-            ),
+            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
           ),
         ],
       ),
@@ -777,10 +805,7 @@ class _CommandesState extends State<Commandes> {
           Expanded(
             child: Text(
               name,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
             ),
           ),
           Text(

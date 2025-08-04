@@ -10,7 +10,7 @@ import 'package:RAS/services/panier/panier_local.dart';
 import 'package:RAS/services/souhaits/souhaits_local.dart';
 
 class Souhaits extends StatefulWidget {
-  const Souhaits({Key? key}) : super(key: key);
+  const Souhaits({super.key});
 
   @override
   State<Souhaits> createState() => SouhaitsState();

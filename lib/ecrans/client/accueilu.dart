@@ -18,7 +18,7 @@ class Accueilu extends StatefulWidget {
 class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
   TabController? _tabController;
   int _selectedIndex = 0;
-  bool _isClick = false;
+  final bool _isClick = false;
 
   final List<Widget> _pages = [
     Recents(),
@@ -33,7 +33,7 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
       child: Row(
         children: [
           Icon(FluentIcons.home_more_20_filled),
-          const SizedBox(width: 3),
+          SizedBox(width: 3),
           Text('Accueil'),
         ],
       ),
@@ -42,7 +42,7 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
       child: Row(
         children: [
           Icon(FluentIcons.gift_card_24_filled),
-          const SizedBox(width: 3),
+          SizedBox(width: 3),
           Text('Promotions'),
         ],
       ),
@@ -51,7 +51,7 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
       child: Row(
         children: [
           Icon(FluentIcons.shopping_bag_tag_24_filled),
-          const SizedBox(width: 3),
+          SizedBox(width: 3),
           Text('Mon Panier'),
         ],
       ),
@@ -60,7 +60,7 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
       child: Row(
         children: [
           Icon(FluentIcons.class_20_filled),
-          const SizedBox(width: 3),
+          SizedBox(width: 3),
           Text('Liste Souhaits'),
         ],
       ),
