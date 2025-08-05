@@ -87,6 +87,120 @@ class FirestoreService {
     }
   }
 
+  // Méthodes pour gérer le panier de l'utilisateur dans Firestore
+  Future<void> ajouterAuPanierFirestore(String userId, String productId, int quantity) async {
+    try {
+      await utilisateursCollection
+          .doc(userId)
+          .collection('Panier')
+          .doc(productId)
+          .set({
+        'idProduit': productId,
+        'quantite': quantity,
+        'dateAjout': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print('Erreur dans ajouterAuPanierFirestore: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> retirerDuPanierFirestore(String userId, String productId) async {
+    try {
+      await utilisateursCollection
+          .doc(userId)
+          .collection('Panier')
+          .doc(productId)
+          .delete();
+    } catch (e) {
+      print('Erreur dans retirerDuPanierFirestore: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> updateQuantitePanierFirestore(String userId, String productId, int quantity) async {
+    try {
+      await utilisateursCollection
+          .doc(userId)
+          .collection('Panier')
+          .doc(productId)
+          .update({
+        'quantite': quantity,
+        'dateModification': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print('Erreur dans updateQuantitePanierFirestore: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getPanierUtilisateur(String userId) async {
+    try {
+      QuerySnapshot snapshot = await utilisateursCollection
+          .doc(userId)
+          .collection('Panier')
+          .get();
+      
+      return snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        return {
+          'idProduit': data['idProduit'],
+          'quantite': data['quantite'],
+        };
+      }).toList();
+    } catch (e) {
+      print('Erreur dans getPanierUtilisateur: $e');
+      return [];
+    }
+  }
+
+  // Méthodes pour gérer la liste de souhaits de l'utilisateur dans Firestore
+  Future<void> ajouterAuxSouhaitsFirestore(String userId, String productId) async {
+    try {
+      await utilisateursCollection
+          .doc(userId)
+          .collection('Souhaits')
+          .doc(productId)
+          .set({
+        'idProduit': productId,
+        'dateAjout': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print('Erreur dans ajouterAuxSouhaitsFirestore: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> retirerDesSouhaitsFirestore(String userId, String productId) async {
+    try {
+      await utilisateursCollection
+          .doc(userId)
+          .collection('Souhaits')
+          .doc(productId)
+          .delete();
+    } catch (e) {
+      print('Erreur dans retirerDesSouhaitsFirestore: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<String>> getSouhaitsUtilisateur(String userId) async {
+    try {
+      QuerySnapshot snapshot = await utilisateursCollection
+          .doc(userId)
+          .collection('Souhaits')
+          .get();
+      
+      return snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        return data['idProduit'] as String;
+      }).toList();
+    } catch (e) {
+      print('Erreur dans getSouhaitsUtilisateur: $e');
+      return [];
+    }
+  }
+
   Future<void> addProduit(Produit produit) async {
     try {
       print('Ajout du produit: ${produit.toMap()}');

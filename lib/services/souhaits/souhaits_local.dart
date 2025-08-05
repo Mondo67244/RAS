@@ -1,4 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:RAS/services/base de données/lienbd.dart';
 
 // import '../local/pont_stockage.dart';
 
@@ -6,6 +8,7 @@ class SouhaitsLocal {
   // final _stockage = PontStockage.instance;
   // final _key = 'souhaits';
   SharedPreferences? _prefs;
+  final FirestoreService _firestoreService = FirestoreService();
 
   Future<void> init() async {
     // await _stockage.init();
@@ -24,6 +27,12 @@ class SouhaitsLocal {
       souhait.add(idProduit);
       await _prefs?.setStringList('souhaits', souhait);
     }
+
+    // Si l'utilisateur est connecté, synchroniser avec Firestore
+    final User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await _firestoreService.ajouterAuxSouhaitsFirestore(user.uid, idProduit);
+    }
   }
 
   Future<void> retirerDesSouhaits(String idProduit) async {
@@ -31,5 +40,11 @@ class SouhaitsLocal {
     final souhait = await getSouhaits();
     souhait.remove(idProduit);
     await _prefs?.setStringList('souhaits', souhait);
+
+    // Si l'utilisateur est connecté, synchroniser avec Firestore
+    final User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await _firestoreService.retirerDesSouhaitsFirestore(user.uid, idProduit);
+    }
   }
 }

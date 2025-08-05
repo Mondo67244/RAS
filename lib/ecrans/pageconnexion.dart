@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:RAS/basicdata/style.dart';
+import 'package:RAS/services/synchronisation/synchronisation_service.dart';
 
 class Pageconnexion extends StatefulWidget {
   const Pageconnexion({super.key});
@@ -34,6 +35,10 @@ class _PageconnexionState extends State<Pageconnexion> {
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
+
+      // Synchroniser le panier et les souhaits après la connexion
+      final SynchronisationService syncService = SynchronisationService();
+      await syncService.synchroniserTout();
 
       if (mounted) {
         // Rediriger vers la page d'accueil ou la page précédente
@@ -100,60 +105,85 @@ class _PageconnexionState extends State<Pageconnexion> {
                             controller: _emailController,
                             decoration: _inputDecoration('Email'),
                             keyboardType: TextInputType.emailAddress,
-                            validator: (value) =>
-                                value!.isEmpty || !value.contains('@')
-                                    ? 'Veuillez entrer un email valide'
-                                    : null,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Veuillez entrer votre email';
+                              }
+                              if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                                return 'Veuillez entrer un email valide';
+                              }
+                              return null;
+                            },
                           ),
                           const SizedBox(height: 16),
                           TextFormField(
                             controller: _passwordController,
-                            decoration: _inputDecorationWithEye('Mot de passe'),
+                            decoration: InputDecoration(
+                              labelText: 'Mot de passe',
+                              border: const OutlineInputBorder(),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscurePassword
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _obscurePassword = !_obscurePassword;
+                                  });
+                                },
+                              ),
+                            ),
                             obscureText: _obscurePassword,
-                            validator: (value) => value!.length < 6
-                                ? 'Le mot de passe doit contenir au moins 6 caractères'
-                                : null,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Veuillez entrer votre mot de passe';
+                              }
+                              if (value.length < 6) {
+                                return 'Le mot de passe doit contenir au moins 6 caractères';
+                              }
+                              return null;
+                            },
                           ),
-                          const SizedBox(height: 32),
+                          const SizedBox(height: 24),
                           ElevatedButton(
                             onPressed: _isLoading ? null : _submitForm,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Styles.bleu,
+                              backgroundColor: Styles.rouge,
+                              foregroundColor: Styles.blanc,
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(8),
                               ),
                             ),
                             child: _isLoading
-                                ? const SizedBox(
-                                    height: 24,
-                                    width: 24,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 3,
-                                    ),
+                                ? const CircularProgressIndicator(
+                                    valueColor:
+                                        AlwaysStoppedAnimation<Color>(Colors.white),
                                   )
                                 : const Text(
                                     'Se connecter',
                                     style: TextStyle(
-                                      fontSize: 18,
-                                      color: Colors.white,
+                                      fontSize: 16,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                           ),
-                          const SizedBox(height: 16),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pushNamed(context, '/inscription');
-                            },
-                            child: const Text(
-                              'Pas de compte ? S\'inscrire',
-                              style: TextStyle(color: Styles.bleu),
-                            ),
-                          ),
                         ],
                       ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/inscription');
+                  },
+                  child: Text(
+                    'Pas encore de compte? Inscrivez-vous',
+                    style: TextStyle(
+                      color: Styles.blanc,
+                      decoration: TextDecoration.underline,
                     ),
                   ),
                 ),
@@ -165,46 +195,10 @@ class _PageconnexionState extends State<Pageconnexion> {
     );
   }
 
-  InputDecoration _inputDecoration(String label) {
+  InputDecoration _inputDecoration(String labelText) {
     return InputDecoration(
-      labelText: label,
-      labelStyle: TextStyle(color: Colors.grey[600]),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.grey[400]!),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Styles.bleu, width: 2),
-      ),
-    );
-  }
-
-  InputDecoration _inputDecorationWithEye(String label) {
-    return InputDecoration(
-      labelText: label,
-      labelStyle: TextStyle(color: Colors.grey[600]),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.grey[400]!),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Styles.bleu, width: 2),
-      ),
-      suffixIcon: IconButton(
-        icon: Icon(
-          _obscurePassword ? Icons.visibility_off : Icons.visibility,
-          color: Colors.grey[600],
-        ),
-        onPressed: () {
-          setState(() {
-            _obscurePassword = !_obscurePassword;
-          });
-        },
-      ),
+      labelText: labelText,
+      border: const OutlineInputBorder(),
     );
   }
 }

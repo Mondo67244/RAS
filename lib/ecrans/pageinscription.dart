@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:RAS/basicdata/style.dart';
 import 'package:RAS/basicdata/utilisateur.dart';
 import 'package:RAS/services/base de données/lienbd.dart';
+import 'package:RAS/services/synchronisation/synchronisation_service.dart';
 
 class PageInscription extends StatefulWidget {
   const PageInscription({super.key});
@@ -60,6 +61,10 @@ class _PageInscriptionState extends State<PageInscription> {
 
         // Ajouter l'utilisateur à la collection Firestore
         await FirestoreService().addUtilisateur(nouvelUtilisateur);
+
+        // Synchroniser le panier et les souhaits après l'inscription
+        final SynchronisationService syncService = SynchronisationService();
+        await syncService.synchroniserTout();
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
