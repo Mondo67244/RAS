@@ -28,12 +28,12 @@ class PanierState extends State<Panier>
   late Stream<List<Produit>> _cartProductsStream;
   final FirestoreService _firestoreService = FirestoreService();
   final PanierLocal _panierLocal = PanierLocal();
-  String? _selectedPaymentMethod;
+  String? _methodePaiementChoisie;
   String? _selectedDeliveryMethod;
   bool _confirmTerms = false;
-  final TextEditingController _paymentNumberController =
+  final TextEditingController _numeroPaiementController =
       TextEditingController();
-  final FocusNode _paymentNumberFocusNode =
+  final FocusNode _numeroPaiementFocusNode =
       FocusNode(); // Add focus node for payment field
   final Map<String, int> _productQuantities = {}; // Add the missing map
   List<String> _idsPanier = [];
@@ -90,7 +90,7 @@ class PanierState extends State<Panier>
       final paymentMethod = await _panierLocal.getPaymentMethod();
       setState(() {
         _selectedDeliveryMethod = deliveryMethod;
-        _selectedPaymentMethod = paymentMethod;
+        _methodePaiementChoisie = paymentMethod;
       });
     } catch (e) {
       _handleError('Erreur lors du chargement des méthodes sauvegardées: $e');
@@ -229,16 +229,16 @@ class PanierState extends State<Panier>
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
       // Clear focus when app goes to background or becomes inactive
-      _paymentNumberFocusNode.unfocus();
+      _numeroPaiementFocusNode.unfocus();
     }
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this); // Remove observer
-    _paymentNumberFocusNode.dispose(); // Dispose the focus node
-    _paymentNumberController.clear();
-    _paymentNumberController.dispose();
+    _numeroPaiementFocusNode.dispose(); // Dispose the focus node
+    _numeroPaiementController.clear();
+    _numeroPaiementController.dispose();
     super.dispose();
   }
 
@@ -524,7 +524,7 @@ class PanierState extends State<Panier>
           ),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: _buildPaymentSection(),
+            child: _choixpaiement(),
           ),
         ),
         const SizedBox(height: 12),
@@ -601,13 +601,13 @@ class PanierState extends State<Panier>
     }
 
     // Vérifier que la méthode de paiement est sélectionnée
-    if (_selectedPaymentMethod == null) {
+    if (_methodePaiementChoisie == null) {
       return false;
     }
 
     // Vérifier le numéro de paiement pour les paiements mobiles
-    if (_selectedPaymentMethod == 'MTN' || _selectedPaymentMethod == 'ORANGE') {
-      final numero = _paymentNumberController.text.trim();
+    if (_methodePaiementChoisie == 'MTN' || _methodePaiementChoisie == 'ORANGE') {
+      final numero = _numeroPaiementController.text.trim();
       if (numero.isEmpty || !_isValidPhoneNumber(numero)) {
         return false;
       }
@@ -727,9 +727,9 @@ class PanierState extends State<Panier>
         codePostal: '',
         utilisateur: utilisateur,
         produits: produitsAvecQuantite,
-        methodePaiment: _selectedPaymentMethod!,
+        methodePaiment: _methodePaiementChoisie!,
         choixLivraison: _selectedDeliveryMethod!,
-        numeroPaiement: _paymentNumberController.text.trim(),
+        numeroPaiement: _numeroPaiementController.text.trim(),
         statutPaiement: 'Attente',
       );
 
@@ -743,10 +743,10 @@ class PanierState extends State<Panier>
       setState(() {
         _idsPanier.clear();
         _productQuantities.clear();
-        _selectedPaymentMethod = null;
+        _methodePaiementChoisie = null;
         _selectedDeliveryMethod = null;
         _confirmTerms = false;
-        _paymentNumberController.clear();
+        _numeroPaiementController.clear();
       });
     } catch (e) {
       throw CartException('Erreur lors de la validation de la commande: $e');
@@ -801,7 +801,7 @@ class PanierState extends State<Panier>
                         const SizedBox(height: 3),
                         Row(
                           children: [
-                            _buildQuantityButton(
+                            _boutonQuantite(
                               icon: Icons.add,
                               onPressed:
                                   () => _updateQuantity(
@@ -810,7 +810,7 @@ class PanierState extends State<Panier>
                                   ),
                             ),
                             const SizedBox(width: 10),
-                            _buildQuantityButton(
+                            _boutonQuantite(
                               icon: Icons.remove,
                               onPressed:
                                   () => _updateQuantity(
@@ -851,7 +851,7 @@ class PanierState extends State<Panier>
     );
   }
 
-  Widget _buildQuantityButton({
+  Widget _boutonQuantite({
     required IconData icon,
     required VoidCallback onPressed,
   }) {
@@ -869,7 +869,8 @@ class PanierState extends State<Panier>
     );
   }
 
-  Widget _buildPaymentSection() {
+// Le widget pour choisir entre MTN ORANGE ou RIEN des deux
+  Widget _choixpaiement() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -877,21 +878,22 @@ class PanierState extends State<Panier>
           'Choisir une méthode de paiement :',
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
-        _buildRadioTile('MTN Mobile Money', 'MTN'),
-        _buildRadioTile('Orange Money', 'ORANGE'),
-        _buildRadioTile('Monnaie Physique', 'CASH'),
+        _boutonRadio('MTN Mobile Money', 'MTN'),
+        _boutonRadio('Orange Money', 'ORANGE'),
+        _boutonRadio('Monnaie Physique', 'CASH'),
         const SizedBox(height: 8),
         TextFormField(
-          controller: _paymentNumberController,
-          focusNode: _paymentNumberFocusNode, // Add focus node to the field
+          enabled: (_methodePaiementChoisie  == 'MTN' || _methodePaiementChoisie == 'ORANGE') ? true : false,
+          controller: _numeroPaiementController,
+          focusNode: _numeroPaiementFocusNode, 
           decoration: InputDecoration(
             labelText: 'Entrer le numéro de paiement',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
             contentPadding: const EdgeInsets.symmetric(horizontal: 12),
             errorText:
-                (_selectedPaymentMethod == 'MTN' ||
-                            _selectedPaymentMethod == 'ORANGE') &&
-                        !_isValidPhoneNumber(_paymentNumberController.text)
+                (_methodePaiementChoisie == 'MTN' ||
+                            _methodePaiementChoisie == 'ORANGE') &&
+                        !_isValidPhoneNumber(_numeroPaiementController.text)
                     ? 'Numéro de téléphone invalide'
                     : null,
           ),
@@ -899,23 +901,23 @@ class PanierState extends State<Panier>
           onChanged: (value) => setState(() {}),
           // Clear focus when user submits
           onFieldSubmitted: (value) {
-            _paymentNumberFocusNode.unfocus();
+            _numeroPaiementFocusNode.unfocus();
           },
         ),
       ],
     );
   }
 
-  Widget _buildRadioTile(String title, String value) {
+  Widget _boutonRadio(String title, String value) {
     return RadioListTile<String>(
       title: Text(title),
       value: value,
-      groupValue: _selectedPaymentMethod,
+      groupValue: _methodePaiementChoisie,
       onChanged: (newValue) {
         setState(() {
-          _selectedPaymentMethod = newValue;
+          _methodePaiementChoisie = newValue;
           if (newValue == 'CASH') {
-            _paymentNumberController.clear();
+            _numeroPaiementController.clear();
           }
         });
         if (newValue != null) {

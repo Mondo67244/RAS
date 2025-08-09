@@ -117,9 +117,31 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mon Profil'),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/images/kanjad.png',
+              key: const ValueKey('logo'),
+              width: 140,
+              height: 50,
+            ),
+            Transform.translate(
+              offset: const Offset(-20, 12),
+              child: const Text(
+                'Profil simple',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
         backgroundColor: Styles.rouge,
-        foregroundColor: Colors.white,
+        foregroundColor: Styles.blanc,
+        centerTitle: true,
+        elevation: 0,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+        ),
         actions: [
           IconButton(
             icon: Icon(_isEditing ? Icons.check : Icons.edit),
@@ -135,6 +157,9 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ],
       ),
+
+      
+      
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Padding(

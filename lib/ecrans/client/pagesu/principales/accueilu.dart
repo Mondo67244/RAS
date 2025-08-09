@@ -89,16 +89,7 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
         ],
       ),
     ),
-    // Tab commandes retiré du PageView
-    // Tab(
-    //   child: Row(
-    //     children: [
-    //       Icon(FluentIcons.receipt_bag_24_filled),
-    //       const SizedBox(width: 3),
-    //       Text('Commandes'),
-    //     ],
-    //   ),
-    // ),
+   
   ];
 
   @override
@@ -164,16 +155,31 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
 
       appBar: AppBar(
         foregroundColor: Styles.blanc,
-        backgroundColor: const Color.fromARGB(255, 163, 14, 3),
+        backgroundColor: Styles.rouge,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
         ),
-        title: Image.asset(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+          Image.asset(
           'assets/images/kanjad.png',
           key: const ValueKey('logo'),
           width: 140,
-          height: 50,
+          height: 45,
         ),
+        Transform.translate(
+                            offset: const Offset(-30, 13),
+                            child: const Text(
+                              'Cameroun',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Styles.blanc,
+                              ),
+                            ),
+                          ),
+        ],) ,
 
         centerTitle: true,
         bottom:

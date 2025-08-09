@@ -596,7 +596,7 @@ class _CommandesState extends State<Commandes> {
                             ),
                             ...commandesDuJour
                                 .map((commande) => _carteCommande(commande))
-                                .toList(),
+                                ,
                           ],
                         );
                       },
@@ -650,13 +650,13 @@ class OrderCardWidget extends StatefulWidget {
   final Widget Function(String) statutBuilder;
 
   const OrderCardWidget({
-    Key? key,
+    super.key,
     required this.commande,
     required this.getInvoiceDate,
     required this.onShowDetails,
     required this.onViewInvoice,
     required this.statutBuilder,
-  }) : super(key: key);
+  });
 
   @override
   State<OrderCardWidget> createState() => _OrderCardWidgetState();

@@ -43,16 +43,27 @@ class ParametresStatsPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Styles.blanc,
       appBar: AppBar(
-        title: const Text(
-          'Statistiques',
-          style: TextStyle(
-            fontSize: 20, 
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/images/kanjad.png',
+              key: const ValueKey('logo'),
+              width: 140,
+              height: 50,
+            ),
+            Transform.translate(
+              offset: const Offset(-20, 12),
+              child: const Text(
+                'Statistiques',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
         ),
         backgroundColor: Styles.rouge,
-        foregroundColor: Colors.white,
+        foregroundColor: Styles.blanc,
+        centerTitle: true,
         elevation: 0,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
@@ -91,9 +102,9 @@ class ParametresStatsPage extends StatelessWidget {
 
           return Center(
             child: Container(
-              constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width > 600 ? 500 : 300,
-              ),
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width > 600 ? 700 : 500,
+          ),
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
                 child: Column(

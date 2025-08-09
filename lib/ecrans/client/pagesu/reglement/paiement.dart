@@ -4,7 +4,6 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:RAS/basicdata/commande.dart';
 import 'package:RAS/basicdata/style.dart';
 import 'package:RAS/basicdata/facture.dart';
-import 'package:RAS/basicdata/utilisateur.dart';
 import 'package:RAS/basicdata/produit.dart';
 import 'package:RAS/services/BD/lienbd.dart';
 import 'dart:math';

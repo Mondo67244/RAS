@@ -72,41 +72,21 @@ class ProductCard extends StatelessWidget {
                           ),
                       if (produit.enPromo)
                         Positioned(
-                          top: 8,
-                          left: 8,
-                          child: AnimatedOpacity(
-                            opacity: produit.enPromo ? 1.0 : 0.0,
-                            duration: const Duration(milliseconds: 400),
-                            child: Chip(
-                              backgroundColor: Colors.red.shade50,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                side: BorderSide(color: Styles.rouge, width: 1),
-                              ),
-                              label: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.whatshot_outlined,
-                                    size: 14,
-                                    color: const Color.fromARGB(
-                                      255,
-                                      222,
-                                      118,
-                                      7,
-                                    ),
+                          top: 2,
+                          left: 1,
+                          child: Chip(
+                            backgroundColor: Styles.rouge,
+                            label: Row(
+                              children: [
+                                Text(
+                                  'En Promo!',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Styles.blanc,
+                                    fontSize: 12,
                                   ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    'En Promo!',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Styles.rouge,
-                                      fontSize: 11,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
                         ),

@@ -66,7 +66,10 @@ class VoirFacture extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Center(
           child: Container(
-            constraints: isWideScreen ? BoxConstraints(maxWidth: 600) : BoxConstraints(maxWidth: 400),
+            constraints:
+                isWideScreen
+                    ? BoxConstraints(maxWidth: 600)
+                    : BoxConstraints(maxWidth: 400),
             child: Column(
               children: [
                 // Header with logo
@@ -82,22 +85,38 @@ class VoirFacture extends StatelessWidget {
                           const Text(
                             'Royal Advanced Services',
                             style: TextStyle(
-                              fontSize: 20,
+                              fontSize: 17,
                               fontWeight: FontWeight.bold,
                               color: Styles.blanc,
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            idFact,
+                          const Text(
+                            'B.P: 3563',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                               color: Styles.blanc,
                             ),
                           ),
+                          const Text(
+                            'Akwa Douala-Bar',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Styles.blanc,
+                            ),
+                          ),
+                          const Text(
+                            'info@royaladservices.net',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Styles.blanc,
+                            ),
+                          ),
+
                           Text(
-                            'Du $date',
+                            'Facturation du $date',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
@@ -106,20 +125,44 @@ class VoirFacture extends StatelessWidget {
                           ),
                         ],
                       ),
-                      Image.asset('assets/images/kanjad.png', height: 60),
+                      Row(
+                        children: [
+                          Image.asset(
+                            'assets/images/kanjad.png',
+                            key: const ValueKey('logo'),
+                            width: 100,
+                            height: 50,
+                          ),
+                          Transform.translate(
+                            offset: const Offset(-80, 25),
+                            child: const Text(
+                              'Cameroun',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Styles.blanc,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 15),
+                Text(
+                  idFact,
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
                 const Divider(thickness: 1),
                 const SizedBox(height: 20),
-            
+
                 // Client information
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Informations du client: ',
+                      'Facture de Mr./Mme/Mlle.: ',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     Expanded(
@@ -138,10 +181,12 @@ class VoirFacture extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 20),
-            
+
                 // Products table
                 Container(
-                  decoration: BoxDecoration(border: Border.all(color: Colors.grey)),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                  ),
                   child: Column(
                     children: [
                       // Table header
@@ -181,21 +226,26 @@ class VoirFacture extends StatelessWidget {
                           ],
                         ),
                       ),
-            
+
                       // Product list
                       ...facture.produits.map((produit) {
                         final quantite = int.parse(produit.quantite);
                         final prix = double.parse(produit.prix);
                         final total = quantite * prix;
-            
+
                         return Container(
                           padding: const EdgeInsets.all(8.0),
                           decoration: const BoxDecoration(
-                            border: Border(bottom: BorderSide(color: Colors.grey)),
+                            border: Border(
+                              bottom: BorderSide(color: Colors.grey),
+                            ),
                           ),
                           child: Row(
                             children: [
-                              Expanded(flex: 3, child: Text(produit.nomProduit)),
+                              Expanded(
+                                flex: 3,
+                                child: Text(produit.nomProduit),
+                              ),
                               Expanded(
                                 child: Text(
                                   quantite.toString(),
@@ -217,8 +267,8 @@ class VoirFacture extends StatelessWidget {
                             ],
                           ),
                         );
-                      }).toList(),
-            
+                      }),
+
                       // Total
                       Container(
                         padding: const EdgeInsets.all(8.0),
@@ -231,7 +281,9 @@ class VoirFacture extends StatelessWidget {
                             ),
                             Text(
                               '${facture.prixFacture} CFA',
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),
@@ -239,9 +291,9 @@ class VoirFacture extends StatelessWidget {
                     ],
                   ),
                 ),
-            
+
                 const SizedBox(height: 20),
-            
+
                 // Footer
                 const Text(
                   'Merci d\'avoir choisi Kanjad pour vos achats!',

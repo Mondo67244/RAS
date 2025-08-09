@@ -148,16 +148,27 @@ class ParametresPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Styles.blanc,
       appBar: AppBar(
-        title: const Text(
-          'Paramètres',
-          style: TextStyle(
-            fontSize: 20, 
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/images/kanjad.png',
+              key: const ValueKey('logo'),
+              width: 140,
+              height: 50,
+            ),
+            Transform.translate(
+              offset: const Offset(-20, 12),
+              child: const Text(
+                'Paramètres',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
         ),
         backgroundColor: Styles.rouge,
-        foregroundColor: Colors.white,
+        foregroundColor: Styles.blanc,
+        centerTitle: true,
         elevation: 0,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
@@ -166,7 +177,7 @@ class ParametresPage extends StatelessWidget {
       body: Center(
         child: Container(
           constraints: BoxConstraints(
-            maxWidth: MediaQuery.of(context).size.width > 600 ? 500 : 300,
+            maxWidth: MediaQuery.of(context).size.width > 600 ? 700 : 500,
           ),
           child: ListView(
             padding: const EdgeInsets.all(16),

@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:RAS/basicdata/facture.dart';
@@ -8,6 +7,7 @@ import 'package:RAS/basicdata/facture.dart';
 class FacturePdfService {
   static Future<Uint8List> generateFacturePdf(Facture facture) async {
     final pw.Document document = pw.Document();
+    final idFact = facture.idFacture;
 
     // Logo
     pw.MemoryImage? logoImage;
@@ -19,7 +19,6 @@ class FacturePdfService {
     }
 
     final date = DateTime.tryParse(facture.dateFacture) ?? DateTime.now();
-    final dateStr = DateFormat('dd/MM/yyyy HH:mm', 'fr_FR').format(date);
 
     // Helpers
     String formatPrice(num value) => '${value.toStringAsFixed(0)} CFA';
@@ -34,7 +33,7 @@ class FacturePdfService {
             pw.Container(
               padding: const pw.EdgeInsets.all(12),
               decoration: pw.BoxDecoration(
-                color: PdfColors.red600,
+                color: PdfColors.red800,
                 borderRadius: pw.BorderRadius.circular(8),
               ),
               child: pw.Row(
@@ -47,42 +46,84 @@ class FacturePdfService {
                       pw.Text(
                         'Royal Advanced Services',
                         style: pw.TextStyle(
-                          fontSize: 18,
+                          fontSize: 17,
                           fontWeight: pw.FontWeight.bold,
                           color: PdfColors.white,
                         ),
                       ),
                       pw.SizedBox(height: 4),
+
                       pw.Text(
-                        facture.idFacture,
+                        'B.P: 3563',
                         style: pw.TextStyle(
-                          fontSize: 10,
-                          color: PdfColors.white,
+                          fontSize: 12,
                           fontWeight: pw.FontWeight.bold,
+                          color: PdfColors.white,
                         ),
                       ),
                       pw.Text(
-                        'Du $dateStr',
+                        'Akwa Douala-Bar',
                         style: pw.TextStyle(
-                          fontSize: 10,
-                          color: PdfColors.white,
+                          fontSize: 12,
                           fontWeight: pw.FontWeight.bold,
+                          color: PdfColors.white,
+                        ),
+                      ),
+
+                      pw.Text(
+                        'info@royaladservices.net',
+                        style: pw.TextStyle(
+                          fontSize: 12,
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColors.white,
+                        ),
+                      ),
+                      pw.Text(
+                        '237-233-438-552 | 237-697-537-548',
+                        style: pw.TextStyle(
+                          fontSize: 12,
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColors.white,
+                        ),
+                      ),
+
+                      pw.Text(
+                        'Facturation du $date',
+                        style: pw.TextStyle(
+                          fontSize: 12,
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColors.white,
                         ),
                       ),
                     ],
                   ),
                   if (logoImage != null)
-                    pw.Container(
-                      height: 48,
-                      width: 140,
-                      alignment: pw.Alignment.centerRight,
-                      child: pw.Image(logoImage, height: 48),
+                    pw.Column(
+                      children: [
+                        pw.Container(
+                          height: 48,
+                          width: 140,
+                          alignment: pw.Alignment.centerRight,
+                          child: pw.Image(logoImage, height: 48),
+                        ),
+                        pw.Text(
+                          'Cameroun',
+                          style: pw.TextStyle(
+                            fontWeight: pw.FontWeight.bold,
+                            color: PdfColors.white,
+                          ),
+                        ),
+                      ],
                     ),
                 ],
               ),
             ),
 
-            pw.SizedBox(height: 16),
+            pw.SizedBox(height: 15),
+            pw.Text(
+              idFact,
+              style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+            ),
             pw.Divider(),
             pw.SizedBox(height: 12),
 
@@ -91,7 +132,7 @@ class FacturePdfService {
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 pw.Text(
-                  'Informations du client: ',
+                  'Facture de Mr./Mme/Mlle.: ',
                   style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
                 ),
                 pw.SizedBox(width: 8),

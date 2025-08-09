@@ -42,7 +42,7 @@ class _ParametresProfilPageState extends State<ParametresProfilPage> {
             .collection('Utilisateurs')
             .doc(user.uid)
             .get();
-    final data = doc.data() as Map<String, dynamic>?;
+    final data = doc.data();
     _nomCtrl.text = data?['nomUtilisateur'] ?? '';
     _prenomCtrl.text = data?['prenomUtilisateur'] ?? '';
     _emailCtrl.text = data?['emailUtilisateur'] ?? user.email ?? '';
@@ -110,16 +110,27 @@ class _ParametresProfilPageState extends State<ParametresProfilPage> {
     return Scaffold(
       backgroundColor: Styles.blanc,
       appBar: AppBar(
-        title: const Text(
-          'Compléter le profil',
-          style: TextStyle(
-            fontSize: 20, 
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/images/kanjad.png',
+              key: const ValueKey('logo'),
+              width: 140,
+              height: 50,
+            ),
+            Transform.translate(
+              offset: const Offset(-20, 12),
+              child: const Text(
+                'Profil complet',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
         ),
         backgroundColor: Styles.rouge,
-        foregroundColor: Colors.white,
+        foregroundColor: Styles.blanc,
+        centerTitle: true,
         elevation: 0,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
@@ -128,10 +139,18 @@ class _ParametresProfilPageState extends State<ParametresProfilPage> {
       body: Center(
         child: Container(
           constraints: BoxConstraints(
-            maxWidth: MediaQuery.of(context).size.width > 600 ? 500 : 300,
+            maxWidth: MediaQuery.of(context).size.width > 600 ? 700 : 500,
           ),
           child: _loading
-              ? const Center(child: CircularProgressIndicator())
+              ? Center(child: Container(
+                child: Column(
+                  children: [
+                    SizedBox(height: 280,),
+                    CircularProgressIndicator(color: Styles.bleu,),
+                    Text("Chargement des informations complètes ...")
+                  ],
+                ),
+              ))
               : SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
                 child: Form(
