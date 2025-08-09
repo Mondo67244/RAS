@@ -362,10 +362,45 @@ class FirestoreService {
     }
   }
   
+  Future<Facture?> getFactureById(String factureId) async {
+    try {
+      DocumentSnapshot snapshot = await facturesCollection.doc(factureId).get();
+      if (snapshot.exists) {
+        Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+        return Facture.fromMap(data);
+      }
+      return null;
+    } catch (e) {
+      print('Erreur dans getFactureById: $e');
+      return null;
+    }
+  }
+  
+  Future<Facture?> getFactureByOrderId(String orderId) async {
+    try {
+      // Query factures that contain the order ID in their ID
+      QuerySnapshot snapshot = await facturesCollection
+          .where('idFacture', isGreaterThanOrEqualTo: 'FACT-${orderId.toUpperCase()}')
+          .where('idFacture', isLessThan: 'FACT-${orderId.toUpperCase()}\uf8ff')
+          .limit(1)
+          .get();
+      
+      if (snapshot.docs.isNotEmpty) {
+        Map<String, dynamic> data = snapshot.docs.first.data() as Map<String, dynamic>;
+        return Facture.fromMap(data);
+      }
+      
+      return null;
+    } catch (e) {
+      print('Erreur dans getFactureByOrderId: $e');
+      return null;
+    }
+  }
+  
   // Ajout de méthodes pour gérer les messages
   Future<void> sendMessage(Message message) async {
     try {
-      await messagesCollection.add(message.toMap());
+      await messagesCollection.add(message);
     } catch (e) {
       print('Erreur dans sendMessage: $e');
       rethrow;

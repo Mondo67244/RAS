@@ -10,7 +10,7 @@ class ChatPage extends StatefulWidget {
   final String? idProduit;
   final String? nomProduit;
 
-  const ChatPage({Key? key, this.idProduit, this.nomProduit}) : super(key: key);
+  const ChatPage({super.key, this.idProduit, this.nomProduit});
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -113,7 +113,7 @@ class _ChatPageState extends State<ChatPage> {
         if (_scrollController.hasClients) {
           _scrollController.animateTo(
             _scrollController.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 300),
+            duration: const Duration(milliseconds: 100),
             curve: Curves.easeOut,
           );
         }

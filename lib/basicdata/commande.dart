@@ -31,7 +31,7 @@ class Commande {
     required this.ville,
     required this.codePostal,
     required this.numeroPaiement,
-    this.statutPaiement = 'En attente', // <-- Valeur par défaut
+    required this.statutPaiement  // <-- Valeur par défaut
   });
 
   Map<String, dynamic> toMap() {

@@ -13,7 +13,7 @@ import 'package:RAS/ecrans/client/pagesu/resultats.dart';
 import 'package:RAS/ecrans/pageconnexion.dart';
 import 'package:RAS/ecrans/pageinscription.dart';
 import 'package:RAS/ecrans/client/pagesu/voirplus.dart';
-import 'package:RAS/ecrans/client/pagesu/payment_page.dart';
+import 'package:RAS/ecrans/client/pagesu/paiement.dart';
 import 'package:RAS/ecrans/ecrandemarrage.dart';
 import 'package:RAS/ecrans/client/pagesu/chat.dart';
 import 'package:RAS/ecrans/client/pagesu/profile.dart'; // Ajout de l'import du profil
@@ -46,7 +46,7 @@ class MainApp extends StatelessWidget {
         '/utilisateur/recherche' : (context) => const Resultats(),
         '/utilisateur/payment': (context) {
           final commande = ModalRoute.of(context)!.settings.arguments as Commande;
-          return PaymentPage(commande: commande);
+          return paiement(commande: commande);
         },
         '/admin/nouveau produit': (context) => const AjouterEquipPage(),
         '/connexion': (context) => const Pageconnexion(),
