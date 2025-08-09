@@ -6,7 +6,7 @@ import 'package:RAS/basicdata/style.dart';
 import 'package:RAS/basicdata/facture.dart';
 import 'package:RAS/basicdata/utilisateur.dart';
 import 'package:RAS/basicdata/produit.dart';
-import 'package:RAS/services/base%20de%20donn%C3%A9es/lienbd.dart';
+import 'package:RAS/services/BD/lienbd.dart';
 import 'dart:math';
 
 class paiement extends StatefulWidget {

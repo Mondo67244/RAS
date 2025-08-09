@@ -3,11 +3,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:RAS/basicdata/style.dart';
-import 'package:RAS/ecrans/client/pagesu/panier.dart';
-import 'package:RAS/ecrans/client/pagesu/promo.dart';
-import 'package:RAS/ecrans/client/pagesu/recents.dart';
-import 'package:RAS/ecrans/client/pagesu/resultats.dart';
-import 'package:RAS/ecrans/client/pagesu/souhaits.dart';
+import 'package:RAS/ecrans/client/pagesu/articles/panier.dart';
+import 'package:RAS/ecrans/client/pagesu/articles/promo.dart';
+import 'package:RAS/ecrans/client/pagesu/articles/recents.dart';
+import 'package:RAS/ecrans/client/pagesu/articles/resultats.dart';
+import 'package:RAS/ecrans/client/pagesu/articles/souhaits.dart';
 
 class Accueilu extends StatefulWidget {
   const Accueilu({super.key});
@@ -39,9 +39,11 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
   List<Widget> get _pages {
     // Initialize cached pages list if empty
     if (_cachedPages.isEmpty) {
-      _cachedPages.addAll(List.filled(4, Container())); // 4 pages: Recents, Promo, Panier, Souhaits
+      _cachedPages.addAll(
+        List.filled(4, Container()),
+      ); // 4 pages: Recents, Promo, Panier, Souhaits
     }
-    
+
     return [
       _buildPage(const Recents(), 0),
       _buildPage(const Promo(), 1),
@@ -117,11 +119,12 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
     final User? user = _currentUser;
     if (user != null) {
       try {
-        DocumentSnapshot userDoc = await FirebaseFirestore.instance
-            .collection('Utilisateurs')
-            .doc(user.uid)
-            .get();
-        
+        DocumentSnapshot userDoc =
+            await FirebaseFirestore.instance
+                .collection('Utilisateurs')
+                .doc(user.uid)
+                .get();
+
         if (userDoc.exists && mounted) {
           setState(() {
             _userData = userDoc.data() as Map<String, dynamic>?;
@@ -162,6 +165,9 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
       appBar: AppBar(
         foregroundColor: Styles.blanc,
         backgroundColor: const Color.fromARGB(255, 163, 14, 3),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+        ),
         title: Image.asset(
           'assets/images/kanjad.png',
           key: const ValueKey('logo'),
@@ -178,16 +184,37 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                     color: Colors.white,
                     width: double.infinity,
                     child: Center(
-                      child: SizedBox(
-                        width: 755,
-                        child: TabBar(
-                          dividerHeight: 0,
-                          controller: _tabController,
-                          isScrollable: false,
-                          indicatorColor: Styles.rouge,
-                          labelColor: Styles.rouge,
-                          unselectedLabelColor: Colors.grey[600],
-                          tabs: _tabs,
+                      child: Container(
+                        width: 780,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 12,
+                        ),
+                        decoration: const BoxDecoration(color: Colors.white),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: TabBar(
+                            controller: _tabController,
+                            isScrollable: false,
+                            dividerHeight: 0,
+                            indicatorSize: TabBarIndicatorSize.tab,
+                            indicator: BoxDecoration(
+                              color: Styles.rouge,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            labelColor: Colors.white,
+                            unselectedLabelColor: Colors.grey[700],
+                            labelStyle: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                            ),
+                            unselectedLabelStyle: const TextStyle(
+                              fontWeight: FontWeight.w500,
+                            ),
+                            tabs: _tabs,
+                          ),
                         ),
                       ),
                     ),
@@ -202,12 +229,62 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
             icon: const Icon(FluentIcons.receipt_bag_24_filled),
             tooltip: 'Mes Commandes',
           ),
-          IconButton(
-            onPressed: () {
-              //Page de paramètres
+          PopupMenuButton<String>(
+            tooltip: 'Plus',
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            onSelected: (value) {
+              switch (value) {
+                case 'factures':
+                  Navigator.pushNamed(context, '/utilisateur/factures');
+                  break;
+                case 'profil':
+                  Navigator.pushNamed(context, '/utilisateur/profile');
+                  break;
+                case 'chat':
+                  Navigator.pushNamed(context, '/utilisateur/chat');
+                  break;
+                case 'parametres':
+                  Navigator.pushNamed(context, '/utilisateur/parametres');
+                  break;
+              }
             },
-            icon: const Icon(Icons.settings),
-            tooltip: 'Paramètres',
+            itemBuilder:
+                (context) => [
+                  const PopupMenuItem(
+                    value: 'factures',
+                    child: ListTile(
+                      dense: true,
+                      leading: Icon(FluentIcons.document_pdf_24_regular),
+                      title: Text('Mes Factures'),
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'profil',
+                    child: ListTile(
+                      dense: true,
+                      leading: Icon(FluentIcons.person_24_regular),
+                      title: Text('Mon Profil'),
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'chat',
+                    child: ListTile(
+                      dense: true,
+                      leading: Icon(FluentIcons.chat_24_regular),
+                      title: Text('Aide / Contact'),
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'parametres',
+                    child: ListTile(
+                      dense: true,
+                      leading: Icon(Icons.settings),
+                      title: Text('Paramètres'),
+                    ),
+                  ),
+                ],
           ),
         ],
       ),
@@ -217,9 +294,7 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
           padding: EdgeInsets.zero,
           children: [
             DrawerHeader(
-              decoration: BoxDecoration(
-                color: Styles.rouge,
-              ),
+              decoration: BoxDecoration(color: Styles.rouge),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -227,16 +302,13 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                   CircleAvatar(
                     radius: 30,
                     backgroundColor: Colors.white,
-                    child: Icon(
-                      Icons.person,
-                      size: 30,
-                      color: Styles.rouge,
-                    ),
+                    child: Icon(Icons.person, size: 30, color: Styles.rouge),
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    _userData != null 
-                        ? '${_userData!['prenomUtilisateur'] ?? ''} ${_userData!['nomUtilisateur'] ?? ''}'.trim()
+                    _userData != null
+                        ? '${_userData!['prenomUtilisateur'] ?? ''} ${_userData!['nomUtilisateur'] ?? ''}'
+                            .trim()
                         : (_currentUser != null ? 'Utilisateur' : 'Invité'),
                     style: const TextStyle(
                       color: Colors.white,
@@ -245,16 +317,32 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                     ),
                   ),
                   Text(
-                    _currentUser != null ? _currentUser!.email ?? 'Connecté' : 'Non connecté',
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                    ),
+                    _currentUser != null
+                        ? _currentUser!.email ?? 'Connecté'
+                        : 'Non connecté',
+                    style: const TextStyle(color: Colors.white70, fontSize: 14),
                   ),
                 ],
               ),
             ),
             if (_currentUser != null) ...[
+              ListTile(
+                leading: const Icon(FluentIcons.receipt_bag_24_regular),
+                title: const Text('Voir les commandes'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, '/utilisateur/commandes');
+                },
+              ),
+              ListTile(
+                leading: const Icon(FluentIcons.document_pdf_24_regular),
+                title: const Text('Voir les factures'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, '/utilisateur/factures');
+                },
+              ),
+              const Divider(),
               ListTile(
                 leading: const Icon(FluentIcons.person_24_regular),
                 title: const Text('Mon Profil'),
@@ -277,6 +365,7 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                 title: const Text('Paramètres'),
                 onTap: () {
                   Navigator.pop(context);
+                  Navigator.pushNamed(context, '/utilisateur/parametres');
                 },
               ),
               ListTile(
@@ -296,7 +385,10 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                   if (context.mounted) {
                     Navigator.pop(context);
                     Navigator.pushNamedAndRemoveUntil(
-                        context, '/connexion', (route) => false);
+                      context,
+                      '/connexion',
+                      (route) => false,
+                    );
                   }
                 },
               ),
@@ -307,7 +399,10 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.pushNamedAndRemoveUntil(
-                      context, '/connexion', (route) => false);
+                    context,
+                    '/connexion',
+                    (route) => false,
+                  );
                 },
               ),
               ListTile(
@@ -316,7 +411,10 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.pushNamedAndRemoveUntil(
-                      context, '/inscription', (route) => false);
+                    context,
+                    '/inscription',
+                    (route) => false,
+                  );
                 },
               ),
             ],
@@ -334,35 +432,58 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
       bottomNavigationBar:
           isLargeScreen
               ? null
-              : BottomNavigationBar(
-                currentIndex: _selectedIndex,
-                onTap: _onTapNav,
-                selectedItemColor: const Color.fromARGB(255, 163, 14, 3),
-                unselectedItemColor: Colors.grey,
-                type: BottomNavigationBarType.fixed,
-                items: const [
-                  BottomNavigationBarItem(
-                    icon: Icon(FluentIcons.home_more_20_filled),
-                    label: 'Accueil',
+              : Container(
+                decoration: BoxDecoration(
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.06),
+                      blurRadius: 12,
+                      offset: const Offset(0, -2),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
                   ),
-                  BottomNavigationBarItem(
-                    icon: Icon(FluentIcons.gift_card_24_filled),
-                    label: 'Promos',
+                  child: BottomNavigationBar(
+                    backgroundColor: Colors.white,
+                    elevation: 0,
+                    currentIndex: _selectedIndex,
+                    onTap: _onTapNav,
+                    type: BottomNavigationBarType.fixed,
+                    selectedItemColor: const Color.fromARGB(255, 163, 14, 3),
+                    unselectedItemColor: Colors.grey[600],
+                    showUnselectedLabels: true,
+                    selectedIconTheme: const IconThemeData(size: 26),
+                    unselectedIconTheme: const IconThemeData(size: 22),
+                    selectedLabelStyle: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                    ),
+                    unselectedLabelStyle: const TextStyle(
+                      fontWeight: FontWeight.w500,
+                    ),
+                    items: const [
+                      BottomNavigationBarItem(
+                        icon: Icon(FluentIcons.home_more_20_filled),
+                        label: 'Accueil',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: Icon(FluentIcons.gift_card_24_filled),
+                        label: 'Promos',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: Icon(FluentIcons.shopping_bag_tag_24_filled),
+                        label: 'Panier',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: Icon(FluentIcons.class_20_filled),
+                        label: 'Souhaits',
+                      ),
+                    ],
                   ),
-                  BottomNavigationBarItem(
-                    icon: Icon(FluentIcons.shopping_bag_tag_24_filled),
-                    label: 'Panier',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(FluentIcons.class_20_filled),
-                    label: 'Souhaits',
-                  ),
-                  // BottomNavigationBarItem commandes retiré
-                  // BottomNavigationBarItem(
-                  //   icon: Icon(FluentIcons.receipt_bag_24_filled),
-                  //   label: 'Passés',
-                  // ),
-                ],
+                ),
               ),
     );
   }

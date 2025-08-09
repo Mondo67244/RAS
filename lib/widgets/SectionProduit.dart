@@ -27,14 +27,16 @@ class ProductSection extends StatelessWidget {
     if (produits.isEmpty) return const SizedBox.shrink();
 
     final ScrollController scrollController = ScrollController();
-    final double cardWidth = isWideScreen ? 320 : 300;
+    final double cardWidth = isWideScreen ? 290 : 280;
 
     void scrollCards(int direction) {
       final double scrollAmount = cardWidth * 2 * direction;
       final double maxScroll = scrollController.position.maxScrollExtent;
       final double currentScroll = scrollController.offset;
-      final double targetScroll =
-          (currentScroll + scrollAmount).clamp(0.0, maxScroll);
+      final double targetScroll = (currentScroll + scrollAmount).clamp(
+        0.0,
+        maxScroll,
+      );
 
       scrollController.animateTo(
         targetScroll,
@@ -53,8 +55,11 @@ class ProductSection extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(FluentIcons.arrow_right_24_filled,
-                      color: Styles.bleu, size: 24),
+                  Icon(
+                    FluentIcons.arrow_right_24_filled,
+                    color: Styles.bleu,
+                    size: 24,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     title,
@@ -71,21 +76,18 @@ class ProductSection extends StatelessWidget {
                   Navigator.pushNamed(
                     context,
                     '/all_products',
-                    arguments: {
-                      'title': title,
-                      'produits': produits,
-                    },
+                    arguments: {'title': title, 'produits': produits},
                   );
                 },
                 child: Text(
                   'Voir plus',
                   style: TextStyle(
-                  color: Styles.rouge, 
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600
+                    color: Styles.rouge,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -93,7 +95,7 @@ class ProductSection extends StatelessWidget {
           alignment: Alignment.center,
           children: [
             SizedBox(
-              height: isWideScreen ? 380 : 350,
+              height: isWideScreen ? 360 : 330,
               child: ListView.builder(
                 controller: scrollController,
                 scrollDirection: Axis.horizontal,

@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:RAS/services/base de données/lienbd.dart';
+import 'package:RAS/services/BD/lienbd.dart';
 
 // import '../local/pont_stockage.dart';
 
@@ -10,16 +10,20 @@ class PanierLocal {
   SharedPreferences? _prefs;
   final FirestoreService _firestoreService = FirestoreService();
 
+  static const String _keyPanier = 'panier';
+  static const String _keyQuantities = 'quantities';
+  static const String _keyCartJustCleared = 'cart_just_cleared';
+
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
   }
 
   Future<List<String>> getPanier() async {
-    return _prefs?.getStringList('panier') ?? [];
+    return _prefs?.getStringList(_keyPanier) ?? [];
   }
 
   Future<Map<String, int>> getQuantities() async {
-    final String? quantitiesJson = _prefs?.getString('quantities');
+    final String? quantitiesJson = _prefs?.getString(_keyQuantities);
     if (quantitiesJson != null) {
       try {
         return Map<String, int>.from(jsonDecode(quantitiesJson));
@@ -35,26 +39,30 @@ class PanierLocal {
     final panier = await getPanier();
     if (!panier.contains(idProduit)) {
       panier.add(idProduit);
-      await _prefs?.setStringList('panier', panier);
+      await _prefs?.setStringList(_keyPanier, panier);
     }
     final quantities = await getQuantities();
     quantities[idProduit] = quantite;
-    await _prefs?.setString('quantities', jsonEncode(quantities));
+    await _prefs?.setString(_keyQuantities, jsonEncode(quantities));
 
     // Si l'utilisateur est connecté, synchroniser avec Firestore
     final User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      await _firestoreService.ajouterAuPanierFirestore(user.uid, idProduit, quantite);
+      await _firestoreService.ajouterAuPanierFirestore(
+        user.uid,
+        idProduit,
+        quantite,
+      );
     }
   }
 
   Future<void> retirerDuPanier(String idProduit) async {
     final panier = await getPanier();
     panier.remove(idProduit);
-    await _prefs?.setStringList('panier', panier);
+    await _prefs?.setStringList(_keyPanier, panier);
     final quantities = await getQuantities();
     quantities.remove(idProduit);
-    await _prefs?.setString('quantities', jsonEncode(quantities));
+    await _prefs?.setString(_keyQuantities, jsonEncode(quantities));
 
     // Si l'utilisateur est connecté, synchroniser avec Firestore
     final User? user = FirebaseAuth.instance.currentUser;
@@ -66,12 +74,16 @@ class PanierLocal {
   Future<void> updateQuantity(String idProduit, int quantite) async {
     final quantities = await getQuantities();
     quantities[idProduit] = quantite;
-    await _prefs?.setString('quantities', jsonEncode(quantities));
+    await _prefs?.setString(_keyQuantities, jsonEncode(quantities));
 
     // Si l'utilisateur est connecté, synchroniser avec Firestore
     final User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      await _firestoreService.updateQuantitePanierFirestore(user.uid, idProduit, quantite);
+      await _firestoreService.updateQuantitePanierFirestore(
+        user.uid,
+        idProduit,
+        quantite,
+      );
     }
   }
 
@@ -92,17 +104,27 @@ class PanierLocal {
   }
 
   Future<void> viderPanier() async {
-    await _prefs?.remove('panier');
-    await _prefs?.remove('quantities');
+    await _prefs?.remove(_keyPanier);
+    await _prefs?.remove(_keyQuantities);
 
-    // Si l'utilisateur est connecté, synchroniser avec Firestore
+    // Marquer le panier comme venant d'être vidé pour protéger la synchro
+    await _prefs?.setBool(_keyCartJustCleared, true);
+
+    // Si l'utilisateur est connecté, vider aussi le panier Firestore
     final User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      // Note: This would require a batch delete operation in a real implementation
-      // For now, we'll handle this at the synchronization service level
+      await _firestoreService.viderPanierFirestore(user.uid);
     }
   }
-  
+
+  Future<bool> wasJustCleared() async {
+    return _prefs?.getBool(_keyCartJustCleared) ?? false;
+  }
+
+  Future<void> clearJustClearedFlag() async {
+    await _prefs?.remove(_keyCartJustCleared);
+  }
+
   // Nouvelle méthode pour obtenir le nombre total d'articles dans le panier
   Future<int> getTotalItems() async {
     final quantities = await getQuantities();
@@ -112,7 +134,7 @@ class PanierLocal {
     }
     return total;
   }
-  
+
   // Nouvelle méthode pour obtenir le nombre de produits uniques dans le panier
   Future<int> getUniqueItemsCount() async {
     final panier = await getPanier();

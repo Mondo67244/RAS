@@ -5,20 +5,26 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:RAS/basicdata/produit.dart';
 import 'package:RAS/basicdata/commande.dart';
 import 'package:RAS/ecrans/admin/accueila.dart';
-import 'package:RAS/ecrans/client/accueilu.dart';
+import 'package:RAS/ecrans/client/pagesu/principales/accueilu.dart';
 import 'package:RAS/ecrans/admin/ajouterequip.dart';
-import 'package:RAS/ecrans/client/pagesu/commandes.dart';
-import 'package:RAS/ecrans/client/pagesu/details.dart';
-import 'package:RAS/ecrans/client/pagesu/resultats.dart';
-import 'package:RAS/ecrans/pageconnexion.dart';
-import 'package:RAS/ecrans/pageinscription.dart';
-import 'package:RAS/ecrans/client/pagesu/voirplus.dart';
-import 'package:RAS/ecrans/client/pagesu/paiement.dart';
-import 'package:RAS/ecrans/ecrandemarrage.dart';
-import 'package:RAS/ecrans/client/pagesu/chat.dart';
-import 'package:RAS/ecrans/client/pagesu/profile.dart'; // Ajout de l'import du profil
+import 'package:RAS/ecrans/client/pagesu/articles/commandes.dart';
+import 'package:RAS/ecrans/client/pagesu/reglement/factures.dart';
+import 'package:RAS/ecrans/client/pagesu/articles/details.dart';
+import 'package:RAS/ecrans/client/pagesu/articles/resultats.dart';
+import 'package:RAS/ecrans/client/pagesu/principales/pageconnexion.dart';
+import 'package:RAS/ecrans/client/pagesu/principales/pageinscription.dart';
+import 'package:RAS/ecrans/client/pagesu/articles/voirplus.dart';
+import 'package:RAS/ecrans/client/pagesu/reglement/paiement.dart';
+import 'package:RAS/ecrans/client/pagesu/principales/ecrandemarrage.dart';
+import 'package:RAS/ecrans/client/pagesu/reglement/chat.dart';
+import 'package:RAS/ecrans/client/pagesu/principales/profile.dart'; // Ajout de l'import du profil
 import 'package:RAS/firebase_options.dart';
 import 'package:RAS/services/synchronisation/synchronisation_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:RAS/ecrans/client/pagesu/parametres/parametres.dart';
+import 'package:RAS/ecrans/client/pagesu/parametres/parametres_profil.dart';
+import 'package:RAS/ecrans/client/pagesu/parametres/parametres_discussions.dart';
+import 'package:RAS/ecrans/client/pagesu/parametres/parametres_stats.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,45 +38,113 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        textTheme: GoogleFonts.latoTextTheme(
-          Theme.of(context).textTheme,
-        ),
+        textTheme: GoogleFonts.latoTextTheme(Theme.of(context).textTheme),
       ),
       initialRoute: '/',
       routes: {
         '/': (context) => const AuthWrapper(),
-        '/admin': (context) => const Accueila(),
+        '/admin': (context) {
+          final user = FirebaseAuth.instance.currentUser;
+          if (user == null) return const Pageconnexion();
+          // Vérification du rôle admin via FutureBuilder
+          return FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+            future:
+                FirebaseFirestore.instance
+                    .collection('Utilisateurs')
+                    .doc(user.uid)
+                    .get(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState != ConnectionState.done) {
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
+              }
+              final data = snapshot.data?.data();
+              final isAdmin = (data != null && data['role'] == 'admin');
+              if (!isAdmin) {
+                return const Accueilu();
+              }
+              return const Accueila();
+            },
+          );
+        },
         '/utilisateur': (context) => const Accueilu(),
 
-        '/utilisateur/recherche' : (context) => const Resultats(),
+        '/utilisateur/recherche': (context) => const Resultats(),
+        '/utilisateur/parametres': (context) => const ParametresPage(),
+        '/utilisateur/parametres/profil':
+            (context) => const ParametresProfilPage(),
+        '/utilisateur/parametres/discussions':
+            (context) => const ParametresDiscussionsPage(),
+        '/utilisateur/parametres/statistiques':
+            (context) => const ParametresStatsPage(),
         '/utilisateur/payment': (context) {
-          final commande = ModalRoute.of(context)!.settings.arguments as Commande;
-          return paiement(commande: commande);
+          final args = ModalRoute.of(context)?.settings.arguments;
+          if (args is! Commande) {
+            return const Scaffold(
+              body: Center(child: Text('Commande invalide')),
+            );
+          }
+          return paiement(commande: args);
         },
-        '/admin/nouveau produit': (context) => const AjouterEquipPage(),
+        '/admin/nouveau produit': (context) {
+          final user = FirebaseAuth.instance.currentUser;
+          if (user == null) return const Pageconnexion();
+          return const AjouterEquipPage();
+        },
         '/connexion': (context) => const Pageconnexion(),
         '/inscription': (context) => const PageInscription(),
         '/utilisateur/commandes': (context) => const Commandes(),
+        '/utilisateur/factures': (context) => const Factures(),
         '/utilisateur/produit/details': (context) {
-          final produit = ModalRoute.of(context)!.settings.arguments as Produit;
-          return Details(produit: produit);
+          final args = ModalRoute.of(context)?.settings.arguments;
+          if (args is! Produit) {
+            return const Scaffold(
+              body: Center(child: Text('Produit invalide')),
+            );
+          }
+          return Details(produit: args);
         },
         '/utilisateur/chat': (context) {
-          final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ?? {};
+          final user = FirebaseAuth.instance.currentUser;
+          if (user == null) return const Pageconnexion();
+          final args =
+              ModalRoute.of(context)?.settings.arguments
+                  as Map<String, dynamic>? ??
+              {};
           return ChatPage(
             idProduit: args['idProduit'] as String?,
             nomProduit: args['nomProduit'] as String?,
           );
         },
-        '/utilisateur/profile': (context) => const ProfilePage(), // Ajout de la route du profil
+        '/utilisateur/profile':
+            (context) => const ProfilePage(), // Ajout de la route du profil
         '/all_products': (context) {
-          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-          final title = args['title'] as String;
-          final produits = args['produits'] as List<Produit>;
+          final args = ModalRoute.of(context)?.settings.arguments;
+          if (args is! Map<String, dynamic>) {
+            return const Scaffold(
+              body: Center(child: Text('Paramètres invalides')),
+            );
+          }
+          final title = args['title'];
+          final produits = args['produits'];
+          if (title is! String || produits is! List<Produit>) {
+            return const Scaffold(
+              body: Center(child: Text('Paramètres invalides')),
+            );
+          }
           return Voirplus(title: title, produits: produits);
         },
       },
+      onUnknownRoute:
+          (_) => MaterialPageRoute(
+            builder:
+                (_) => const Scaffold(
+                  body: Center(child: Text('Page introuvable')),
+                ),
+          ),
     );
   }
 }
@@ -87,9 +161,7 @@ class AuthWrapper extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           // Afficher un indicateur de chargement pendant la vérification
           return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
+            body: Center(child: CircularProgressIndicator()),
           );
         }
 
@@ -100,7 +172,7 @@ class AuthWrapper extends StatelessWidget {
             final SynchronisationService syncService = SynchronisationService();
             syncService.synchroniserTout();
           });
-          
+
           // Rediriger vers l'écran d'accueil utilisateur
           return const Accueilu();
         }

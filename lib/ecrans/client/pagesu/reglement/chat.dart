@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:RAS/basicdata/message.dart';
 import 'package:RAS/basicdata/utilisateur.dart';
 import 'package:RAS/basicdata/style.dart';
-import 'package:RAS/services/base%20de%20donn%C3%A9es/lienbd.dart';
+import 'package:RAS/services/BD/lienbd.dart';
 
 class ChatPage extends StatefulWidget {
   final String? idProduit;

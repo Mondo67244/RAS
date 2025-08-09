@@ -2,10 +2,9 @@ import 'package:RAS/widgets/SectionProduit.dart';
 import 'package:flutter/material.dart';
 import 'package:RAS/basicdata/produit.dart';
 import 'package:RAS/basicdata/style.dart';
-import 'package:RAS/services/base%20de%20donn%C3%A9es/lienbd.dart';
+import 'package:RAS/services/BD/lienbd.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:RAS/services/panier/panier_local.dart';
-
 
 class Recents extends StatefulWidget {
   const Recents({super.key});
@@ -14,7 +13,8 @@ class Recents extends StatefulWidget {
   State<Recents> createState() => RecentsState();
 }
 
-class RecentsState extends State<Recents> with AutomaticKeepAliveClientMixin<Recents> {
+class RecentsState extends State<Recents>
+    with AutomaticKeepAliveClientMixin<Recents> {
   late Stream<List<Produit>> _produitsStream;
   final FirestoreService _firestoreService = FirestoreService();
   final PanierLocal _panierLocal = PanierLocal();
@@ -59,9 +59,9 @@ class RecentsState extends State<Recents> with AutomaticKeepAliveClientMixin<Rec
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
       }
     }
   }
@@ -92,31 +92,37 @@ class RecentsState extends State<Recents> with AutomaticKeepAliveClientMixin<Rec
       floatingActionButton: Builder(
         builder: (context) {
           return FloatingActionButton(
+            heroTag: "recents_menu",
             onPressed: () {
-              final RenderBox renderBox = context.findRenderObject() as RenderBox;
+              final RenderBox renderBox =
+                  context.findRenderObject() as RenderBox;
               final Offset offset = renderBox.localToGlobal(Offset.zero);
-              showMenu(
+              showMenu<String>(
                 context: context,
-                position: RelativeRect.fromLTRB(offset.dx, offset.dy - 120, offset.dx + renderBox.size.width, offset.dy),
+                position: RelativeRect.fromLTRB(
+                  offset.dx,
+                  offset.dy - 140,
+                  offset.dx + renderBox.size.width,
+                  offset.dy,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 items: [
                   PopupMenuItem(
                     value: 'rechercher',
-                    child: Row(
-                      children: const [
-                        Icon(Icons.search),
-                        SizedBox(width: 10),
-                        Text('Rechercher'),
-                      ],
+                    child: ListTile(
+                      dense: true,
+                      leading: const Icon(Icons.search),
+                      title: const Text('Rechercher'),
                     ),
                   ),
                   PopupMenuItem(
                     value: 'actualiser',
-                    child: Row(
-                      children: const [
-                        Icon(Icons.refresh),
-                        SizedBox(width: 10),
-                        Text('Actualiser'),
-                      ],
+                    child: ListTile(
+                      dense: true,
+                      leading: const Icon(Icons.refresh),
+                      title: const Text('Actualiser'),
                     ),
                   ),
                 ],
@@ -180,7 +186,8 @@ class RecentsState extends State<Recents> with AutomaticKeepAliveClientMixin<Rec
               return Center(
                 child: Container(
                   constraints: const BoxConstraints(maxWidth: 950),
-                  child: _contenu(produits, isWideScreen: isWideScreen)),
+                  child: _contenu(produits, isWideScreen: isWideScreen),
+                ),
               );
             },
           );
@@ -196,19 +203,23 @@ class RecentsState extends State<Recents> with AutomaticKeepAliveClientMixin<Rec
       width: double.infinity,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
-        child: isWide
-            ? CachedNetworkImage(
-                imageUrl: path,
-                fit: BoxFit.cover,
-                placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-                errorWidget: (context, url, error) => Icon(
-                  Icons.error_outline,
-                  color: Colors.grey.shade400,
-                  size: 60,
-                ),
-                fadeInDuration: const Duration(milliseconds: 300),
-              )
-            : Image.asset(path, fit: BoxFit.cover),
+        child:
+            isWide
+                ? CachedNetworkImage(
+                  imageUrl: path,
+                  fit: BoxFit.cover,
+                  placeholder:
+                      (context, url) =>
+                          const Center(child: CircularProgressIndicator()),
+                  errorWidget:
+                      (context, url, error) => Icon(
+                        Icons.error_outline,
+                        color: Colors.grey.shade400,
+                        size: 60,
+                      ),
+                  fadeInDuration: const Duration(milliseconds: 300),
+                )
+                : Image.asset(path, fit: BoxFit.cover),
       ),
     );
   }
@@ -217,10 +228,12 @@ class RecentsState extends State<Recents> with AutomaticKeepAliveClientMixin<Rec
   Widget _contenu(List<Produit> produits, {required bool isWideScreen}) {
     final produitsBureautique =
         produits.where((p) => p.sousCategorie == 'Bureautique').toList();
-    final produitsReseau = produits.where((p) => p.sousCategorie == 'Réseau').toList();
+    final produitsReseau =
+        produits.where((p) => p.sousCategorie == 'Réseau').toList();
     final produitsMobiles =
         produits.where((p) => p.sousCategorie == 'Appareils Mobiles').toList();
-    final produitDivers = produits.where((p) => p.sousCategorie == 'Divers').toList();
+    final produitDivers =
+        produits.where((p) => p.sousCategorie == 'Divers').toList();
     final produitsPopulaires =
         produits.where((p) => (int.tryParse(p.vues) ?? 0) > 15).toList();
     final produitsAccessoires =
@@ -240,7 +253,11 @@ class RecentsState extends State<Recents> with AutomaticKeepAliveClientMixin<Rec
             isWideScreen: isWideScreen,
             onTogglePanier: _toggleAuPanier,
             onTap: (produit) {
-              Navigator.pushNamed(context, '/utilisateur/produit/details', arguments: produit);
+              Navigator.pushNamed(
+                context,
+                '/utilisateur/produit/details',
+                arguments: produit,
+              );
             },
             idsPanier: _idsPanier,
           ),
@@ -255,7 +272,11 @@ class RecentsState extends State<Recents> with AutomaticKeepAliveClientMixin<Rec
             isWideScreen: isWideScreen,
             onTogglePanier: _toggleAuPanier,
             onTap: (produit) {
-              Navigator.pushNamed(context, '/utilisateur/produit/details', arguments: produit);
+              Navigator.pushNamed(
+                context,
+                '/utilisateur/produit/details',
+                arguments: produit,
+              );
             },
             idsPanier: _idsPanier,
           ),
@@ -270,7 +291,11 @@ class RecentsState extends State<Recents> with AutomaticKeepAliveClientMixin<Rec
             isWideScreen: isWideScreen,
             onTogglePanier: _toggleAuPanier,
             onTap: (produit) {
-              Navigator.pushNamed(context, '/utilisateur/produit/details', arguments: produit);
+              Navigator.pushNamed(
+                context,
+                '/utilisateur/produit/details',
+                arguments: produit,
+              );
             },
             idsPanier: _idsPanier,
           ),
@@ -284,7 +309,11 @@ class RecentsState extends State<Recents> with AutomaticKeepAliveClientMixin<Rec
             isWideScreen: isWideScreen,
             onTogglePanier: _toggleAuPanier,
             onTap: (produit) {
-              Navigator.pushNamed(context, '/utilisateur/produit/details', arguments: produit);
+              Navigator.pushNamed(
+                context,
+                '/utilisateur/produit/details',
+                arguments: produit,
+              );
             },
             idsPanier: _idsPanier,
           ),
@@ -298,7 +327,11 @@ class RecentsState extends State<Recents> with AutomaticKeepAliveClientMixin<Rec
             isWideScreen: isWideScreen,
             onTogglePanier: _toggleAuPanier,
             onTap: (produit) {
-              Navigator.pushNamed(context, '/utilisateur/produit/details', arguments: produit);
+              Navigator.pushNamed(
+                context,
+                '/utilisateur/produit/details',
+                arguments: produit,
+              );
             },
             idsPanier: _idsPanier,
           ),
@@ -306,5 +339,4 @@ class RecentsState extends State<Recents> with AutomaticKeepAliveClientMixin<Rec
       ),
     );
   }
-
 }

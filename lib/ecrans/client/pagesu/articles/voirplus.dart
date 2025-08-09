@@ -9,11 +9,7 @@ class Voirplus extends StatefulWidget {
   final String title;
   final List<Produit> produits;
 
-  const Voirplus({
-    super.key,
-    required this.title,
-    required this.produits,
-  });
+  const Voirplus({super.key, required this.title, required this.produits});
 
   @override
   State<Voirplus> createState() => _VoirplusState();
@@ -50,10 +46,18 @@ class _VoirplusState extends State<Voirplus> {
   Future<void> _togglePanier(Produit produit) async {
     if (_idsPanier.contains(produit.idProduit)) {
       await _panierLocal.retirerDuPanier(produit.idProduit);
-      _messageReponse('${produit.nomProduit} retiré du panier', isSuccess: false, icon: Icons.remove_shopping_cart_outlined);
+      _messageReponse(
+        '${produit.nomProduit} retiré du panier',
+        isSuccess: false,
+        icon: Icons.remove_shopping_cart_outlined,
+      );
     } else {
       await _panierLocal.ajouterAuPanier(produit.idProduit);
-      _messageReponse('${produit.nomProduit} ajouté au panier', isSuccess: true, icon: Icons.add_shopping_cart_outlined);
+      _messageReponse(
+        '${produit.nomProduit} ajouté au panier',
+        isSuccess: true,
+        icon: Icons.add_shopping_cart_outlined,
+      );
     }
     _initLocalData();
   }
@@ -96,41 +100,52 @@ class _VoirplusState extends State<Voirplus> {
       ),
       backgroundColor: Styles.blanc,
       body: Center(
-        child: _produits.isEmpty
-            ? const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Text(
-                    'Aucun produit dans cette section.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16),
+        child:
+            _produits.isEmpty
+                ? const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Text(
+                      'Aucun produit dans cette section.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+                )
+                : Container(
+                  constraints:
+                      isWideScreen
+                          ? BoxConstraints(maxWidth: 900)
+                          : BoxConstraints(maxWidth: 280),
+                  child: GridView.builder(
+                    padding: const EdgeInsets.all(8),
+                    gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                      maxCrossAxisExtent: 300,
+                      childAspectRatio: 0.75,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 5,
+                    ),
+                    itemCount: _produits.length,
+                    itemBuilder: (context, index) {
+                      final produit = _produits[index];
+                      final bool isPanier = _idsPanier.contains(
+                        produit.idProduit,
+                      );
+                      return ProductCard(
+                        produit: produit,
+                        isPanier: isPanier,
+                        isWideScreen: isWideScreen,
+                        onTogglePanier: () => _togglePanier(produit),
+                        onTap:
+                            () => Navigator.pushNamed(
+                              context,
+                              '/utilisateur/produit/details',
+                              arguments: produit,
+                            ),
+                      );
+                    },
                   ),
                 ),
-              )
-            : Container(
-                constraints: isWideScreen ? BoxConstraints(maxWidth: 900) : BoxConstraints(maxWidth: 280),
-                child: GridView.builder(
-                  padding: const EdgeInsets.all(8),
-                  gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 300,
-                    childAspectRatio: 0.75,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 5,
-                  ),
-                  itemCount: _produits.length,
-                  itemBuilder: (context, index) {
-                    final produit = _produits[index];
-                    final bool isPanier = _idsPanier.contains(produit.idProduit);
-                    return ProductCard(
-                      produit: produit,
-                      isPanier: isPanier,
-                      isWideScreen: isWideScreen,
-                      onTogglePanier: () => _togglePanier(produit),
-                      onTap: () => Navigator.pushNamed(context, '/utilisateur/produit/details', arguments: produit),
-                    );
-                  },
-                ),
-              ),
       ),
     );
   }

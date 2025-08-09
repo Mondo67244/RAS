@@ -256,34 +256,58 @@ class _ResultatsState extends State<Resultats> {
         backgroundColor: Styles.rouge,
         foregroundColor: Styles.blanc,
         centerTitle: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+        ),
       ),
       floatingActionButton:
           !_isSearchFormVisible
-              ? FloatingActionButton(
+              ? FloatingActionButton.extended(
+                heroTag: "resultats_search",
                 onPressed: () {
                   setState(() {
                     _isSearchFormVisible = true;
                   });
                 },
                 backgroundColor: Styles.rouge,
-                child: const Icon(Icons.search, color: Colors.white),
+                icon: const Icon(Icons.search, color: Colors.white),
+                label: const Text(
+                  'Recherche',
+                  style: TextStyle(color: Colors.white),
+                ),
               )
               : null,
       body: LayoutBuilder(
         builder: (context, constraints) {
           if (constraints.maxWidth > 650) {
             // Layout pour les écrans larges (web/desktop)
+            if (!_isSearchFormVisible) {
+              // Quand le formulaire est masqué, centrer les résultats
+              return Center(
+                child: Container(
+                  constraints: const BoxConstraints(maxWidth: 900),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 32.0,
+                    ),
+                    child: _buildResultsSection(),
+                  ),
+                ),
+              );
+            }
             return Center(
               child: Container(
                 constraints: const BoxConstraints(maxWidth: 1200),
                 child: Padding(
-                  padding: const EdgeInsets.all(70.0),
+                  padding: const EdgeInsets.all(40.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(flex: 2, child: _buildSearchForm()),
-                      const SizedBox(width: 50,),
+                      const SizedBox(width: 24),
                       const VerticalDivider(width: 1),
+                      const SizedBox(width: 24),
                       Expanded(flex: 4, child: _buildResultsSection()),
                     ],
                   ),
@@ -325,146 +349,160 @@ class _ResultatsState extends State<Resultats> {
                 ? Form(
                   key: _formKey,
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.all(8.0),
                     child: Center(
-                      child: Container(
-                        constraints: const BoxConstraints(maxWidth: 600),
-                        child: Wrap(
-                          runSpacing: 16,
-                          spacing: 16,
-                          children: [
-                            _buildDropdown(
-                              _categories,
-                              'Catégorie',
-                              _selectedCategory,
-                              (val) {
-                                setState(() {
-                                  _selectedCategory = val;
-                                  _selectedSousCat = null;
-                                  _selectedType = null;
-                                  _onDropdownChanged();
-                                });
-                              },
-                            ),
-                            if (_selectedCategory != null)
+                      child: Card(
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.all(16.0),
+                          constraints: const BoxConstraints(maxWidth: 600),
+                          child: Wrap(
+                            runSpacing: 16,
+                            spacing: 16,
+                            children: [
                               _buildDropdown(
-                                categoryTypes[_selectedCategory!]!,
-                                'Sous-catégorie',
-                                _selectedSousCat,
+                                _categories,
+                                'Catégorie',
+                                _selectedCategory,
                                 (val) {
                                   setState(() {
-                                    _selectedSousCat = val;
+                                    _selectedCategory = val;
+                                    _selectedSousCat = null;
                                     _selectedType = null;
                                     _onDropdownChanged();
                                   });
                                 },
                               ),
-                            if (_selectedSousCat != null)
+                              if (_selectedCategory != null)
+                                _buildDropdown(
+                                  categoryTypes[_selectedCategory!]!,
+                                  'Sous-catégorie',
+                                  _selectedSousCat,
+                                  (val) {
+                                    setState(() {
+                                      _selectedSousCat = val;
+                                      _selectedType = null;
+                                      _onDropdownChanged();
+                                    });
+                                  },
+                                ),
+                              if (_selectedSousCat != null)
+                                _buildDropdown(
+                                  typeAppareil[_selectedSousCat!]!,
+                                  'Type d\'appareil',
+                                  _selectedType,
+                                  (val) {
+                                    setState(() {
+                                      _selectedType = val;
+                                      _onDropdownChanged();
+                                    });
+                                  },
+                                ),
                               _buildDropdown(
-                                typeAppareil[_selectedSousCat!]!,
-                                'Type d\'appareil',
-                                _selectedType,
+                                _brands,
+                                'Marque',
+                                _selectedBrand,
                                 (val) {
                                   setState(() {
-                                    _selectedType = val;
+                                    _selectedBrand = val;
                                     _onDropdownChanged();
                                   });
                                 },
                               ),
-                            _buildDropdown(_brands, 'Marque', _selectedBrand, (
-                              val,
-                            ) {
-                              setState(() {
-                                _selectedBrand = val;
-                                _onDropdownChanged();
-                              });
-                            }),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: _minPriceController,
-                                    decoration: _inputDecoration(
-                                      'Prix Min',
-                                      Icons.price_check,
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: _minPriceController,
+                                      decoration: _inputDecoration(
+                                        'Prix Min',
+                                        Icons.price_check,
+                                      ),
+                                      keyboardType:
+                                          const TextInputType.numberWithOptions(
+                                            decimal: true,
+                                          ),
                                     ),
-                                    keyboardType:
-                                        const TextInputType.numberWithOptions(
-                                          decimal: true,
-                                        ),
                                   ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: _maxPriceController,
-                                    decoration: _inputDecoration(
-                                      'Prix Max',
-                                      Icons.price_change_outlined,
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: _maxPriceController,
+                                      decoration: _inputDecoration(
+                                        'Prix Max',
+                                        Icons.price_change_outlined,
+                                      ),
+                                      keyboardType:
+                                          const TextInputType.numberWithOptions(
+                                            decimal: true,
+                                          ),
                                     ),
-                                    keyboardType:
-                                        const TextInputType.numberWithOptions(
-                                          decimal: true,
-                                        ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: ElevatedButton.icon(
-                                    onPressed: _performSearch,
-                                    icon:
-                                        _isLoading
-                                            ? Container()
-                                            : const Icon(
-                                              Icons.search,
-                                              color: Colors.white,
-                                            ),
-                                    label:
-                                        _isLoading
-                                            ? const SizedBox(
-                                              width: 24,
-                                              height: 24,
-                                              child: CircularProgressIndicator(
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: ElevatedButton.icon(
+                                      onPressed: _performSearch,
+                                      icon:
+                                          _isLoading
+                                              ? Container()
+                                              : const Icon(
+                                                Icons.search,
                                                 color: Colors.white,
-                                                strokeWidth: 3,
                                               ),
-                                            )
-                                            : const Text('Rechercher'),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Styles.rouge,
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 16,
-                                      ),
-                                      textStyle: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
+                                      label:
+                                          _isLoading
+                                              ? const SizedBox(
+                                                width: 24,
+                                                height: 24,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                      color: Colors.white,
+                                                      strokeWidth: 3,
+                                                    ),
+                                              )
+                                              : const Text('Rechercher'),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Styles.rouge,
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 16,
+                                        ),
+                                        textStyle: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 10),
-                                IconButton(
-                                  icon: Icon(
-                                    Icons.visibility_off,
-                                    color: Styles.bleu,
+                                  const SizedBox(width: 10),
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.visibility_off,
+                                      color: Styles.bleu,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        _isSearchFormVisible =
+                                            !_isSearchFormVisible;
+                                      });
+                                    },
                                   ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _isSearchFormVisible =
-                                          !_isSearchFormVisible;
-                                    });
-                                  },
-                                ),
-                              ],
-                            ),
-                          ],
+                                ],
+                              ),
+                              _buildActiveFilters(),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -545,30 +583,76 @@ class _ResultatsState extends State<Resultats> {
         }
         return ListView.separated(
           itemCount: results.length,
-          separatorBuilder:
-              (context, index) => const Divider(indent: 16, endIndent: 16),
+          separatorBuilder: (context, index) => const SizedBox(height: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           itemBuilder: (context, index) {
             final produit = results[index];
-            return ListTile(
-              leading:
-                  produit.img1.isNotEmpty
-                      ? _buildImage(produit.img1)
-                      : const Icon(Icons.image_not_supported, size: 60),
-              title: Text(
-                produit.nomProduit,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+            final String prix = '${produit.prix.toString()} CFA';
+            return Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
               ),
-              subtitle: Text(
-                '${produit.categorie} > ${produit.sousCategorie}\n${produit.prix.toString()} CFA',
+              child: ListTile(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                leading: SizedBox(
+                  width: 72,
+                  height: 72,
+                  child:
+                      produit.img1.isNotEmpty
+                          ? _buildImage(produit.img1)
+                          : const Icon(Icons.image_not_supported, size: 72),
+                ),
+                title: Text(
+                  produit.nomProduit,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 16,
+                  ),
+                ),
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: 6.0),
+                  child: Text(
+                    '${produit.categorie} > ${produit.sousCategorie}',
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                ),
+                trailing: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Styles.rouge.withAlpha((0.08 * 255).round()),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Styles.rouge.withAlpha((0.3 * 255).round()),
+                    ),
+                  ),
+                  child: Text(
+                    prix,
+                    style: TextStyle(
+                      color: Styles.rouge,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 15,
+                    ),
+                  ),
+                ),
+                isThreeLine: false,
+                onTap: () {
+                  Navigator.pushNamed(
+                    context,
+                    '/utilisateur/produit/details',
+                    arguments: produit,
+                  ).then((_) => _performSearch());
+                },
               ),
-              isThreeLine: true,
-              onTap: () {
-                Navigator.pushNamed(
-                  context,
-                  '/utilisateur/produit/details',
-                  arguments: produit,
-                ).then((_) => _performSearch());
-              },
             );
           },
         );
@@ -587,8 +671,8 @@ class _ResultatsState extends State<Resultats> {
           borderRadius: BorderRadius.circular(8.0),
           child: Image.network(
             imageData,
-            width: 60,
-            height: 60,
+            width: 72,
+            height: 72,
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) {
               // Gestion des erreurs de chargement réseau
@@ -607,8 +691,8 @@ class _ResultatsState extends State<Resultats> {
           borderRadius: BorderRadius.circular(8.0),
           child: Image.memory(
             imageBytes,
-            width: 60,
-            height: 60,
+            width: 72,
+            height: 72,
             fit: BoxFit.cover,
           ),
         );
@@ -621,6 +705,92 @@ class _ResultatsState extends State<Resultats> {
         size: 60,
       );
     }
+  }
+
+  /// Affiche des chips résumant les filtres actifs
+  Widget _buildActiveFilters() {
+    final List<Widget> chips = [];
+    if (_selectedCategory != null) {
+      chips.add(
+        _buildFilterChip('Catégorie: $_selectedCategory', () {
+          setState(() {
+            _selectedCategory = null;
+            _selectedSousCat = null;
+            _selectedType = null;
+            _onDropdownChanged();
+          });
+        }),
+      );
+    }
+    if (_selectedSousCat != null) {
+      chips.add(
+        _buildFilterChip('Sous-cat: $_selectedSousCat', () {
+          setState(() {
+            _selectedSousCat = null;
+            _selectedType = null;
+            _onDropdownChanged();
+          });
+        }),
+      );
+    }
+    if (_selectedType != null) {
+      chips.add(
+        _buildFilterChip('Type: $_selectedType', () {
+          setState(() {
+            _selectedType = null;
+            _onDropdownChanged();
+          });
+        }),
+      );
+    }
+    if (_selectedBrand != null) {
+      chips.add(
+        _buildFilterChip('Marque: $_selectedBrand', () {
+          setState(() {
+            _selectedBrand = null;
+            _onDropdownChanged();
+          });
+        }),
+      );
+    }
+    if (_minPriceController.text.isNotEmpty) {
+      chips.add(
+        _buildFilterChip('Min: ${_minPriceController.text}', () {
+          setState(() {
+            _minPriceController.clear();
+            _onPriceChanged();
+          });
+        }),
+      );
+    }
+    if (_maxPriceController.text.isNotEmpty) {
+      chips.add(
+        _buildFilterChip('Max: ${_maxPriceController.text}', () {
+          setState(() {
+            _maxPriceController.clear();
+            _onPriceChanged();
+          });
+        }),
+      );
+    }
+
+    if (chips.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Wrap(spacing: 8, runSpacing: 8, children: chips),
+    );
+  }
+
+  Widget _buildFilterChip(String label, VoidCallback onDeleted) {
+    return Chip(
+      label: Text(label),
+      backgroundColor: Styles.bleu.withAlpha((0.06 * 255).round()),
+      side: BorderSide(color: Styles.bleu.withAlpha((0.3 * 255).round())),
+      deleteIcon: const Icon(Icons.close, size: 16),
+      onDeleted: onDeleted,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+    );
   }
 
   /// Définit le style des champs de saisie (InputDecoration).

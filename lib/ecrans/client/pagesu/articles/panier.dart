@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:RAS/basicdata/commande.dart';
 import 'package:RAS/basicdata/style.dart';
 import 'package:RAS/basicdata/utilisateur.dart';
-import 'package:RAS/services/base de données/lienbd.dart';
+import 'package:RAS/services/BD/lienbd.dart';
 import 'package:RAS/basicdata/produit.dart';
 import 'package:intl/intl.dart';
 import 'package:RAS/services/panier/panier_local.dart';
@@ -281,17 +281,16 @@ class PanierState extends State<Panier>
         return Scaffold(
           backgroundColor: Styles.blanc,
           floatingActionButton: FloatingActionButton.extended(
-            foregroundColor: Styles.bleu,
-            backgroundColor: Styles.blanc,
-            label: Row(
-              children: const [
-                Icon(Icons.refresh),
-                SizedBox(width: 10),
-                Text(
-                  'Actualiser',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ],
+            heroTag: "panier_actualiser",
+            foregroundColor: Styles.blanc,
+            backgroundColor: Styles.rouge,
+            icon: const Icon(Icons.refresh),
+            label: const Text(
+              'Actualiser',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
             onPressed: _actualiser,
             tooltip: 'Rafraîchir le panier',
@@ -518,14 +517,40 @@ class PanierState extends State<Panier>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildPaymentSection(),
+        Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: _buildPaymentSection(),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: _buildDeliverySection(),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: _buildConfirmationSection(),
+          ),
+        ),
         const SizedBox(height: 24),
-        const Divider(),
-        _buildDeliverySection(),
-        const SizedBox(height: 24),
-        _buildConfirmationSection(),
-        const SizedBox(height: 32),
-        ElevatedButton(
+        ElevatedButton.icon(
           onPressed:
               (_confirmTerms && _isFormValid())
                   ? () async {
@@ -553,12 +578,13 @@ class PanierState extends State<Panier>
                   : null,
           style: ElevatedButton.styleFrom(
             backgroundColor: Styles.bleu,
-            padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(30),
             ),
           ),
-          child: const Text(
+          icon: const Icon(Icons.check_circle_outline, color: Colors.white),
+          label: const Text(
             'Valider Commander',
             style: TextStyle(fontSize: 18, color: Colors.white),
           ),
@@ -703,7 +729,7 @@ class PanierState extends State<Panier>
         produits: produitsAvecQuantite,
         methodePaiment: _selectedPaymentMethod!,
         choixLivraison: _selectedDeliveryMethod!,
-        numeroPaiement: _paymentNumberController.text.trim(), 
+        numeroPaiement: _paymentNumberController.text.trim(),
         statutPaiement: 'Attente',
       );
 

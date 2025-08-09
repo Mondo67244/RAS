@@ -1,5 +1,5 @@
-import 'package:RAS/ecrans/client/pagesu/paiement.dart';
-import 'package:RAS/ecrans/client/pagesu/facture_view.dart';
+import 'package:RAS/ecrans/client/pagesu/reglement/paiement.dart';
+import 'package:RAS/ecrans/client/pagesu/reglement/voir_facture.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +9,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:RAS/basicdata/commande.dart';
 import 'package:RAS/basicdata/utilisateur.dart';
 import 'package:RAS/basicdata/style.dart';
-import 'package:RAS/services/base%20de%20donn%C3%A9es/lienbd.dart';
+import 'package:RAS/services/BD/lienbd.dart';
 
 class Commandes extends StatefulWidget {
   const Commandes({super.key});
@@ -38,36 +38,37 @@ class _CommandesState extends State<Commandes> {
           .orderBy('dateCommande', descending: true)
           .snapshots()
           .map(
-            (snapshot) => snapshot.docs.map((doc) {
-              try {
-                return Commande.fromMap(doc.data());
-              } catch (e) {
-                print('Erreur de parsing pour le document ${doc.id}: $e');
-                return Commande(
-                  idCommande: doc.id,
-                  dateCommande: DateTime.now().toIso8601String(),
-                  noteCommande: 'Erreur de chargement',
-                  pays: '',
-                  rue: '',
-                  prixCommande: '0',
-                  ville: '',
-                  codePostal: '',
-                  utilisateur: Utilisateur(
-                    idUtilisateur: user.uid,
-                    nomUtilisateur: 'N/A',
-                    prenomUtilisateur: '',
-                    emailUtilisateur: '',
-                    numeroUtilisateur: '',
-                    villeUtilisateur: '',
-                  ),
-                  produits: [],
-                  methodePaiment: '',
-                  choixLivraison: '',
-                  numeroPaiement: '',
-                  statutPaiement: 'erreur',
-                );
-              }
-            }).toList(),
+            (snapshot) =>
+                snapshot.docs.map((doc) {
+                  try {
+                    return Commande.fromMap(doc.data());
+                  } catch (e) {
+                    print('Erreur de parsing pour le document ${doc.id}: $e');
+                    return Commande(
+                      idCommande: doc.id,
+                      dateCommande: DateTime.now().toIso8601String(),
+                      noteCommande: 'Erreur de chargement',
+                      pays: '',
+                      rue: '',
+                      prixCommande: '0',
+                      ville: '',
+                      codePostal: '',
+                      utilisateur: Utilisateur(
+                        idUtilisateur: user.uid,
+                        nomUtilisateur: 'N/A',
+                        prenomUtilisateur: '',
+                        emailUtilisateur: '',
+                        numeroUtilisateur: '',
+                        villeUtilisateur: '',
+                      ),
+                      produits: [],
+                      methodePaiment: '',
+                      choixLivraison: '',
+                      numeroPaiement: '',
+                      statutPaiement: 'erreur',
+                    );
+                  }
+                }).toList(),
           );
     }
   }
@@ -225,118 +226,149 @@ class _CommandesState extends State<Commandes> {
           minChildSize: 0.4,
           maxChildSize: 0.9,
           expand: false,
-          builder: (_, controller) => Container(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          builder:
+              (_, controller) => Container(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Détails de la commande',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.grey.shade900,
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            Icons.close,
+                            color: Colors.grey.shade600,
+                            size: 28,
+                          ),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildDetailRow('ID', commande.idCommande),
+                          _buildDetailRow(
+                            'Date',
+                            DateFormat(
+                              'dd/MM/yyyy HH:mm',
+                              'fr_FR',
+                            ).format(DateTime.parse(commande.dateCommande)),
+                          ),
+                          _buildDetailRow(
+                            'Statut',
+                            commande.statutPaiement,
+                            color:
+                                commande.statutPaiement.toLowerCase() == 'payé'
+                                    ? Colors.green.shade600
+                                    : Colors.orange.shade600,
+                          ),
+                          _buildDetailRow(
+                            'Total',
+                            '${commande.prixCommande} CFA',
+                            color: Colors.green.shade600,
+                          ),
+                          _buildDetailRow(
+                            'Méthode de paiement',
+                            commande.methodePaiment,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
                     Text(
-                      'Détails de la commande',
+                      'Produits',
                       style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
                         color: Colors.grey.shade900,
                       ),
                     ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.close,
-                        color: Colors.grey.shade600,
-                        size: 28,
+                    const SizedBox(height: 8),
+                    Expanded(
+                      child: ListView(
+                        controller: controller,
+                        children:
+                            commande.produits
+                                .map(
+                                  (produit) => ListTile(
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 0,
+                                      vertical: 4,
+                                    ),
+                                    title: Text(
+                                      produit['nomProduit'] ??
+                                          'Produit inconnu',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.grey.shade800,
+                                      ),
+                                    ),
+                                    subtitle: Text(
+                                      '${produit['quantite']} x ${produit['prix']} CFA',
+                                      style: TextStyle(
+                                        color: Colors.grey.shade600,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                                )
+                                .toList(),
                       ),
-                      onPressed: () => Navigator.pop(context),
                     ),
+                    const SizedBox(height: 16),
+                    if (commande.statutPaiement == 'Attente')
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => paiement(commande: commande),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Styles.rouge,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: const Text(
+                            'Payer maintenant',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildDetailRow('ID', commande.idCommande),
-                      _buildDetailRow('Date', DateFormat('dd/MM/yyyy HH:mm', 'fr_FR').format(DateTime.parse(commande.dateCommande))),
-                      _buildDetailRow('Statut', commande.statutPaiement, color: commande.statutPaiement.toLowerCase() == 'payé' ? Colors.green.shade600 : Colors.orange.shade600),
-                      _buildDetailRow('Total', '${commande.prixCommande} CFA', color: Colors.green.shade600),
-                      _buildDetailRow('Méthode de paiement', commande.methodePaiment),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Produits',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey.shade900,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Expanded(
-                  child: ListView(
-                    controller: controller,
-                    children: commande.produits.map((produit) => ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
-                      title: Text(
-                        produit['nomProduit'] ?? 'Produit inconnu',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey.shade800,
-                        ),
-                      ),
-                      subtitle: Text(
-                        '${produit['quantite']} x ${produit['prix']} CFA',
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 14,
-                        ),
-                      ),
-                    )).toList(),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                if (commande.statutPaiement == 'En attente')
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => paiement(commande: commande),
-                          ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Styles.rouge,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: const Text(
-                        'Payer maintenant',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
+              ),
         );
       },
     );
@@ -358,7 +390,9 @@ class _CommandesState extends State<Commandes> {
       );
 
       // Find the invoice associated with this order
-      final factureAssociee = await FirestoreService().getFactureByOrderId(commande.idCommande);
+      final factureAssociee = await FirestoreService().getFactureByOrderId(
+        commande.idCommande,
+      );
 
       // Close loading indicator
       Navigator.pop(context);
@@ -369,7 +403,7 @@ class _CommandesState extends State<Commandes> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => FactureView(facture: factureAssociee),
+              builder: (context) => VoirFacture(facture: factureAssociee),
             ),
           );
         }
@@ -387,7 +421,7 @@ class _CommandesState extends State<Commandes> {
     } catch (e) {
       // Close loading indicator
       Navigator.pop(context);
-      
+
       // Show error message
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -467,7 +501,10 @@ class _CommandesState extends State<Commandes> {
       ),
       body: Center(
         child: Container(
-          constraints: isWideScreen ? BoxConstraints(maxWidth: 600) : BoxConstraints(maxWidth: 400),
+          constraints:
+              isWideScreen
+                  ? BoxConstraints(maxWidth: 600)
+                  : BoxConstraints(maxWidth: 400),
           child: Column(
             children: [
               Container(
@@ -488,45 +525,61 @@ class _CommandesState extends State<Commandes> {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return _chargement();
                     }
-          
+
                     if (!snapshot.hasData || snapshot.data!.isEmpty) {
                       return _vide(
                         'Aucune commande trouvée',
                         FluentIcons.receipt_bag_24_filled,
                       );
                     }
-          
+
                     List<Commande> commandes = snapshot.data!;
-                    if (_filter == 'Attente' ) {
-                      commandes = commandes.where((commande) => commande.statutPaiement == 'En attente').toList();
+                    if (_filter == 'Attente') {
+                      commandes =
+                          commandes
+                              .where(
+                                (commande) =>
+                                    commande.statutPaiement == 'Attente',
+                              )
+                              .toList();
                     } else if (_filter == 'Payées') {
-                      commandes = commandes.where((commande) => commande.statutPaiement == 'Payé').toList();
+                      commandes =
+                          commandes
+                              .where(
+                                (commande) => commande.statutPaiement == 'Payé',
+                              )
+                              .toList();
                     }
-          
+
                     if (commandes.isEmpty) {
                       return _vide(
                         'Aucune commande pour le moment',
                         FluentIcons.receipt_bag_24_filled,
                       );
                     }
-          
+
                     Map<String, List<Commande>> commandesByDate = {};
                     for (var commande in commandes) {
-                      final date = DateFormat('yyyy-MM-dd').format(DateTime.parse(commande.dateCommande));
+                      final date = DateFormat(
+                        'yyyy-MM-dd',
+                      ).format(DateTime.parse(commande.dateCommande));
                       if (!commandesByDate.containsKey(date)) {
                         commandesByDate[date] = [];
                       }
                       commandesByDate[date]!.add(commande);
                     }
-          
+
                     return ListView.builder(
                       padding: const EdgeInsets.only(top: 8, bottom: 16),
                       itemCount: commandesByDate.length,
                       itemBuilder: (context, index) {
                         final dateKey = commandesByDate.keys.elementAt(index);
                         final commandesDuJour = commandesByDate[dateKey]!;
-                        final dateFormatted = DateFormat('dd MMMM yyyy', 'fr_FR').format(DateTime.parse(dateKey));
-          
+                        final dateFormatted = DateFormat(
+                          'dd MMMM yyyy',
+                          'fr_FR',
+                        ).format(DateTime.parse(dateKey));
+
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -541,7 +594,9 @@ class _CommandesState extends State<Commandes> {
                                 ),
                               ),
                             ),
-                            ...commandesDuJour.map((commande) => _carteCommande(commande)).toList(),
+                            ...commandesDuJour
+                                .map((commande) => _carteCommande(commande))
+                                .toList(),
                           ],
                         );
                       },
@@ -628,7 +683,9 @@ class _OrderCardWidgetState extends State<OrderCardWidget> {
       });
 
       try {
-        final invoiceDate = await widget.getInvoiceDate(widget.commande.idCommande);
+        final invoiceDate = await widget.getInvoiceDate(
+          widget.commande.idCommande,
+        );
         if (invoiceDate != null && mounted) {
           setState(() {
             displayDate = invoiceDate;
@@ -653,10 +710,14 @@ class _OrderCardWidgetState extends State<OrderCardWidget> {
   @override
   Widget build(BuildContext context) {
     final date = DateTime.parse(displayDate);
-    final formattedDate = DateFormat('dd MMMM yyyy à HH:mm', 'fr_FR').format(date);
-    final String displayId = widget.commande.idCommande.length >= 5
-        ? widget.commande.idCommande.substring(0, 5).toUpperCase()
-        : widget.commande.idCommande.toUpperCase();
+    final formattedDate = DateFormat(
+      'dd MMMM yyyy à HH:mm',
+      'fr_FR',
+    ).format(date);
+    final String displayId =
+        widget.commande.idCommande.length >= 5
+            ? widget.commande.idCommande.substring(0, 5).toUpperCase()
+            : widget.commande.idCommande.toUpperCase();
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -705,7 +766,7 @@ class _OrderCardWidgetState extends State<OrderCardWidget> {
                               ),
                               const SizedBox(width: 12),
                               Text(
-                                'Commande #$displayId..',
+                                'COM-$displayId..',
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w700,
@@ -716,10 +777,11 @@ class _OrderCardWidgetState extends State<OrderCardWidget> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            _isLoadingInvoiceDate ? 'Chargement de la date...'  
-                            : ( widget.commande.statutPaiement == 'Payé' 
-                            ? 'Payé le $formattedDate' 
-                            : 'Commandé le $formattedDate'),
+                            _isLoadingInvoiceDate
+                                ? 'Chargement de la date...'
+                                : (widget.commande.statutPaiement == 'Payé'
+                                    ? 'Payé le $formattedDate'
+                                    : 'Commandé le $formattedDate'),
                             style: TextStyle(
                               color: Colors.grey.shade600,
                               fontSize: 14,
@@ -766,57 +828,90 @@ class _OrderCardWidgetState extends State<OrderCardWidget> {
                 ),
                 const SizedBox(height: 16),
                 if (widget.commande.statutPaiement == 'Payé')
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        widget.onViewInvoice(context, widget.commande);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Styles.bleu,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        'Voir facture',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  )
-                else if (widget.commande.statutPaiement == 'En attente')
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => paiement(commande: widget.commande),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            widget.onViewInvoice(context, widget.commande);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Styles.bleu,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Styles.rouge,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          child: const Text(
+                            'Voir facture',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                       ),
-                      child: const Text(
-                        'Payer maintenant',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
+                      const SizedBox(width: 10),
+                      IconButton(
+                        onPressed: () {
+                          _confirmDelete(context, widget.commande);
+                        },
+                        icon: const Icon(
+                          FluentIcons.delete_24_filled,
+                          color: Colors.red,
+                        ),
+                        tooltip: 'Supprimer la commande',
+                      ),
+                    ],
+                  )
+                else if (widget.commande.statutPaiement == 'Attente')
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) =>
+                                          paiement(commande: widget.commande),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Styles.rouge,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text(
+                              'Payer maintenant',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
+                      const SizedBox(width: 10),
+                      IconButton(
+                        onPressed: () {
+                          _confirmDelete(context, widget.commande);
+                        },
+                        icon: const Icon(
+                          FluentIcons.delete_24_filled,
+                          color: Colors.red,
+                        ),
+                        tooltip: 'Supprimer la commande',
+                      ),
+                    ],
                   ),
               ],
             ),
@@ -824,5 +919,87 @@ class _OrderCardWidgetState extends State<OrderCardWidget> {
         ),
       ),
     );
+  }
+
+  void _confirmDelete(BuildContext context, Commande commande) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirmer la suppression'),
+          content: const Text(
+            'Êtes-vous sûr de vouloir supprimer cette commande ? Cette action est irréversible.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Annuler'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _deleteCommande(context, commande);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Supprimer'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteCommande(BuildContext context, Commande commande) async {
+    try {
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Styles.rouge),
+            ),
+          );
+        },
+      );
+
+      // Delete the commande from Firestore
+      await FirebaseFirestore.instance
+          .collection('Commandes')
+          .doc(commande.idCommande)
+          .delete();
+
+      // Close loading indicator
+      Navigator.of(context, rootNavigator: true).pop();
+
+      // Show success message
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Commande supprimée avec succès'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      // Close loading indicator
+      Navigator.of(context, rootNavigator: true).pop();
+
+      // Show error message
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors de la suppression: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }

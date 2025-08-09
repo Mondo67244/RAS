@@ -2,7 +2,7 @@ import 'package:RAS/widgets/SectionProduit.dart';
 import 'package:flutter/material.dart';
 import 'package:RAS/basicdata/produit.dart';
 import 'package:RAS/basicdata/style.dart';
-import 'package:RAS/services/base%20de%20donn%C3%A9es/lienbd.dart';
+import 'package:RAS/services/BD/lienbd.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:RAS/services/panier/panier_local.dart';
 

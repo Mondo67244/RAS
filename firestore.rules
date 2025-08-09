@@ -3,33 +3,82 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Les utilisateurs peuvent lire et écrire dans leur propre document
+    // Utilisateurs: chacun gère son document et ses sous-collections
     match /Utilisateurs/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // Panier sous l'utilisateur
+      match /Panier/{docId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Souhaits sous l'utilisateur
+      match /Souhaits/{docId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
     }
 
-    // Tout le monde peut lire les produits, mais seuls les administrateurs peuvent les créer, les mettre à jour ou les supprimer
+    // Produits: lecture publique, écriture admin
     match /Produits/{produitId} {
       allow read: if true;
-      allow create, update, delete: if request.auth != null && get(/databases/$(database)/documents/Utilisateurs/$(request.auth.uid)).data.role == 'admin';
+      allow create, update, delete:
+        if request.auth != null &&
+           get(/databases/$(database)/documents/Utilisateurs/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // Tout le monde peut lire les catégories, mais seuls les administrateurs peuvent les créer, les mettre à jour ou les supprimer
+    // Catégories: lecture publique, écriture admin
     match /Categories/{categorieId} {
       allow read: if true;
-      allow create, update, delete: if request.auth != null && get(/databases/$(database)/documents/Utilisateurs/$(request.auth.uid)).data.role == 'admin';
+      allow create, update, delete:
+        if request.auth != null &&
+           get(/databases/$(database)/documents/Utilisateurs/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // Les utilisateurs peuvent créer des commandes pour eux-mêmes et lire leurs propres commandes
+    // Commandes: l'utilisateur connecté peut créer et lire les siennes
     match /Commandes/{commandeId} {
-      allow create: if request.auth != null && request.resource.data.utilisateur.idUtilisateur == request.auth.uid;
-      allow read: if request.auth != null && resource.data.utilisateur.idUtilisateur == request.auth.uid;
-      allow update, delete: if false; // Personne ne peut modifier ou supprimer des commandes
+      allow create: if request.auth != null &&
+        request.resource.data.utilisateur.idUtilisateur == request.auth.uid;
+
+      allow read: if request.auth != null &&
+        resource.data.utilisateur.idUtilisateur == request.auth.uid;
+
+      // L'utilisateur peut modifier/supprimer sa commande tant que le statut est "Attente"
+      allow update, delete: if request.auth != null &&
+        resource.data.utilisateur.idUtilisateur == request.auth.uid &&
+        resource.data.statutPaiement == 'Attente' &&
+        // Protéger les champs critiques de l'utilisateur
+        request.resource.data.utilisateur.idUtilisateur == request.auth.uid;
     }
 
-    // Seuls les administrateurs peuvent créer, lire, mettre à jour et supprimer des factures
+    // Factures: l'utilisateur peut lire ses factures; admin peut tout
     match /Factures/{factureId} {
-      allow read, write: if request.auth != null && get(/databases/$(database)/documents/Utilisateurs/$(request.auth.uid)).data.role == 'admin';
+      // L'utilisateur peut créer et lire ses factures
+      allow create: if request.auth != null &&
+        request.resource.data.utilisateur.idUtilisateur == request.auth.uid;
+
+      allow read: if request.auth != null && (
+        resource.data.utilisateur.idUtilisateur == request.auth.uid ||
+        get(/databases/$(database)/documents/Utilisateurs/$(request.auth.uid)).data.role == 'admin'
+      );
+
+      // Mise à jour/suppression réservées à l'admin
+      allow update, delete:
+        if request.auth != null &&
+           get(/databases/$(database)/documents/Utilisateurs/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Messages: écriture par user authentifié; lecture par participants
+    match /Messages/{messageId} {
+      allow create: if request.auth != null &&
+        request.resource.data.idExpediteur == request.auth.uid;
+
+      allow read: if request.auth != null && (
+        resource.data.idExpediteur == request.auth.uid ||
+        resource.data.idDestinataire == request.auth.uid
+      );
+
+      // Interdire update/delete côté client pour l’instant
+      allow update, delete: if false;
     }
   }
 }

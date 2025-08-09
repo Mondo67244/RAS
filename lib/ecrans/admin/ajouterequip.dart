@@ -6,7 +6,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:RAS/basicdata/style.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
-import 'package:RAS/services/base de données/lienbd.dart';
+import 'package:RAS/services/BD/lienbd.dart';
 import 'package:RAS/basicdata/produit.dart';
 
 class AjouterEquipPage extends StatefulWidget {

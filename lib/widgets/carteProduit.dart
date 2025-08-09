@@ -33,7 +33,7 @@ class ProductCard extends StatelessWidget {
     final PageController pageController = PageController();
 
     return SizedBox(
-      width: isWideScreen ? 280 : 275,
+      width: isWideScreen ? 260 : 255,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
@@ -50,7 +50,7 @@ class ProductCard extends StatelessWidget {
                   top: Radius.circular(8),
                 ),
                 child: SizedBox(
-                  height: isWideScreen ? 250 : 225,
+                  height: isWideScreen ? 235 : 210,
                   width: double.infinity,
                   child: Stack(
                     fit: StackFit.expand,

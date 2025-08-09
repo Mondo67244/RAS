@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:RAS/basicdata/style.dart';
 import 'package:RAS/basicdata/utilisateur.dart';
-import 'package:RAS/services/base de données/lienbd.dart';
+import 'package:RAS/services/BD/lienbd.dart';
 import 'package:RAS/services/synchronisation/synchronisation_service.dart';
 
 class PageInscription extends StatefulWidget {

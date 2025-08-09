@@ -1,6 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:RAS/services/base de données/lienbd.dart';
+import 'package:RAS/services/BD/lienbd.dart';
 
 // import '../local/pont_stockage.dart';
 

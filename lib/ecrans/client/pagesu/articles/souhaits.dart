@@ -5,7 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:RAS/basicdata/produit.dart';
 import 'package:RAS/basicdata/style.dart';
-import 'package:RAS/services/base%20de%20donn%C3%A9es/lienbd.dart';
+import 'package:RAS/services/BD/lienbd.dart';
 import 'package:RAS/services/panier/panier_local.dart';
 import 'package:RAS/services/souhaits/souhaits_local.dart';
 
@@ -336,6 +336,7 @@ class SouhaitsState extends State<Souhaits> with AutomaticKeepAliveClientMixin<S
         return Scaffold(
           backgroundColor: Styles.blanc,
           floatingActionButton: FloatingActionButton.extended(
+            heroTag: "souhaits_actualiser",
             foregroundColor: Styles.bleu,
             backgroundColor: Styles.blanc,
             label: const Row(

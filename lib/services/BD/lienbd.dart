@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:RAS/basicdata/categorie.dart';
 import 'package:RAS/basicdata/utilisateur.dart';
 import 'package:RAS/basicdata/commande.dart';
@@ -7,12 +8,18 @@ import 'package:RAS/basicdata/produit.dart';
 import 'package:RAS/basicdata/message.dart'; // Ajout de l'import du modèle Message
 
 class FirestoreService {
-  final CollectionReference categoriesCollection = FirebaseFirestore.instance.collection('Categories');
-  final CollectionReference utilisateursCollection = FirebaseFirestore.instance.collection('Utilisateurs');
-  final CollectionReference produitsCollection = FirebaseFirestore.instance.collection('Produits');
-  final CollectionReference commandesCollection = FirebaseFirestore.instance.collection('Commandes');
-  final CollectionReference facturesCollection = FirebaseFirestore.instance.collection('Factures');
-  final CollectionReference messagesCollection = FirebaseFirestore.instance.collection('Messages'); // Ajout de la collection Messages
+  final CollectionReference categoriesCollection = FirebaseFirestore.instance
+      .collection('Categories');
+  final CollectionReference utilisateursCollection = FirebaseFirestore.instance
+      .collection('Utilisateurs');
+  final CollectionReference produitsCollection = FirebaseFirestore.instance
+      .collection('Produits');
+  final CollectionReference commandesCollection = FirebaseFirestore.instance
+      .collection('Commandes');
+  final CollectionReference facturesCollection = FirebaseFirestore.instance
+      .collection('Factures');
+  final CollectionReference messagesCollection = FirebaseFirestore.instance
+      .collection('Messages'); // Ajout de la collection Messages
 
   Future<List<Categorie>> getCategories() async {
     try {
@@ -67,9 +74,14 @@ class FirestoreService {
     }
   }
 
-  Future<void> updateProductWishlist(String productId, bool isWishlisted) async {
+  Future<void> updateProductWishlist(
+    String productId,
+    bool isWishlisted,
+  ) async {
     try {
-      print('Mise à jour de la wishlist pour le produit $productId: $isWishlisted');
+      print(
+        'Mise à jour de la wishlist pour le produit $productId: $isWishlisted',
+      );
       await produitsCollection.doc(productId).update({'jeVeut': isWishlisted});
     } catch (e) {
       print('Erreur dans updateProductWishlist: $e');
@@ -88,17 +100,21 @@ class FirestoreService {
   }
 
   // Méthodes pour gérer le panier de l'utilisateur dans Firestore
-  Future<void> ajouterAuPanierFirestore(String userId, String productId, int quantity) async {
+  Future<void> ajouterAuPanierFirestore(
+    String userId,
+    String productId,
+    int quantity,
+  ) async {
     try {
       await utilisateursCollection
           .doc(userId)
           .collection('Panier')
           .doc(productId)
           .set({
-        'idProduit': productId,
-        'quantite': quantity,
-        'dateAjout': FieldValue.serverTimestamp(),
-      });
+            'idProduit': productId,
+            'quantite': quantity,
+            'dateAjout': FieldValue.serverTimestamp(),
+          });
     } catch (e) {
       print('Erreur dans ajouterAuPanierFirestore: $e');
       rethrow;
@@ -118,35 +134,50 @@ class FirestoreService {
     }
   }
 
-  Future<void> updateQuantitePanierFirestore(String userId, String productId, int quantity) async {
+  Future<void> updateQuantitePanierFirestore(
+    String userId,
+    String productId,
+    int quantity,
+  ) async {
     try {
       await utilisateursCollection
           .doc(userId)
           .collection('Panier')
           .doc(productId)
           .update({
-        'quantite': quantity,
-        'dateModification': FieldValue.serverTimestamp(),
-      });
+            'quantite': quantity,
+            'dateModification': FieldValue.serverTimestamp(),
+          });
     } catch (e) {
       print('Erreur dans updateQuantitePanierFirestore: $e');
       rethrow;
     }
   }
 
+  Future<void> viderPanierFirestore(String userId) async {
+    try {
+      final panierRef = utilisateursCollection.doc(userId).collection('Panier');
+      final snap = await panierRef.get();
+      if (snap.docs.isEmpty) return;
+      final WriteBatch batch = FirebaseFirestore.instance.batch();
+      for (final doc in snap.docs) {
+        batch.delete(doc.reference);
+      }
+      await batch.commit();
+    } catch (e) {
+      print('Erreur dans viderPanierFirestore: $e');
+      rethrow;
+    }
+  }
+
   Future<List<Map<String, dynamic>>> getPanierUtilisateur(String userId) async {
     try {
-      QuerySnapshot snapshot = await utilisateursCollection
-          .doc(userId)
-          .collection('Panier')
-          .get();
-      
+      QuerySnapshot snapshot =
+          await utilisateursCollection.doc(userId).collection('Panier').get();
+
       return snapshot.docs.map((doc) {
         final data = doc.data() as Map<String, dynamic>;
-        return {
-          'idProduit': data['idProduit'],
-          'quantite': data['quantite'],
-        };
+        return {'idProduit': data['idProduit'], 'quantite': data['quantite']};
       }).toList();
     } catch (e) {
       print('Erreur dans getPanierUtilisateur: $e');
@@ -155,23 +186,29 @@ class FirestoreService {
   }
 
   // Méthodes pour gérer la liste de souhaits de l'utilisateur dans Firestore
-  Future<void> ajouterAuxSouhaitsFirestore(String userId, String productId) async {
+  Future<void> ajouterAuxSouhaitsFirestore(
+    String userId,
+    String productId,
+  ) async {
     try {
       await utilisateursCollection
           .doc(userId)
           .collection('Souhaits')
           .doc(productId)
           .set({
-        'idProduit': productId,
-        'dateAjout': FieldValue.serverTimestamp(),
-      });
+            'idProduit': productId,
+            'dateAjout': FieldValue.serverTimestamp(),
+          });
     } catch (e) {
       print('Erreur dans ajouterAuxSouhaitsFirestore: $e');
       rethrow;
     }
   }
 
-  Future<void> retirerDesSouhaitsFirestore(String userId, String productId) async {
+  Future<void> retirerDesSouhaitsFirestore(
+    String userId,
+    String productId,
+  ) async {
     try {
       await utilisateursCollection
           .doc(userId)
@@ -186,11 +223,9 @@ class FirestoreService {
 
   Future<List<String>> getSouhaitsUtilisateur(String userId) async {
     try {
-      QuerySnapshot snapshot = await utilisateursCollection
-          .doc(userId)
-          .collection('Souhaits')
-          .get();
-      
+      QuerySnapshot snapshot =
+          await utilisateursCollection.doc(userId).collection('Souhaits').get();
+
       return snapshot.docs.map((doc) {
         final data = doc.data() as Map<String, dynamic>;
         return data['idProduit'] as String;
@@ -214,7 +249,8 @@ class FirestoreService {
 
   Future<List<Produit>> getProduits() async {
     try {
-      QuerySnapshot snapshot = await produitsCollection.orderBy('createdAt', descending: true).get();
+      QuerySnapshot snapshot =
+          await produitsCollection.orderBy('createdAt', descending: true).get();
       return snapshot.docs.map((doc) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
         return Produit.fromMap(data, doc.id);
@@ -249,12 +285,15 @@ class FirestoreService {
 
   Stream<List<Produit>> getProduitsStream() {
     try {
-      return produitsCollection.orderBy('createdAt', descending: true).snapshots().map((snapshot) {
-        return snapshot.docs.map((doc) {
-          Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-          return Produit.fromMap(data, doc.id);
-        }).toList();
-      });
+      return produitsCollection
+          .orderBy('createdAt', descending: true)
+          .snapshots()
+          .map((snapshot) {
+            return snapshot.docs.map((doc) {
+              Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+              return Produit.fromMap(data, doc.id);
+            }).toList();
+          });
     } catch (e) {
       print('Erreur dans getProduitsStream: $e');
       return Stream.value([]);
@@ -262,14 +301,19 @@ class FirestoreService {
   }
 
   // Nouvelle méthode pour charger les produits avec pagination
-  Future<List<Produit>> getProduitsPaginated(int limit, DocumentSnapshot? lastDocument) async {
+  Future<List<Produit>> getProduitsPaginated(
+    int limit,
+    DocumentSnapshot? lastDocument,
+  ) async {
     try {
-      Query query = produitsCollection.orderBy('createdAt', descending: true).limit(limit);
-      
+      Query query = produitsCollection
+          .orderBy('createdAt', descending: true)
+          .limit(limit);
+
       if (lastDocument != null) {
         query = query.startAfterDocument(lastDocument);
       }
-      
+
       QuerySnapshot snapshot = await query.get();
       return snapshot.docs.map((doc) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
@@ -282,17 +326,21 @@ class FirestoreService {
   }
 
   // Nouvelle méthode pour charger les produits par catégorie avec pagination
-  Future<List<Produit>> getProduitsByCategoryPaginated(String category, int limit, DocumentSnapshot? lastDocument) async {
+  Future<List<Produit>> getProduitsByCategoryPaginated(
+    String category,
+    int limit,
+    DocumentSnapshot? lastDocument,
+  ) async {
     try {
       Query query = produitsCollection
           .where('categorie', isEqualTo: category)
           .orderBy('createdAt', descending: true)
           .limit(limit);
-      
+
       if (lastDocument != null) {
         query = query.startAfterDocument(lastDocument);
       }
-      
+
       QuerySnapshot snapshot = await query.get();
       return snapshot.docs.map((doc) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
@@ -308,13 +356,13 @@ class FirestoreService {
     try {
       // Générer un ID unique pour la commande
       final commandeId = commandesCollection.doc().id;
-      
+
       // Créer la commande avec l'ID correct dès le début
       final commandeMap = commande.toMap();
       commandeMap['idCommande'] = commandeId;
-      
+
       print('Ajout de la commande: $commandeMap');
-      
+
       // Créer directement le document avec l'ID
       await commandesCollection.doc(commandeId).set(commandeMap);
       print('Commande ajoutée avec succès: $commandeId');
@@ -361,7 +409,7 @@ class FirestoreService {
       return [];
     }
   }
-  
+
   Future<Facture?> getFactureById(String factureId) async {
     try {
       DocumentSnapshot snapshot = await facturesCollection.doc(factureId).get();
@@ -375,32 +423,47 @@ class FirestoreService {
       return null;
     }
   }
-  
+
   Future<Facture?> getFactureByOrderId(String orderId) async {
     try {
-      // Query factures that contain the order ID in their ID
-      QuerySnapshot snapshot = await facturesCollection
-          .where('idFacture', isGreaterThanOrEqualTo: 'FACT-${orderId.toUpperCase()}')
-          .where('idFacture', isLessThan: 'FACT-${orderId.toUpperCase()}\uf8ff')
-          .limit(1)
-          .get();
-      
-      if (snapshot.docs.isNotEmpty) {
-        Map<String, dynamic> data = snapshot.docs.first.data() as Map<String, dynamic>;
-        return Facture.fromMap(data);
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        print('Erreur dans getFactureByOrderId: Utilisateur non authentifié');
+        return null;
       }
       
+      // Query factures that contain the order ID in their ID and belong to the current user
+      QuerySnapshot snapshot =
+          await facturesCollection
+              .where('utilisateur.idUtilisateur', isEqualTo: user.uid)
+              .where(
+                'idFacture',
+                isGreaterThanOrEqualTo: 'FACT-${orderId.toUpperCase()}',
+              )
+              .where(
+                'idFacture',
+                isLessThan: 'FACT-${orderId.toUpperCase()}\uf8ff',
+              )
+              .limit(1)
+              .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        Map<String, dynamic> data =
+            snapshot.docs.first.data() as Map<String, dynamic>;
+        return Facture.fromMap(data);
+      }
+
       return null;
     } catch (e) {
       print('Erreur dans getFactureByOrderId: $e');
       return null;
     }
   }
-  
+
   // Ajout de méthodes pour gérer les messages
   Future<void> sendMessage(Message message) async {
     try {
-      await messagesCollection.add(message);
+      await messagesCollection.add(message.toMap());
     } catch (e) {
       print('Erreur dans sendMessage: $e');
       rethrow;
@@ -414,24 +477,24 @@ class FirestoreService {
           .orderBy('timestamp', descending: false)
           .snapshots()
           .map((snapshot) {
-        return snapshot.docs.map((doc) {
-          try {
-            final data = doc.data() as Map<String, dynamic>;
-            return Message.fromMap(data, doc.id);
-          } catch (e) {
-            // En cas d'erreur de conversion, créer un message par défaut
-            return Message(
-              idMessage: doc.id,
-              contenuMessage: 'Message non disponible',
-              idExpediteur: '',
-              idDestinataire: '',
-              idProduit: '',
-              idConversation: conversationId,
-              timestamp: Timestamp.now(),
-            );
-          }
-        }).toList();
-      });
+            return snapshot.docs.map((doc) {
+              try {
+                final data = doc.data() as Map<String, dynamic>;
+                return Message.fromMap(data, doc.id);
+              } catch (e) {
+                // En cas d'erreur de conversion, créer un message par défaut
+                return Message(
+                  idMessage: doc.id,
+                  contenuMessage: 'Message non disponible',
+                  idExpediteur: '',
+                  idDestinataire: '',
+                  idProduit: '',
+                  idConversation: conversationId,
+                  timestamp: Timestamp.now(),
+                );
+              }
+            }).toList();
+          });
     } catch (e) {
       print('Erreur dans getMessagesStream: $e');
       return Stream.value([]);
