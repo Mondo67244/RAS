@@ -63,6 +63,15 @@ class _DetailsState extends State<Details> {
 
   void _toggleSouhait(Produit produit) async {
     final bool isCurrentlyWished = produit.jeVeut;
+    
+    // Update UI immediately for better user experience
+    setState(() {
+      produit = produit.copyWith(
+        jeVeut: !isCurrentlyWished,
+        auPanier: isCurrentlyWished ? produit.auPanier : false,
+      );
+    });
+    
     try {
       if (isCurrentlyWished) {
         await _souhaitsLocal.retirerDesSouhaits(produit.idProduit);
@@ -74,19 +83,29 @@ class _DetailsState extends State<Details> {
         await _souhaitsLocal.ajouterAuxSouhaits(produit.idProduit);
         _messageReponse('Ajouté aux souhaits', icon: FluentIcons.class_20_filled);
       }
+    } catch (e) {
+      // Revert UI changes if operation fails
       setState(() {
         produit = produit.copyWith(
-          jeVeut: !isCurrentlyWished,
+          jeVeut: isCurrentlyWished,
           auPanier: isCurrentlyWished ? produit.auPanier : false,
         );
       });
-    } catch (e) {
       _messageReponse('Erreur: Impossible de modifier les souhaits', isSuccess: false, icon: Icons.error);
     }
   }
 
   void _togglePanier(Produit produit) async {
     final bool isCurrentlyInCart = produit.auPanier;
+    
+    // Update UI immediately for better user experience
+    setState(() {
+      produit = produit.copyWith(
+        auPanier: !isCurrentlyInCart,
+        jeVeut: isCurrentlyInCart ? produit.jeVeut : false,
+      );
+    });
+    
     try {
       if (isCurrentlyInCart) {
         await _panierLocal.retirerDuPanier(produit.idProduit);
@@ -98,13 +117,14 @@ class _DetailsState extends State<Details> {
         await _panierLocal.ajouterAuPanier(produit.idProduit);
         _messageReponse('Ajouté au panier', icon: FluentIcons.shopping_bag_tag_24_filled);
       }
+    } catch (e) {
+      // Revert UI changes if operation fails
       setState(() {
         produit = produit.copyWith(
-          auPanier: !isCurrentlyInCart,
+          auPanier: isCurrentlyInCart,
           jeVeut: isCurrentlyInCart ? produit.jeVeut : false,
         );
       });
-    } catch (e) {
       _messageReponse('Erreur: Impossible de modifier le panier', isSuccess: false, icon: Icons.error);
     }
   }

@@ -430,14 +430,14 @@ class PanierState extends State<Panier>
           children: [
             const Text(
               'Prêt à Commander ?',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
             ),
             TextButton(
               onPressed: _showClearCartDialog,
               child: Text(
                 'Vider le panier',
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 14,
                   color: Styles.rouge,
                   fontWeight: FontWeight.w600,
                 ),

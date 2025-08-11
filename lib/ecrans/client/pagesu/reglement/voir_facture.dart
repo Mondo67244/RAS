@@ -33,14 +33,19 @@ class VoirFacture extends StatelessWidget {
               offset: const Offset(-20, 12),
               child: const Text(
                 'Facturation',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
               ),
             ),
           ],
         ),
+        
         backgroundColor: Styles.rouge,
         foregroundColor: Styles.blanc,
         centerTitle: true,
+        elevation: 0,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+        ),
         actions: [
           IconButton(
             tooltip: 'Imprimer',

@@ -1,9 +1,8 @@
+import 'package:RAS/services/synchronisation/notification_service.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:RAS/basicdata/produit.dart';
-import 'package:RAS/basicdata/commande.dart';
 import 'package:RAS/ecrans/admin/accueila.dart';
 import 'package:RAS/ecrans/client/pagesu/principales/accueilu.dart';
 import 'package:RAS/ecrans/admin/ajouterequip.dart';
@@ -13,19 +12,15 @@ import 'package:RAS/ecrans/client/pagesu/articles/details.dart';
 import 'package:RAS/ecrans/client/pagesu/articles/resultats.dart';
 import 'package:RAS/ecrans/client/pagesu/principales/pageconnexion.dart';
 import 'package:RAS/ecrans/client/pagesu/principales/pageinscription.dart';
-import 'package:RAS/ecrans/client/pagesu/articles/voirplus.dart';
-import 'package:RAS/ecrans/client/pagesu/reglement/paiement.dart';
 import 'package:RAS/ecrans/client/pagesu/principales/ecrandemarrage.dart';
 import 'package:RAS/ecrans/client/pagesu/reglement/chat.dart';
 import 'package:RAS/ecrans/client/pagesu/principales/profil_simple.dart'; // Ajout de l'import du profil
 import 'package:RAS/firebase_options.dart';
-import 'package:RAS/services/synchronisation/synchronisation_service.dart';
 import 'package:RAS/ecrans/client/pagesu/parametres/parametres.dart';
 import 'package:RAS/ecrans/client/pagesu/parametres/parametres_profil.dart';
 import 'package:RAS/ecrans/client/pagesu/parametres/parametres_discussions.dart';
 import 'package:RAS/ecrans/client/pagesu/parametres/parametres_stats.dart';
 import 'package:provider/provider.dart';
-import 'package:RAS/services/synchronisation/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -55,54 +50,24 @@ class MainApp extends StatelessWidget {
         fontFamily: GoogleFonts.poppins().fontFamily,
       ),
       initialRoute: '/',
-      onGenerateRoute: (settings) {
-        if (settings.name == 'utilisateur/produit/details') {
-          final args = settings.arguments as Produit;
-          return MaterialPageRoute(
-            builder: (context) {
-              return Details(produit: args);
-            },
-          );
-        }
-        
-        // Gestion des autres routes
-        switch (settings.name) {
-          case '/':
-            return MaterialPageRoute(builder: (context) => const EcranDemarrage());
-          case '/accueil':
-            return MaterialPageRoute(builder: (context) => const Accueilu());
-          case '/connexion':
-            return MaterialPageRoute(builder: (context) => const Pageconnexion());
-          case '/inscription':
-            return MaterialPageRoute(builder: (context) => const PageInscription());
-          case '/admin/accueil':
-            return MaterialPageRoute(builder: (context) => const Accueila());
-          case '/admin/ajouterequip':
-            return MaterialPageRoute(builder: (context) => const AjouterEquipPage());
-          case '/utilisateur/commandes':
-            return MaterialPageRoute(builder: (context) => const Commandes());
-          case '/utilisateur/factures':
-            return MaterialPageRoute(builder: (context) => const Factures());
-          case '/utilisateur/chat':
-            return MaterialPageRoute(builder: (context) => const ChatPage());
-          case '/utilisateur/profile':
-            return MaterialPageRoute(builder: (context) => const ProfilePage());
-          case '/utilisateur/parametres':
-            return MaterialPageRoute(builder: (context) => const ParametresPage());
-          case '/utilisateur/parametres/profil':
-            return MaterialPageRoute(builder: (context) => const ParametresProfilPage());
-          case '/utilisateur/parametres/discussions':
-            return MaterialPageRoute(builder: (context) => const ParametresDiscussionsPage());
-          case '/utilisateur/parametres/stats':
-            return MaterialPageRoute(builder: (context) => const ParametresStatsPage());
-          case '/utilisateur/recherche':
-            return MaterialPageRoute(builder: (context) => const Resultats());
-          case '/utilisateur/produits/details':
-            // return MaterialPageRoute(builder: (context) => const Details(produit: args,));
-          default:
-            return MaterialPageRoute(builder: (context) => const EcranDemarrage());
-        }
-      },
-    );
-  }
-}
+      routes: {  
+        '/' :(context) => const EcranDemarrage(),
+         '/accueil':(context) => const Accueilu(),
+         '/connexion':(context) => const Pageconnexion(),
+         '/inscription':(context) => const PageInscription(),
+         '/admin/accueil':(context) => const Accueila(),
+         '/admin/ajouterequip':(context) => const AjouterEquipPage(),
+         '/utilisateur/commandes':(context) => const Commandes(),
+         '/utilisateur/factures':(context) => const Factures(),
+         '/utilisateur/chat':(context) => const ChatPage(),
+         '/utilisateur/profile':(context) => const ProfilePage(),
+         '/utilisateur/parametres':(context) => const ParametresPage(),
+         '/utilisateur/parametres/profil':(context) => const ParametresProfilPage(),
+         '/utilisateur/parametres/discussions':(context) => const ParametresDiscussionsPage(),
+         '/utilisateur/parametres/stats':(context) => const ParametresStatsPage(),
+         '/utilisateur/recherche':(context) => const Resultats(),
+         '/utilisateur/produit/details':(context) => Details(produit: ModalRoute.of(context)!.settings.arguments as Produit,)
+        },
+        );
+      }
+    }

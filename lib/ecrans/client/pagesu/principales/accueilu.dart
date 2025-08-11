@@ -392,8 +392,9 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                 if (_currentUser != null) ...[
                   ListTile(
                     leading: BadgeWidget(
-                      child: const Icon(FluentIcons.receipt_bag_24_regular),
                       count: notificationService.pendingOrdersCount,
+                      child: const Icon(FluentIcons.receipt_bag_24_regular),
+
                     ),
                     title: const Text('Voir les commandes'),
                     onTap: () {
@@ -546,15 +547,17 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                           // ),
                           BottomNavigationBarItem(
                             icon: BadgeWidget(
-                              child: const Icon(FluentIcons.shopping_bag_tag_24_filled),
                               count: notificationService.cartCount,
+                              child: const Icon(FluentIcons.shopping_bag_tag_24_filled),
+
                             ),
                             label: 'Mon panier',
                           ),
                           BottomNavigationBarItem(
                             icon: BadgeWidget(
-                              child: const Icon(FluentIcons.class_20_filled),
                               count: notificationService.wishlistCount,
+                              child: Icon(FluentIcons.class_20_filled),
+
                             ),
                             label: 'Mes souhaits',
                           ),
