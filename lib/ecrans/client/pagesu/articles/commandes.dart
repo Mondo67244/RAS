@@ -10,6 +10,8 @@ import 'package:RAS/basicdata/commande.dart';
 import 'package:RAS/basicdata/utilisateur.dart';
 import 'package:RAS/basicdata/style.dart';
 import 'package:RAS/services/BD/lienbd.dart';
+import 'package:provider/provider.dart';
+import 'package:RAS/services/synchronisation/notification_service.dart';
 
 class Commandes extends StatefulWidget {
   const Commandes({super.key});
@@ -27,6 +29,14 @@ class _CommandesState extends State<Commandes> {
     super.initState();
     initializeDateFormatting('fr_FR', null);
     _chargementCommandes();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Refresh notification service when orders page is accessed
+    final notificationService = Provider.of<NotificationService>(context, listen: false);
+    notificationService.refreshPendingOrdersCount();
   }
 
   void _chargementCommandes() {

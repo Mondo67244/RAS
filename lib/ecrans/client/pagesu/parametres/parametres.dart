@@ -202,7 +202,7 @@ class ParametresPage extends StatelessWidget {
                 icon: Icons.bar_chart_outlined,
                 title: 'Statistiques',
                 subtitle: 'Dépenses, historique, répartition',
-                onTap: () => Navigator.pushNamed(context, '/utilisateur/parametres/statistiques'),
+                onTap: () => Navigator.pushNamed(context, '/utilisateur/parametres/stats'),
               ),
               const Divider(height: 32, color: Colors.grey),
               _buildListTile(

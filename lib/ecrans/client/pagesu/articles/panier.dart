@@ -9,6 +9,8 @@ import 'package:RAS/basicdata/produit.dart';
 import 'package:intl/intl.dart';
 import 'package:RAS/services/panier/panier_local.dart';
 import 'dart:async';
+import 'package:provider/provider.dart';
+import 'package:RAS/services/synchronisation/notification_service.dart';
 
 // Custom exception for cart-related errors
 class CartException implements Exception {
@@ -65,6 +67,10 @@ class PanierState extends State<Panier>
       });
       await _initPanierLocal();
       if (mounted) {
+        // Refresh notification service
+        final notificationService = Provider.of<NotificationService>(context, listen: false);
+        notificationService.refreshCartCount();
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: Styles.bleu,
@@ -112,6 +118,12 @@ class PanierState extends State<Panier>
         _isLoading = false;
       });
       await _loadSavedMethods();
+      
+      // Refresh notification service
+      if (mounted) {
+        final notificationService = Provider.of<NotificationService>(context, listen: false);
+        notificationService.refreshCartCount();
+      }
     } catch (e) {
       _handleError('Erreur lors de l\'initialisation du panier local: $e');
     }
@@ -124,6 +136,10 @@ class PanierState extends State<Panier>
         _idsPanier.remove(idProduit);
         _productQuantities.remove(idProduit);
       });
+      
+      // Refresh notification service
+      final notificationService = Provider.of<NotificationService>(context, listen: false);
+      notificationService.refreshCartCount();
     } catch (e) {
       _handleError('Erreur lors du retrait du produit: $e');
     }
@@ -136,6 +152,11 @@ class PanierState extends State<Panier>
         _idsPanier.clear();
         _productQuantities.clear();
       });
+      
+      // Refresh notification service
+      final notificationService = Provider.of<NotificationService>(context, listen: false);
+      notificationService.refreshCartCount();
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -179,67 +200,47 @@ class PanierState extends State<Panier>
     );
   }
 
-  void _updateQuantity(String productId, int newQuantity) {
+  Future<void> _updateQuantity(String idProduit, int nouvelleQuantite) async {
+    if (nouvelleQuantite <= 0) return;
     try {
-      if (newQuantity < 0) {
-        throw CartException('La quantité ne peut pas être négative');
-      }
-      if (newQuantity > 100) {
-        throw CartException('La quantité maximale est de 100 par article');
-      }
-      if (newQuantity > 0) {
-        setState(() {
-          _productQuantities[productId] = newQuantity;
-        });
-        _panierLocal.updateQuantity(productId, newQuantity);
-      } else {
-        _retirerDuPanier(productId);
-      }
+      await _panierLocal.updateQuantity(idProduit, nouvelleQuantite);
+      setState(() {
+        _productQuantities[idProduit] = nouvelleQuantite;
+      });
+      
+      // Refresh notification service
+      final notificationService = Provider.of<NotificationService>(context, listen: false);
+      notificationService.refreshCartCount();
     } catch (e) {
       _handleError('Erreur lors de la mise à jour de la quantité: $e');
     }
   }
 
-  String _formatPrice(double price) {
-    try {
-      final format = NumberFormat("#,##0", "fr_FR");
-      return "${format.format(price)} CFA";
-    } catch (e) {
-      return "Erreur de formatage";
-    }
-  }
-
-  void _handleError(String errorMessage, {bool showSnackBar = true}) {
-    debugPrint(errorMessage);
-    if (mounted && showSnackBar) {
+  void _handleError(String message) {
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: Styles.erreur,
-          content: Text(errorMessage),
-          duration: Duration(seconds: 5),
+          content: Text(message),
+          duration: const Duration(seconds: 3),
         ),
       );
     }
   }
 
-  // Handle app lifecycle changes
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.inactive) {
-      // Clear focus when app goes to background or becomes inactive
-      _numeroPaiementFocusNode.unfocus();
-    }
+  void dispose() {
+    _numeroPaiementController.dispose();
+    _numeroPaiementFocusNode.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this); // Remove observer
-    _numeroPaiementFocusNode.dispose(); // Dispose the focus node
-    _numeroPaiementController.clear();
-    _numeroPaiementController.dispose();
-    super.dispose();
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _actualiser();
+    }
   }
 
   @override
@@ -761,6 +762,11 @@ class PanierState extends State<Panier>
   bool _isValidPhoneNumber(String number) {
     final phoneRegex = RegExp(r'^\+?\d{8,15}$');
     return phoneRegex.hasMatch(number);
+  }
+
+  String _formatPrice(double price) {
+    final formatter = NumberFormat("#,##0.00", "fr_FR");
+    return '${formatter.format(price)} CFA';
   }
 
   //

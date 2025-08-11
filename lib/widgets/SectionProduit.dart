@@ -83,7 +83,7 @@ class ProductSection extends StatelessWidget {
                   'Voir plus',
                   style: TextStyle(
                     color: Styles.rouge,
-                    fontSize: 16,
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
                 ),

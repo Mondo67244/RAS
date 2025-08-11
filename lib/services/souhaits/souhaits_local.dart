@@ -1,6 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:RAS/services/BD/lienbd.dart';
+import 'dart:async';
 
 // import '../local/pont_stockage.dart';
 
@@ -9,10 +10,16 @@ class SouhaitsLocal {
   // final _key = 'souhaits';
   SharedPreferences? _prefs;
   final FirestoreService _firestoreService = FirestoreService();
+  
+  final StreamController<int> _wishlistCountController = StreamController<int>.broadcast();
+  Stream<int> get wishlistCountStream => _wishlistCountController.stream;
 
   Future<void> init() async {
     // await _stockage.init();
     _prefs = await SharedPreferences.getInstance();
+    // Emit initial count
+    final count = (await getSouhaits()).length;
+    _wishlistCountController.add(count);
   }
 
   Future<List<String>> getSouhaits() async {
@@ -26,6 +33,9 @@ class SouhaitsLocal {
     if (!souhait.contains(idProduit)) {
       souhait.add(idProduit);
       await _prefs?.setStringList('souhaits', souhait);
+      
+      // Notify listeners of wishlist count change
+      _wishlistCountController.add(souhait.length);
     }
 
     // Si l'utilisateur est connecté, synchroniser avec Firestore
@@ -40,11 +50,18 @@ class SouhaitsLocal {
     final souhait = await getSouhaits();
     souhait.remove(idProduit);
     await _prefs?.setStringList('souhaits', souhait);
+    
+    // Notify listeners of wishlist count change
+    _wishlistCountController.add(souhait.length);
 
     // Si l'utilisateur est connecté, synchroniser avec Firestore
     final User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       await _firestoreService.retirerDesSouhaitsFirestore(user.uid, idProduit);
     }
+  }
+  
+  void dispose() {
+    _wishlistCountController.close();
   }
 }

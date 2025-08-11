@@ -34,7 +34,7 @@ class ProductCard extends StatelessWidget {
     final isWideScreen = MediaQuery.of(context).size.width > 700;
 
     return SizedBox(
-      width: isWideScreen ? 260 : 235,
+      width: isWideScreen ? 260 : 245,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),

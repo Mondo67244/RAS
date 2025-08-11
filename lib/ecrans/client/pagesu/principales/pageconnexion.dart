@@ -42,7 +42,7 @@ class _PageconnexionState extends State<Pageconnexion> {
 
       if (mounted) {
         // Rediriger vers la page d'accueil ou la page précédente
-        Navigator.pushNamedAndRemoveUntil(context, '/utilisateur', (route) => false);
+        Navigator.pushNamedAndRemoveUntil(context, '/accueil', (route) => false);
       }
     } on FirebaseAuthException catch (e) {
       String message = 'Email ou mot de passe incorrect.';

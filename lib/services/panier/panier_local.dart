@@ -3,12 +3,16 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:RAS/services/BD/lienbd.dart';
+import 'dart:async';
 
 // import '../local/pont_stockage.dart';
 
 class PanierLocal {
   SharedPreferences? _prefs;
   final FirestoreService _firestoreService = FirestoreService();
+  
+  final StreamController<int> _cartCountController = StreamController<int>.broadcast();
+  Stream<int> get cartCountStream => _cartCountController.stream;
 
   static const String _keyPanier = 'panier';
   static const String _keyQuantities = 'quantities';
@@ -16,6 +20,9 @@ class PanierLocal {
 
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
+    // Emit initial count
+    final count = await getTotalItems();
+    _cartCountController.add(count);
   }
 
   Future<List<String>> getPanier() async {
@@ -44,6 +51,10 @@ class PanierLocal {
     final quantities = await getQuantities();
     quantities[idProduit] = quantite;
     await _prefs?.setString(_keyQuantities, jsonEncode(quantities));
+    
+    // Notify listeners of cart count change
+    final count = await getTotalItems();
+    _cartCountController.add(count);
 
     // Si l'utilisateur est connecté, synchroniser avec Firestore
     final User? user = FirebaseAuth.instance.currentUser;
@@ -63,6 +74,10 @@ class PanierLocal {
     final quantities = await getQuantities();
     quantities.remove(idProduit);
     await _prefs?.setString(_keyQuantities, jsonEncode(quantities));
+    
+    // Notify listeners of cart count change
+    final count = await getTotalItems();
+    _cartCountController.add(count);
 
     // Si l'utilisateur est connecté, synchroniser avec Firestore
     final User? user = FirebaseAuth.instance.currentUser;
@@ -75,6 +90,10 @@ class PanierLocal {
     final quantities = await getQuantities();
     quantities[idProduit] = quantite;
     await _prefs?.setString(_keyQuantities, jsonEncode(quantities));
+    
+    // Notify listeners of cart count change
+    final count = await getTotalItems();
+    _cartCountController.add(count);
 
     // Si l'utilisateur est connecté, synchroniser avec Firestore
     final User? user = FirebaseAuth.instance.currentUser;
@@ -109,6 +128,9 @@ class PanierLocal {
 
     // Marquer le panier comme venant d'être vidé pour protéger la synchro
     await _prefs?.setBool(_keyCartJustCleared, true);
+    
+    // Notify listeners of cart count change
+    _cartCountController.add(0);
 
     // Si l'utilisateur est connecté, vider aussi le panier Firestore
     final User? user = FirebaseAuth.instance.currentUser;
@@ -139,5 +161,9 @@ class PanierLocal {
   Future<int> getUniqueItemsCount() async {
     final panier = await getPanier();
     return panier.length;
+  }
+  
+  void dispose() {
+    _cartCountController.close();
   }
 }

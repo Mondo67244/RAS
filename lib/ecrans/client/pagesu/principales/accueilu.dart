@@ -8,6 +8,9 @@ import 'package:RAS/ecrans/client/pagesu/articles/panier.dart';
 import 'package:RAS/ecrans/client/pagesu/articles/recents.dart';
 import 'package:RAS/ecrans/client/pagesu/articles/resultats.dart';
 import 'package:RAS/ecrans/client/pagesu/articles/souhaits.dart';
+import 'package:provider/provider.dart';
+import 'package:RAS/services/synchronisation/notification_service.dart';
+import 'package:RAS/widgets/badge_widget.dart';
 
 class Accueilu extends StatefulWidget {
   const Accueilu({super.key});
@@ -103,6 +106,12 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
         _loadUserData();
       }
     });
+    
+    // Listen to notification service changes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final notificationService = Provider.of<NotificationService>(context, listen: false);
+      notificationService.refreshAllCounts();
+    });
   }
 
   Future<void> _loadUserData() async {
@@ -143,6 +152,7 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isLargeScreen = screenWidth > 700;
+    final notificationService = Provider.of<NotificationService>(context);
 
     // Initialisation conditionnelle du TabController
     if (isLargeScreen && _tabController == null) {
@@ -219,7 +229,50 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                             unselectedLabelStyle: const TextStyle(
                               fontWeight: FontWeight.w500,
                             ),
-                            tabs: _tabs,
+                            tabs: [
+                              Tab(
+                                child: Row(
+                                  children: [
+                                    Icon(FluentIcons.home_more_20_filled),
+                                    SizedBox(width: 3),
+                                    Text('Articles'),
+                                  ],
+                                ),
+                              ),
+                              // Tab(
+                              //   child: Row(
+                              //     children: [
+                              //       Icon(FluentIcons.gift_card_24_filled),
+                              //       SizedBox(width: 3),
+                              //       Text('Promotions'),
+                              //     ],
+                              //   ),
+                              // ),
+                              Tab(
+                                child: Row(
+                                  children: [
+                                    BadgeWidget(
+                                      child: Icon(FluentIcons.shopping_bag_tag_24_filled),
+                                      count: notificationService.cartCount,
+                                    ),
+                                    SizedBox(width: 3),
+                                    Text('Panier'),
+                                  ],
+                                ),
+                              ),
+                              Tab(
+                                child: Row(
+                                  children: [
+                                    BadgeWidget(
+                                      child: Icon(FluentIcons.class_20_filled),
+                                      count: notificationService.wishlistCount,
+                                    ),
+                                    SizedBox(width: 3),
+                                    Text('Souhaits'),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -228,12 +281,15 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                 )
                 : null,
         actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/utilisateur/commandes');
-            },
-            icon: const Icon(FluentIcons.receipt_bag_24_filled),
-            tooltip: 'Mes Commandes',
+          BadgeWidget(
+            child: IconButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/utilisateur/commandes');
+              },
+              icon: const Icon(FluentIcons.receipt_bag_24_filled),
+              tooltip: 'Mes Commandes',
+            ),
+            count: notificationService.pendingOrdersCount,
           ),
           PopupMenuButton<String>(
             tooltip: 'Plus',
@@ -296,135 +352,142 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
       ),
 
       drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(color: Styles.rouge),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundColor: Colors.white,
-                    child: Icon(Icons.person, size: 30, color: Styles.rouge),
+        child: Consumer<NotificationService>(
+          builder: (context, notificationService, child) {
+            return ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                DrawerHeader(
+                  decoration: BoxDecoration(color: Styles.rouge),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      CircleAvatar(
+                        radius: 30,
+                        backgroundColor: Colors.white,
+                        child: Icon(Icons.person, size: 30, color: Styles.rouge),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        _userData != null
+                            ? '${_userData!['prenomUtilisateur'] ?? ''} ${_userData!['nomUtilisateur'] ?? ''}'
+                                .trim()
+                            : (_currentUser != null ? 'Utilisateur' : 'Invité'),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        _currentUser != null
+                            ? _currentUser!.email ?? 'Connecté'
+                            : 'Non connecté',
+                        style: const TextStyle(color: Colors.white70, fontSize: 14),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    _userData != null
-                        ? '${_userData!['prenomUtilisateur'] ?? ''} ${_userData!['nomUtilisateur'] ?? ''}'
-                            .trim()
-                        : (_currentUser != null ? 'Utilisateur' : 'Invité'),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                ),
+                if (_currentUser != null) ...[
+                  ListTile(
+                    leading: BadgeWidget(
+                      child: const Icon(FluentIcons.receipt_bag_24_regular),
+                      count: notificationService.pendingOrdersCount,
                     ),
+                    title: const Text('Voir les commandes'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, '/utilisateur/commandes');
+                    },
                   ),
-                  Text(
-                    _currentUser != null
-                        ? _currentUser!.email ?? 'Connecté'
-                        : 'Non connecté',
-                    style: const TextStyle(color: Colors.white70, fontSize: 14),
+                  ListTile(
+                    leading: const Icon(FluentIcons.document_pdf_24_regular),
+                    title: const Text('Voir les factures'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, '/utilisateur/factures');
+                    },
+                  ),
+                  const Divider(),
+                  ListTile(
+                    leading: const Icon(FluentIcons.person_24_regular),
+                    title: const Text('Mon Profil'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, '/utilisateur/profile');
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(FluentIcons.chat_24_regular),
+                    title: const Text('Contactez-nous'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, '/utilisateur/chat');
+                    },
+                  ),
+                  const Divider(),
+                  ListTile(
+                    leading: const Icon(FluentIcons.settings_24_regular),
+                    title: const Text('Paramètres'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, '/utilisateur/parametres');
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(FluentIcons.question_circle_24_regular),
+                    title: const Text('Aide'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, '/utilisateur/chat');
+                    },
+                  ),
+                  const Divider(),
+                  ListTile(
+                    leading: const Icon(FluentIcons.sign_out_24_regular),
+                    title: const Text('Déconnexion'),
+                    onTap: () async {
+                      await FirebaseAuth.instance.signOut();
+                      if (context.mounted) {
+                        Navigator.pop(context);
+                        Navigator.pushNamedAndRemoveUntil(
+                          context,
+                          '/connexion',
+                          (route) => false,
+                        );
+                      }
+                    },
+                  ),
+                ] else ...[
+                  ListTile(
+                    leading: const Icon(FluentIcons.arrow_enter_left_24_regular),
+                    title: const Text('Connexion'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        '/connexion',
+                        (route) => false,
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(FluentIcons.person_add_24_regular),
+                    title: const Text('Inscription'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        '/inscription',
+                        (route) => false,
+                      );
+                    },
                   ),
                 ],
-              ),
-            ),
-            if (_currentUser != null) ...[
-              ListTile(
-                leading: const Icon(FluentIcons.receipt_bag_24_regular),
-                title: const Text('Voir les commandes'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/utilisateur/commandes');
-                },
-              ),
-              ListTile(
-                leading: const Icon(FluentIcons.document_pdf_24_regular),
-                title: const Text('Voir les factures'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/utilisateur/factures');
-                },
-              ),
-              const Divider(),
-              ListTile(
-                leading: const Icon(FluentIcons.person_24_regular),
-                title: const Text('Mon Profil'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/utilisateur/profile');
-                },
-              ),
-              ListTile(
-                leading: const Icon(FluentIcons.chat_24_regular),
-                title: const Text('Contactez-nous'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/utilisateur/chat');
-                },
-              ),
-              const Divider(),
-              ListTile(
-                leading: const Icon(FluentIcons.settings_24_regular),
-                title: const Text('Paramètres'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/utilisateur/parametres');
-                },
-              ),
-              ListTile(
-                leading: const Icon(FluentIcons.question_circle_24_regular),
-                title: const Text('Aide'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/utilisateur/chat');
-                },
-              ),
-              const Divider(),
-              ListTile(
-                leading: const Icon(FluentIcons.sign_out_24_regular),
-                title: const Text('Déconnexion'),
-                onTap: () async {
-                  await FirebaseAuth.instance.signOut();
-                  if (context.mounted) {
-                    Navigator.pop(context);
-                    Navigator.pushNamedAndRemoveUntil(
-                      context,
-                      '/connexion',
-                      (route) => false,
-                    );
-                  }
-                },
-              ),
-            ] else ...[
-              ListTile(
-                leading: const Icon(FluentIcons.arrow_enter_left_24_regular),
-                title: const Text('Connexion'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamedAndRemoveUntil(
-                    context,
-                    '/connexion',
-                    (route) => false,
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(FluentIcons.person_add_24_regular),
-                title: const Text('Inscription'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamedAndRemoveUntil(
-                    context,
-                    '/inscription',
-                    (route) => false,
-                  );
-                },
-              ),
-            ],
-          ],
+              ],
+            );
+          }
         ),
       ),
 
@@ -453,41 +516,51 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                     topLeft: Radius.circular(16),
                     topRight: Radius.circular(16),
                   ),
-                  child: BottomNavigationBar(
-                    backgroundColor: Colors.white,
-                    elevation: 0,
-                    currentIndex: _selectedIndex,
-                    onTap: _onTapNav,
-                    type: BottomNavigationBarType.fixed,
-                    selectedItemColor: const Color.fromARGB(255, 163, 14, 3),
-                    unselectedItemColor: Colors.grey[600],
-                    showUnselectedLabels: true,
-                    selectedIconTheme: const IconThemeData(size: 23),
-                    unselectedIconTheme: const IconThemeData(size: 21),
-                    selectedLabelStyle: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                    ),
-                    unselectedLabelStyle: const TextStyle(
-                      fontWeight: FontWeight.w500,
-                    ),
-                    items: const [
-                      BottomNavigationBarItem(
-                        icon: Icon(FluentIcons.home_more_20_filled),
-                        label: 'Articles',
-                      ),
-                      // BottomNavigationBarItem(
-                      //   icon: Icon(FluentIcons.gift_card_24_filled),
-                      //   label: 'Promos',
-                      // ),
-                      BottomNavigationBarItem(
-                        icon: Icon(FluentIcons.shopping_bag_tag_24_filled),
-                        label: 'Mon panier',
-                      ),
-                      BottomNavigationBarItem(
-                        icon: Icon(FluentIcons.class_20_filled),
-                        label: 'Mes souhaits',
-                      ),
-                    ],
+                  child: Consumer<NotificationService>(
+                    builder: (context, notificationService, child) {
+                      return BottomNavigationBar(
+                        backgroundColor: Colors.white,
+                        elevation: 0,
+                        currentIndex: _selectedIndex,
+                        onTap: _onTapNav,
+                        type: BottomNavigationBarType.fixed,
+                        selectedItemColor: const Color.fromARGB(255, 163, 14, 3),
+                        unselectedItemColor: Colors.grey[600],
+                        showUnselectedLabels: true,
+                        selectedIconTheme: const IconThemeData(size: 23),
+                        unselectedIconTheme: const IconThemeData(size: 21),
+                        selectedLabelStyle: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                        ),
+                        unselectedLabelStyle: const TextStyle(
+                          fontWeight: FontWeight.w500,
+                        ),
+                        items: [
+                          const BottomNavigationBarItem(
+                            icon: Icon(FluentIcons.home_more_20_filled),
+                            label: 'Articles',
+                          ),
+                          // BottomNavigationBarItem(
+                          //   icon: Icon(FluentIcons.gift_card_24_filled),
+                          //   label: 'Promos',
+                          // ),
+                          BottomNavigationBarItem(
+                            icon: BadgeWidget(
+                              child: const Icon(FluentIcons.shopping_bag_tag_24_filled),
+                              count: notificationService.cartCount,
+                            ),
+                            label: 'Mon panier',
+                          ),
+                          BottomNavigationBarItem(
+                            icon: BadgeWidget(
+                              child: const Icon(FluentIcons.class_20_filled),
+                              count: notificationService.wishlistCount,
+                            ),
+                            label: 'Mes souhaits',
+                          ),
+                        ],
+                      );
+                    }
                   ),
                 ),
               ),

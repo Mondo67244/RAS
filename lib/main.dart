@@ -24,145 +24,84 @@ import 'package:RAS/ecrans/client/pagesu/parametres/parametres.dart';
 import 'package:RAS/ecrans/client/pagesu/parametres/parametres_profil.dart';
 import 'package:RAS/ecrans/client/pagesu/parametres/parametres_discussions.dart';
 import 'package:RAS/ecrans/client/pagesu/parametres/parametres_stats.dart';
+import 'package:provider/provider.dart';
+import 'package:RAS/services/synchronisation/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const MainApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => NotificationService()),
+      ],
+      child: const MainApp(),
+    ),
+  );
 }
 
 class MainApp extends StatelessWidget {
   const MainApp({super.key});
 
+  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: 'Royal Advance Services',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        textTheme: GoogleFonts.latoTextTheme(Theme.of(context).textTheme),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF990000)),
+        useMaterial3: true,
+        fontFamily: GoogleFonts.poppins().fontFamily,
       ),
       initialRoute: '/',
-      routes: {
-        '/': (context) => const AuthWrapper(),
-        '/admin': (context) => const Accueila(),
-        '/utilisateur': (context) => const Accueilu(),
-        '/utilisateur/recherche': (context) => const Resultats(),
-        '/utilisateur/parametres': (context) => const ParametresPage(),
-        '/utilisateur/parametres/profil':
-            (context) => const ParametresProfilPage(),
-        '/utilisateur/parametres/discussions':
-            (context) => const ParametresDiscussionsPage(),
-        '/utilisateur/parametres/statistiques':
-            (context) => const ParametresStatsPage(),
-        '/utilisateur/payment': (context) {
-          final args = ModalRoute.of(context)?.settings.arguments;
-          if (args is! Commande) {
-            return const Scaffold(
-              body: Center(child: Text('Commande invalide')),
-            );
-          }
-          return paiement(commande: args);
-        },
-        '/admin/nouveau produit': (context) {
-          final user = FirebaseAuth.instance.currentUser;
-          if (user == null) return const Pageconnexion();
-          return const AjouterEquipPage();
-        },
-        '/connexion': (context) => const Pageconnexion(),
-        '/inscription': (context) => const PageInscription(),
-        '/utilisateur/commandes': (context) => const Commandes(),
-        '/utilisateur/factures': (context) => const Factures(),
-        '/utilisateur/produit/details': (context) {
-          final args = ModalRoute.of(context)?.settings.arguments;
-          if (args is! Produit) {
-            return const Scaffold(
-              body: Center(child: Text('Produit invalide')),
-            );
-          }
-          return Details(produit: args);
-        },
-        '/utilisateur/chat': (context) {
-          final user = FirebaseAuth.instance.currentUser;
-          if (user == null) return const Pageconnexion();
-          final args =
-              ModalRoute.of(context)?.settings.arguments
-                  as Map<String, dynamic>? ??
-              {};
-          return ChatPage(
-            idProduit: args['idProduit'] as String?,
-            nomProduit: args['nomProduit'] as String?,
-          );
-        },
-        '/utilisateur/profile':
-            (context) => const ProfilePage(), // Ajout de la route du profil
-        '/all_products': (context) {
-          final args = ModalRoute.of(context)?.settings.arguments;
-          if (args is! Map<String, dynamic>) {
-            return const Scaffold(
-              body: Center(child: Text('Paramètres invalides')),
-            );
-          }
-          final title = args['title'];
-          final produits = args['produits'];
-          if (title is! String || produits is! List<Produit>) {
-            return const Scaffold(
-              body: Center(child: Text('Paramètres invalides')),
-            );
-          }
-          return Voirplus(title: title, produits: produits);
-        },
-      },
-      onUnknownRoute:
-          (_) => MaterialPageRoute(
-            builder:
-                (_) => const Scaffold(
-                  body: Center(child: Text('Page introuvable')),
-                ),
-          ),
-    );
-  }
-}
-
-class AuthWrapper extends StatelessWidget {
-  const AuthWrapper({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        // Vérifier l'état de l'authentification
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          // Afficher un indicateur de chargement pendant la vérification
-          return const Scaffold(
-            body: Center(
-              child: 
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text('Vérification de l\'authentification...'),
-                SizedBox(height: 20,),
-                CircularProgressIndicator(),
-              ],
-            )),
+      onGenerateRoute: (settings) {
+        if (settings.name == 'utilisateur/produit/details') {
+          final args = settings.arguments as Produit;
+          return MaterialPageRoute(
+            builder: (context) {
+              return Details(produit: args);
+            },
           );
         }
-
-        // Si l'utilisateur est connecté, synchroniser les données
-        if (snapshot.hasData) {
-          // Synchroniser le panier et les souhaits
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            final SynchronisationService syncService = SynchronisationService();
-            syncService.synchroniserTout();
-          });
-
-          // Rediriger vers l'écran d'accueil utilisateur
-          return const Accueilu();
+        
+        // Gestion des autres routes
+        switch (settings.name) {
+          case '/':
+            return MaterialPageRoute(builder: (context) => const EcranDemarrage());
+          case '/accueil':
+            return MaterialPageRoute(builder: (context) => const Accueilu());
+          case '/connexion':
+            return MaterialPageRoute(builder: (context) => const Pageconnexion());
+          case '/inscription':
+            return MaterialPageRoute(builder: (context) => const PageInscription());
+          case '/admin/accueil':
+            return MaterialPageRoute(builder: (context) => const Accueila());
+          case '/admin/ajouterequip':
+            return MaterialPageRoute(builder: (context) => const AjouterEquipPage());
+          case '/utilisateur/commandes':
+            return MaterialPageRoute(builder: (context) => const Commandes());
+          case '/utilisateur/factures':
+            return MaterialPageRoute(builder: (context) => const Factures());
+          case '/utilisateur/chat':
+            return MaterialPageRoute(builder: (context) => const ChatPage());
+          case '/utilisateur/profile':
+            return MaterialPageRoute(builder: (context) => const ProfilePage());
+          case '/utilisateur/parametres':
+            return MaterialPageRoute(builder: (context) => const ParametresPage());
+          case '/utilisateur/parametres/profil':
+            return MaterialPageRoute(builder: (context) => const ParametresProfilPage());
+          case '/utilisateur/parametres/discussions':
+            return MaterialPageRoute(builder: (context) => const ParametresDiscussionsPage());
+          case '/utilisateur/parametres/stats':
+            return MaterialPageRoute(builder: (context) => const ParametresStatsPage());
+          case '/utilisateur/recherche':
+            return MaterialPageRoute(builder: (context) => const Resultats());
+          case '/utilisateur/produits/details':
+            // return MaterialPageRoute(builder: (context) => const Details(produit: args,));
+          default:
+            return MaterialPageRoute(builder: (context) => const EcranDemarrage());
         }
-
-        // Si aucun utilisateur n'est connecté, afficher l'écran de démarrage
-        return const EcranDemarrage();
       },
     );
   }
