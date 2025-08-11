@@ -14,22 +14,44 @@ class ParametresStatsPage extends StatelessWidget {
       return Scaffold(
         backgroundColor: Styles.blanc,
         appBar: AppBar(
-          title: const Text(
-            'Statistiques',
-            style: TextStyle(
-              fontSize: 20, 
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(
+                'assets/images/kanjad.png',
+                key: const ValueKey('logo'),
+                width: 140,
+                height: 50,
+              ),
+              Transform.translate(
+                offset: const Offset(-20, 12),
+                child: Text(
+                  'Statistiques',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
           ),
           backgroundColor: Styles.rouge,
-          foregroundColor: Colors.white,
+          foregroundColor: Styles.blanc,
+          centerTitle: true,
           elevation: 0,
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
           ),
         ),
-        body: const Center(child: Text('Veuillez vous connecter.')),
+        body: const Center(
+          child: Column(
+            children: [
+              Icon(Icons.bar_chart_outlined),
+              Text(
+                'Veuillez vous connecter pour voir\n vos statistiques d\'achat.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16),
+              ),
+            ],
+          ),
+        ),
       );
     }
 
@@ -102,9 +124,9 @@ class ParametresStatsPage extends StatelessWidget {
 
           return Center(
             child: Container(
-          constraints: BoxConstraints(
-            maxWidth: MediaQuery.of(context).size.width > 600 ? 700 : 500,
-          ),
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width > 600 ? 700 : 500,
+              ),
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -115,13 +137,12 @@ class ParametresStatsPage extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Card(
-                            elevation: 0,
+                            elevation: 4,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              side: BorderSide(color: Colors.grey.shade200),
+                              borderRadius: BorderRadius.circular(16),
                             ),
                             child: Padding(
-                              padding: const EdgeInsets.all(16),
+                              padding: const EdgeInsets.all(20),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -130,13 +151,14 @@ class ParametresStatsPage extends StatelessWidget {
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
+                                      color: Colors.grey,
                                     ),
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
                                     '${NumberFormat('#,##0', 'fr_FR').format(totalDepenses)} CFA',
                                     style: const TextStyle(
-                                      fontSize: 20,
+                                      fontSize: 24,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.green,
                                     ),
@@ -149,13 +171,12 @@ class ParametresStatsPage extends StatelessWidget {
                         const SizedBox(width: 16),
                         Expanded(
                           child: Card(
-                            elevation: 0,
+                            elevation: 4,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              side: BorderSide(color: Colors.grey.shade200),
+                              borderRadius: BorderRadius.circular(16),
                             ),
                             child: Padding(
-                              padding: const EdgeInsets.all(16),
+                              padding: const EdgeInsets.all(20),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -164,14 +185,16 @@ class ParametresStatsPage extends StatelessWidget {
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
+                                      color: Colors.grey,
                                     ),
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
                                     '$totalArticles',
                                     style: const TextStyle(
-                                      fontSize: 20,
+                                      fontSize: 24,
                                       fontWeight: FontWeight.bold,
+                                      color: Styles.bleu,
                                     ),
                                   ),
                                 ],
@@ -181,116 +204,66 @@ class ParametresStatsPage extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 24),
+
                     Card(
-                      elevation: 0,
+                      elevation: 4,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: BorderSide(color: Colors.grey.shade200),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Répartition par type',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            ...parTypes.entries.map(
-                              (e) => Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 4),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Icon(
-                                          Icons.label_outline,
-                                          color: Colors.grey.shade600,
-                                          size: 20,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          e.key,
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Text(
-                                      '${e.value}',
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Card(
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: BorderSide(color: Colors.grey.shade200),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(20),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
                               'Historique des transactions',
                               style: TextStyle(
-                                fontSize: 18,
+                                fontSize: 20,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 16),
+                            const Divider(),
+                            const SizedBox(height: 8),
                             ...historique.map((h) {
                               String date = h['date'];
                               try {
                                 final d = DateTime.parse(date);
-                                date = DateFormat('dd/MM/yyyy HH:mm', 'fr_FR').format(d);
+                                date = DateFormat('dd/MM', 'fr_FR').format(d);
                               } catch (_) {}
                               return Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
+                                    Text(
+                                      '${h['montant']} CFA',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.green,
+                                      ),
+                                    ),
                                     Row(
                                       children: [
                                         Icon(
-                                          Icons.receipt_long_outlined,
+                                          Icons.calendar_today,
                                           color: Colors.grey.shade600,
-                                          size: 20,
+                                          size: 16,
                                         ),
                                         const SizedBox(width: 8),
                                         Text(
                                           date,
                                           style: const TextStyle(
                                             fontSize: 16,
+                                            color: Colors.black87,
                                           ),
                                         ),
                                       ],
-                                    ),
-                                    Text(
-                                      '${h['montant']} CFA',
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                      ),
                                     ),
                                   ],
                                 ),

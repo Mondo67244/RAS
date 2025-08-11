@@ -8,6 +8,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:RAS/basicdata/facture.dart';
 import 'package:RAS/basicdata/utilisateur.dart';
 import 'package:RAS/basicdata/style.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:printing/printing.dart';
 import 'package:RAS/services/synchronisation/facture_pdf_service.dart';
 
@@ -63,7 +64,8 @@ class _FacturesState extends State<Factures> {
                               emailUtilisateur: data['emailUtilisateur'] ?? '',
                               numeroUtilisateur:
                                   data['numeroUtilisateur'] ?? '',
-                              villeUtilisateur: data['villeUtilisateur'] ?? '',
+                              villeUtilisateur: data['villeUtilisateur'] ?? '', 
+                              roleUtilisateur: 'user',
                             ),
                     produits: [], // Initialisation avec une liste vide
                     prixFacture: data['prixFacture'] ?? 0,
@@ -84,6 +86,7 @@ class _FacturesState extends State<Factures> {
                       emailUtilisateur: '',
                       numeroUtilisateur: '',
                       villeUtilisateur: '',
+                      roleUtilisateur: 'user',
                     ),
                     produits: [],
                     prixFacture: 0,
@@ -115,7 +118,7 @@ class _FacturesState extends State<Factures> {
               offset: const Offset(-20, 12),
               child: const Text(
                 'Factures',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
               ),
             ),
           ],
@@ -123,6 +126,10 @@ class _FacturesState extends State<Factures> {
         backgroundColor: Styles.rouge,
         foregroundColor: Styles.blanc,
         centerTitle: true,
+        elevation: 0,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+        ),
       ),
       body: Center(
         child: Container(
@@ -430,11 +437,21 @@ class _FacturesState extends State<Factures> {
                           onPressed: () async {
                             final bytes =
                                 await FacturePdfService.generateFacturePdf(
-                                  facture,
-                                );
-                            await Printing.layoutPdf(
-                              onLayout: (format) async => bytes,
+                              facture,
                             );
+                            if (kIsWeb) {
+                              // Pour le web : déclenche le téléchargement
+                              await Printing.layoutPdf(
+                                onLayout: (format) async => bytes,
+                                name: 'Facture_${facture.idFacture}.pdf',
+                              );
+                            } else {
+                              // Pour mobile/desktop : partage natif
+                              await Printing.sharePdf(
+                                bytes: bytes,
+                                filename: 'Facture_${facture.idFacture}.pdf',
+                              );
+                            }
                           },
                         ),
                         IconButton(
@@ -443,12 +460,19 @@ class _FacturesState extends State<Factures> {
                           onPressed: () async {
                             final bytes =
                                 await FacturePdfService.generateFacturePdf(
-                                  facture,
-                                );
-                            await Printing.sharePdf(
-                              bytes: bytes,
-                              filename: 'Facture_${facture.idFacture}.pdf',
+                              facture,
                             );
+                            if (kIsWeb) {
+                              await Printing.layoutPdf(
+                                onLayout: (format) async => bytes,
+                                name: 'Facture_${facture.idFacture}.pdf',
+                              );
+                            } else {
+                              await Printing.sharePdf(
+                                bytes: bytes,
+                                filename: 'Facture_${facture.idFacture}.pdf',
+                              );
+                            }
                           },
                         ),
                         const SizedBox(width: 8),

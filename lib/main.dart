@@ -17,10 +17,9 @@ import 'package:RAS/ecrans/client/pagesu/articles/voirplus.dart';
 import 'package:RAS/ecrans/client/pagesu/reglement/paiement.dart';
 import 'package:RAS/ecrans/client/pagesu/principales/ecrandemarrage.dart';
 import 'package:RAS/ecrans/client/pagesu/reglement/chat.dart';
-import 'package:RAS/ecrans/client/pagesu/principales/profile.dart'; // Ajout de l'import du profil
+import 'package:RAS/ecrans/client/pagesu/principales/profil_simple.dart'; // Ajout de l'import du profil
 import 'package:RAS/firebase_options.dart';
 import 'package:RAS/services/synchronisation/synchronisation_service.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:RAS/ecrans/client/pagesu/parametres/parametres.dart';
 import 'package:RAS/ecrans/client/pagesu/parametres/parametres_profil.dart';
 import 'package:RAS/ecrans/client/pagesu/parametres/parametres_discussions.dart';
@@ -45,33 +44,8 @@ class MainApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => const AuthWrapper(),
-        '/admin': (context) {
-          final user = FirebaseAuth.instance.currentUser;
-          if (user == null) return const Pageconnexion();
-          // Vérification du rôle admin via FutureBuilder
-          return FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-            future:
-                FirebaseFirestore.instance
-                    .collection('Utilisateurs')
-                    .doc(user.uid)
-                    .get(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState != ConnectionState.done) {
-                return const Scaffold(
-                  body: Center(child: CircularProgressIndicator()),
-                );
-              }
-              final data = snapshot.data?.data();
-              final isAdmin = (data != null && data['role'] == 'admin');
-              if (!isAdmin) {
-                return const Accueilu();
-              }
-              return const Accueila();
-            },
-          );
-        },
+        '/admin': (context) => const Accueila(),
         '/utilisateur': (context) => const Accueilu(),
-
         '/utilisateur/recherche': (context) => const Resultats(),
         '/utilisateur/parametres': (context) => const ParametresPage(),
         '/utilisateur/parametres/profil':
@@ -161,7 +135,17 @@ class AuthWrapper extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           // Afficher un indicateur de chargement pendant la vérification
           return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+            body: Center(
+              child: 
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text('Vérification de l\'authentification...'),
+                SizedBox(height: 20,),
+                CircularProgressIndicator(),
+              ],
+            )),
           );
         }
 

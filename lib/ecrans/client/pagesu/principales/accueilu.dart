@@ -4,7 +4,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:RAS/basicdata/style.dart';
 import 'package:RAS/ecrans/client/pagesu/articles/panier.dart';
-import 'package:RAS/ecrans/client/pagesu/articles/promo.dart';
+// import 'package:RAS/ecrans/client/pagesu/articles/promo.dart';
 import 'package:RAS/ecrans/client/pagesu/articles/recents.dart';
 import 'package:RAS/ecrans/client/pagesu/articles/resultats.dart';
 import 'package:RAS/ecrans/client/pagesu/articles/souhaits.dart';
@@ -46,9 +46,9 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
 
     return [
       _buildPage(const Recents(), 0),
-      _buildPage(const Promo(), 1),
-      _buildPage(const Panier(), 2),
-      _buildPage(const Souhaits(), 3),
+      // _buildPage(const Promo(), 1),
+      _buildPage(const Panier(), 1),
+      _buildPage(const Souhaits(), 2),
     ];
   }
 
@@ -62,15 +62,15 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
         ],
       ),
     ),
-    Tab(
-      child: Row(
-        children: [
-          Icon(FluentIcons.gift_card_24_filled),
-          SizedBox(width: 3),
-          Text('Promotions'),
-        ],
-      ),
-    ),
+    // Tab(
+    //   child: Row(
+    //     children: [
+    //       Icon(FluentIcons.gift_card_24_filled),
+    //       SizedBox(width: 3),
+    //       Text('Promotions'),
+    //     ],
+    //   ),
+    // ),
     Tab(
       child: Row(
         children: [
@@ -89,7 +89,6 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
         ],
       ),
     ),
-   
   ];
 
   @override
@@ -162,24 +161,25 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-          Image.asset(
-          'assets/images/kanjad.png',
-          key: const ValueKey('logo'),
-          width: 140,
-          height: 45,
+            Image.asset(
+              'assets/images/kanjad.png',
+              key: const ValueKey('logo'),
+              width: 140,
+              height: 45,
+            ),
+            Transform.translate(
+              offset: const Offset(-30, 13),
+              child: const Text(
+                'Cameroun',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Styles.blanc,
+                ),
+              ),
+            ),
+          ],
         ),
-        Transform.translate(
-                            offset: const Offset(-30, 13),
-                            child: const Text(
-                              'Cameroun',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: Styles.blanc,
-                              ),
-                            ),
-                          ),
-        ],) ,
 
         centerTitle: true,
         bottom:
@@ -475,10 +475,10 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                         icon: Icon(FluentIcons.home_more_20_filled),
                         label: 'Accueil',
                       ),
-                      BottomNavigationBarItem(
-                        icon: Icon(FluentIcons.gift_card_24_filled),
-                        label: 'Promos',
-                      ),
+                      // BottomNavigationBarItem(
+                      //   icon: Icon(FluentIcons.gift_card_24_filled),
+                      //   label: 'Promos',
+                      // ),
                       BottomNavigationBarItem(
                         icon: Icon(FluentIcons.shopping_bag_tag_24_filled),
                         label: 'Panier',

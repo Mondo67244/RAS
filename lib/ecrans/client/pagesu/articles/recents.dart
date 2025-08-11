@@ -232,8 +232,7 @@ class RecentsState extends State<Recents>
         produits.where((p) => p.sousCategorie == 'Réseau').toList();
     final produitsMobiles =
         produits.where((p) => p.sousCategorie == 'Appareils Mobiles').toList();
-    final produitDivers =
-        produits.where((p) => p.sousCategorie == 'Divers').toList();
+    
     final produitsPopulaires =
         produits.where((p) => (int.tryParse(p.vues) ?? 0) > 15).toList();
     final produitsAccessoires =
@@ -248,7 +247,7 @@ class RecentsState extends State<Recents>
               ? const Text('')
               : _imagesEntetes('assets/images/PG2.png', isWide: isWideScreen),
           ProductSection(
-            title: 'Les Articles Populaires',
+            title: 'Articles Populaires',
             produits: produitsPopulaires,
             isWideScreen: isWideScreen,
             onTogglePanier: _toggleAuPanier,

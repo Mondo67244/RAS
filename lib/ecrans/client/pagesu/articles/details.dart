@@ -572,7 +572,7 @@ class _DetailsState extends State<Details> {
             if (constraints.maxWidth > 1200) {
               return Center(
                 child: Container(
-                  constraints: const BoxConstraints(maxWidth: 1300),
+                  constraints: const BoxConstraints(maxWidth: 1500),
                   child: Row(
                     key: const Key('layout Web'),
                     crossAxisAlignment: CrossAxisAlignment.start,

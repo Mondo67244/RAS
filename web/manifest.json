@@ -1,11 +1,11 @@
 {
-    "name": "RAS",
-    "short_name": "RAS",
+    "name": "Kanjad",
+    "short_name": "Kanjad",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "L'application de e-commerce numero 1 au cameroun et ailleurs !. Achats simples et rapides.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

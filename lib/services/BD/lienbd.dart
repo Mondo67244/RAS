@@ -66,6 +66,7 @@ class FirestoreService {
           emailUtilisateur: data['emailUtilisateur'] ?? '',
           numeroUtilisateur: data['numeroUtilisateur'] ?? 0,
           villeUtilisateur: data['villeUtilisateur'] ?? '',
+          roleUtilisateur: data['roleUtilisateur'] ?? '',
         );
       }).toList();
     } catch (e) {

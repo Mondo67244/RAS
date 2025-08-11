@@ -147,6 +147,7 @@ class SouhaitsState extends State<Souhaits> with AutomaticKeepAliveClientMixin<S
     final textTheme = Theme.of(context).textTheme;
 
     return Card(
+      color: Styles.blanc,
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -391,6 +392,7 @@ class SouhaitsState extends State<Souhaits> with AutomaticKeepAliveClientMixin<S
             
                   //Afficher les cartes en fonction de la taille de l'écran
                   return Container(
+                    color: Styles.blanc,
                     constraints: isWideScreen ? BoxConstraints(maxWidth: 1000) : BoxConstraints(maxWidth: 280),
                     child: GridView.builder(
                       padding: const EdgeInsets.all(8),

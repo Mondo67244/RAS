@@ -334,7 +334,13 @@ class PanierState extends State<Panier>
                     return Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: [Text('Votre panier est vide.')],
+                        children: [
+                          Text(
+                          'Votre panier est vide.\nLes produits ajoutés s\'afficherons ici',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        ],
                       ),
                     );
                   }

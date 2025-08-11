@@ -82,6 +82,7 @@ class _ProfilePageState extends State<ProfilePage> {
         // Mettre à jour l'utilisateur local
         setState(() {
           _utilisateur = Utilisateur(
+            roleUtilisateur: 'user',
             idUtilisateur: _utilisateur.idUtilisateur,
             nomUtilisateur: _nomController.text.trim(),
             prenomUtilisateur: _prenomController.text.trim(),

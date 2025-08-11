@@ -27,18 +27,20 @@ class ProductCard extends StatelessWidget {
     final List<String> images =
         [
           produit.img1,
-          produit.img2,
-          produit.img3,
+          // produit.img2,
+          // produit.img3,
         ].where((img) => img.isNotEmpty).toList();
     final PageController pageController = PageController();
+    final isWideScreen = MediaQuery.of(context).size.width > 700;
 
     return SizedBox(
-      width: isWideScreen ? 260 : 255,
+      width: isWideScreen ? 260 : 235,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Card(
-          margin: const EdgeInsets.all(8),
+          color: Styles.blanc,
+          margin: const EdgeInsets.all(9),
           elevation: 3,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           clipBehavior: Clip.antiAlias,
@@ -50,7 +52,8 @@ class ProductCard extends StatelessWidget {
                   top: Radius.circular(8),
                 ),
                 child: SizedBox(
-                  height: isWideScreen ? 235 : 210,
+                  
+                  height: isWideScreen ? 235 : 200,
                   width: double.infinity,
                   child: Stack(
                     fit: StackFit.expand,
@@ -76,14 +79,15 @@ class ProductCard extends StatelessWidget {
                           left: 1,
                           child: Chip(
                             backgroundColor: Styles.rouge,
-                            label: Row(
+                            label: 
+                            Row(
                               children: [
                                 Text(
-                                  'En Promo!',
+                                  'En Promo',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: Styles.blanc,
-                                    fontSize: 12,
+                                    fontSize: 11,
                                   ),
                                 ),
                               ],
@@ -104,7 +108,7 @@ class ProductCard extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontSize: 15,
+                        fontSize: 16,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -122,11 +126,11 @@ class ProductCard extends StatelessWidget {
                                   color: Styles.rouge,
                                 ),
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 2),
                               Text(
-                                '${produit.ancientPrix} CFA',
+                                produit.ancientPrix,
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: 12,
                                   fontWeight: FontWeight.w500,
                                   color: Colors.grey,
                                   decoration: TextDecoration.lineThrough,
@@ -160,7 +164,7 @@ class ProductCard extends StatelessWidget {
                           child: Text(
                             produit.enStock ? 'En stock' : 'Rupture',
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: 10,
                               fontWeight: FontWeight.bold,
                               color:
                                   produit.enStock ? Styles.vert : Styles.erreur,

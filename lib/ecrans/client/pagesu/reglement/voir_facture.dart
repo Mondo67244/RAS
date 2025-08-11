@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:RAS/basicdata/facture.dart';
 import 'package:RAS/basicdata/style.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:printing/printing.dart';
 import 'package:RAS/services/synchronisation/facture_pdf_service.dart';
 
@@ -45,19 +46,40 @@ class VoirFacture extends StatelessWidget {
             tooltip: 'Imprimer',
             icon: const Icon(Icons.print),
             onPressed: () async {
-              final bytes = await FacturePdfService.generateFacturePdf(facture);
-              await Printing.layoutPdf(onLayout: (format) async => bytes);
+              final bytes = await FacturePdfService.generateFacturePdf(
+                facture,
+              );
+              if (kIsWeb) {
+                await Printing.layoutPdf(
+                  onLayout: (format) async => bytes,
+                  name: 'Facture_${facture.idFacture}.pdf',
+                );
+              } else {
+                await Printing.sharePdf(
+                  bytes: bytes,
+                  filename: 'Facture_${facture.idFacture}.pdf',
+                );
+              }
             },
           ),
           IconButton(
             tooltip: 'Télécharger',
             icon: const Icon(Icons.download),
             onPressed: () async {
-              final bytes = await FacturePdfService.generateFacturePdf(facture);
-              await Printing.sharePdf(
-                bytes: bytes,
-                filename: 'Facture_${facture.idFacture}.pdf',
+              final bytes = await FacturePdfService.generateFacturePdf(
+                facture,
               );
+              if (kIsWeb) {
+                await Printing.layoutPdf(
+                  onLayout: (format) async => bytes,
+                  name: 'Facture_${facture.idFacture}.pdf',
+                );
+              } else {
+                await Printing.sharePdf(
+                  bytes: bytes,
+                  filename: 'Facture_${facture.idFacture}.pdf',
+                );
+              }
             },
           ),
         ],

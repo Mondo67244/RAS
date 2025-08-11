@@ -5,8 +5,10 @@ class Utilisateur {
   String emailUtilisateur;
   String numeroUtilisateur;
   String villeUtilisateur;
+  String roleUtilisateur;
   
   Utilisateur({
+    required this.roleUtilisateur,
     required this.idUtilisateur,
     required this.nomUtilisateur,
     required this.prenomUtilisateur,
@@ -23,6 +25,7 @@ class Utilisateur {
       'emailUtilisateur': emailUtilisateur,
       'numeroUtilisateur': numeroUtilisateur,
       'villeUtilisateur': villeUtilisateur,
+      'roleUtilisateur': roleUtilisateur,
     };
   }
 
@@ -34,6 +37,7 @@ class Utilisateur {
       emailUtilisateur: map['emailUtilisateur'] ?? '',
       numeroUtilisateur: map['numeroUtilisateur'] ?? '',
       villeUtilisateur: map['villeUtilisateur'] ?? '',
+      roleUtilisateur: map['roleUtilisateur'] ?? '',
     );
   }
 

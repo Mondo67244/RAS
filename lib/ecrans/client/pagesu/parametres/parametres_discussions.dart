@@ -28,7 +28,11 @@ class ParametresDiscussionsPage extends StatelessWidget {
             borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
           ),
         ),
-        body: const Center(child: Text('Veuillez vous connecter.')),
+        body: const Center(child: Text(
+                          'Veuillez vous connecter pour voir\n vos discussions.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 16),
+                        ),),
       );
     }
 

@@ -60,6 +60,7 @@ class _CommandesState extends State<Commandes> {
                         emailUtilisateur: '',
                         numeroUtilisateur: '',
                         villeUtilisateur: '',
+                        roleUtilisateur: ''
                       ),
                       produits: [],
                       methodePaiment: '',
@@ -490,7 +491,7 @@ class _CommandesState extends State<Commandes> {
               offset: const Offset(-20, 12),
               child: const Text(
                 'Commandes',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
               ),
             ),
           ],
@@ -498,6 +499,10 @@ class _CommandesState extends State<Commandes> {
         backgroundColor: Styles.rouge,
         foregroundColor: Styles.blanc,
         centerTitle: true,
+        elevation: 0,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+        ),
       ),
       body: Center(
         child: Container(

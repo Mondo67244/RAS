@@ -57,6 +57,7 @@ class _PageInscriptionState extends State<PageInscription> {
           emailUtilisateur: _emailController.text.trim(),
           numeroUtilisateur: _numeroController.text.trim(),
           villeUtilisateur: _villeController.text.trim(),
+          roleUtilisateur: 'user'
         );
 
         // Ajouter l'utilisateur à la collection Firestore

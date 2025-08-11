@@ -331,7 +331,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
 
         //Nom du produit
         TextFormField(
-          maxLength: 24,
+          maxLength: 23,
           controller: _nomController,
           decoration: _titresChamps('Nom du produit'),
           validator:
