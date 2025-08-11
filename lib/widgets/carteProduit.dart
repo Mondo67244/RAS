@@ -76,14 +76,14 @@ class ProductCard extends StatelessWidget {
                       if (produit.enPromo)
                         Positioned(
                           top: 2,
-                          left: 1,
+                          left: 5,
                           child: Chip(
                             backgroundColor: Styles.rouge,
                             label: 
                             Row(
                               children: [
                                 Text(
-                                  'En Promo',
+                                  'En promotion',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: Styles.blanc,

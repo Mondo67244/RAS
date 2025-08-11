@@ -58,7 +58,7 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
         children: [
           Icon(FluentIcons.home_more_20_filled),
           SizedBox(width: 3),
-          Text('Accueil'),
+          Text('Articles'),
         ],
       ),
     ),
@@ -462,8 +462,8 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                     selectedItemColor: const Color.fromARGB(255, 163, 14, 3),
                     unselectedItemColor: Colors.grey[600],
                     showUnselectedLabels: true,
-                    selectedIconTheme: const IconThemeData(size: 26),
-                    unselectedIconTheme: const IconThemeData(size: 22),
+                    selectedIconTheme: const IconThemeData(size: 23),
+                    unselectedIconTheme: const IconThemeData(size: 21),
                     selectedLabelStyle: const TextStyle(
                       fontWeight: FontWeight.w700,
                     ),
@@ -473,7 +473,7 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                     items: const [
                       BottomNavigationBarItem(
                         icon: Icon(FluentIcons.home_more_20_filled),
-                        label: 'Accueil',
+                        label: 'Articles',
                       ),
                       // BottomNavigationBarItem(
                       //   icon: Icon(FluentIcons.gift_card_24_filled),
@@ -481,11 +481,11 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                       // ),
                       BottomNavigationBarItem(
                         icon: Icon(FluentIcons.shopping_bag_tag_24_filled),
-                        label: 'Panier',
+                        label: 'Mon panier',
                       ),
                       BottomNavigationBarItem(
                         icon: Icon(FluentIcons.class_20_filled),
-                        label: 'Souhaits',
+                        label: 'Mes souhaits',
                       ),
                     ],
                   ),

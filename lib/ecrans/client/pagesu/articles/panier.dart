@@ -589,9 +589,8 @@ class PanierState extends State<Panier>
               borderRadius: BorderRadius.circular(30),
             ),
           ),
-          icon: const Icon(Icons.check_circle_outline, color: Colors.white),
           label: const Text(
-            'Valider Commander',
+            'Commander',
             style: TextStyle(fontSize: 18, color: Colors.white),
           ),
         ),
