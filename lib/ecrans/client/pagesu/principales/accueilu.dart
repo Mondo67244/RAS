@@ -255,10 +255,11 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                                 child: Row(
                                   children: [
                                     BadgeWidget(
+                                      
+                                      count: notificationService.cartCount,
                                       child: Icon(
                                         FluentIcons.shopping_bag_tag_24_filled,
                                       ),
-                                      count: notificationService.cartCount,
                                     ),
                                     SizedBox(width: 3),
                                     Text('Panier'),
@@ -269,8 +270,9 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                                 child: Row(
                                   children: [
                                     BadgeWidget(
-                                      child: Icon(FluentIcons.class_20_filled),
                                       count: notificationService.wishlistCount,
+                                      child: Icon(FluentIcons.heart_20_filled),
+
                                     ),
                                     SizedBox(width: 3),
                                     Text('Souhaits'),
@@ -287,6 +289,8 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                 : null,
         actions: [
           BadgeWidget(
+            
+            count: notificationService.pendingOrdersCount,
             child: IconButton(
               onPressed: () {
                 Navigator.pushNamed(context, '/utilisateur/commandes');
@@ -294,7 +298,6 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
               icon: const Icon(FluentIcons.receipt_bag_24_filled),
               tooltip: 'Mes Commandes',
             ),
-            count: notificationService.pendingOrdersCount,
           ),
           PopupMenuButton<String>(
             tooltip: 'Plus',
@@ -319,22 +322,8 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
             },
             itemBuilder:
                 (context) => [
-                  const PopupMenuItem(
-                    value: 'factures',
-                    child: ListTile(
-                      dense: true,
-                      leading: Icon(FluentIcons.document_pdf_24_regular),
-                      title: Text('Mes Factures'),
-                    ),
-                  ),
-                  const PopupMenuItem(
-                    value: 'profil',
-                    child: ListTile(
-                      dense: true,
-                      leading: Icon(FluentIcons.person_24_regular),
-                      title: Text('Mon Profil'),
-                    ),
-                  ),
+                  
+                  
                   const PopupMenuItem(
                     value: 'chat',
                     child: ListTile(
@@ -575,7 +564,7 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                           BottomNavigationBarItem(
                             icon: BadgeWidget(
                               count: notificationService.wishlistCount,
-                              child: Icon(FluentIcons.class_20_filled),
+                              child: Icon(FluentIcons.heart_24_filled),
                             ),
                             label: 'Mes souhaits',
                           ),

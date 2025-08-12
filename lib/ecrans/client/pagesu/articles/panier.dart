@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:RAS/basicdata/commande.dart';
 import 'package:RAS/basicdata/style.dart';
@@ -351,11 +352,26 @@ class PanierState extends State<Panier>
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
+                          Icon(
+                        FluentIcons.shopping_bag_tag_24_regular,
+                        size: 64,
+                        color: Colors.grey.shade400,
+                      ),
                           Text(
                             'Votre panier est vide.\nLes produits ajoutés s\'afficherons ici',
                             textAlign: TextAlign.center,
                             style: TextStyle(fontSize: 16),
                           ),
+                          const SizedBox(height: 16),
+                      OutlinedButton(
+                        onPressed: _actualiser,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Styles.rouge,
+                          side: BorderSide(color: Styles.rouge),
+                        ),
+                        child: const Text('Actualiser'),
+                      ),
+
                         ],
                       ),
                     );

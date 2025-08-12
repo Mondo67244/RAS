@@ -434,8 +434,8 @@ class _DetailsState extends State<Details> {
                       produit.enStock ? () => _toggleSouhait(produit) : null,
                   icon: Icon(
                     produit.jeVeut
-                        ? FluentIcons.class_20_filled
-                        : FluentIcons.book_star_24_regular,
+                        ? FluentIcons.heart_20_filled
+                        : FluentIcons.heart_20_regular,
                     size: 20,
                   ),
                   label: Text(
@@ -589,40 +589,40 @@ class _DetailsState extends State<Details> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Styles.bleu,
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 16,
-                      horizontal: 12,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _clic = !_clic;
-                    });
-                  },
-                  icon: Icon(
-                    _clic
-                        ? FluentIcons.heart_24_filled
-                        : FluentIcons.heart_24_regular,
-                    size: 20,
-                  ),
-                  label: Text(
-                    _clic ? 'Aimé' : 'J\'aime',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
+              // Expanded(
+              //   child: ElevatedButton.icon(
+              //     style: ElevatedButton.styleFrom(
+              //       backgroundColor: Colors.white,
+              //       foregroundColor: Styles.bleu,
+              //       elevation: 0,
+              //       padding: const EdgeInsets.symmetric(
+              //         vertical: 16,
+              //         horizontal: 12,
+              //       ),
+              //       shape: RoundedRectangleBorder(
+              //         borderRadius: BorderRadius.circular(12),
+              //       ),
+              //     ),
+              //     onPressed: () {
+              //       setState(() {
+              //         _clic = !_clic;
+              //       });
+              //     },
+              //     icon: Icon(
+              //       _clic
+              //           ? FluentIcons.heart_24_filled
+              //           : FluentIcons.heart_24_regular,
+              //       size: 20,
+              //     ),
+              //     label: Text(
+              //       _clic ? 'Aimé' : 'J\'aime',
+              //       style: const TextStyle(
+              //         fontSize: 16,
+              //         fontWeight: FontWeight.w600,
+              //       ),
+              //     ),
+              //   ),
+              // ),
               const SizedBox(width: 8),
               Expanded(
                 child: ElevatedButton.icon(
@@ -642,8 +642,8 @@ class _DetailsState extends State<Details> {
                       produit.enStock ? () => _toggleSouhait(produit) : null,
                   icon: Icon(
                     produit.jeVeut
-                        ? FluentIcons.class_20_filled
-                        : FluentIcons.book_star_24_regular,
+                        ? FluentIcons.heart_20_filled
+                        : FluentIcons.heart_20_regular,
                     size: 20,
                   ),
                   label: Text(

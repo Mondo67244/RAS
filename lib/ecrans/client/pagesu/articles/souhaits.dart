@@ -265,7 +265,18 @@ class SouhaitsState extends State<Souhaits>
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               }
-              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              
+
+              final produits = snapshot.data!;
+              final produitsFiltres =
+                  produits
+                      .where(
+                        (produit) => _idsSouhaits.contains(produit.idProduit),
+                      )
+                      .toList();
+
+              // Check if wishlist is empty (either no products in wishlist or no products at all)
+              if (produitsFiltres.isEmpty) {
                 return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -293,18 +304,19 @@ class SouhaitsState extends State<Souhaits>
                           color: Colors.grey.shade500,
                         ),
                       ),
+                      const SizedBox(height: 16),
+                      OutlinedButton(
+                        onPressed: _actualiser,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Styles.rouge,
+                          side: BorderSide(color: Styles.rouge),
+                        ),
+                        child: const Text('Actualiser'),
+                      ),
                     ],
                   ),
                 );
               }
-
-              final produits = snapshot.data!;
-              final produitsFiltres =
-                  produits
-                      .where(
-                        (produit) => _idsSouhaits.contains(produit.idProduit),
-                      )
-                      .toList();
 
               return Stack(
                 children: [
@@ -326,18 +338,12 @@ class SouhaitsState extends State<Souhaits>
                   Positioned(
                     right: 16,
                     bottom: 16,
-                    child: FloatingActionButton.extended(
+                    child: FloatingActionButton(
                       heroTag: "souhaits_refresh",
                       onPressed: _actualiser,
                       backgroundColor: Styles.rouge,
                       foregroundColor: Colors.white,
-                      label: Row(
-                        children: [
-                          Icon(Icons.refresh),
-                          const SizedBox(width: 5),
-                          Text('Mettre à jour'),
-                        ],
-                      ),
+                      child: const Icon(Icons.refresh),
                     ),
                   ),
                 ],
