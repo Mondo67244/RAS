@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:RAS/basicdata/produit.dart';
 import 'package:RAS/basicdata/style.dart';
@@ -269,7 +271,7 @@ class SouhaitsState extends State<Souhaits>
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        FluentIcons.emoji_sad_24_regular,
+                        FluentIcons.heart_24_regular,
                         size: 64,
                         color: Colors.grey.shade400,
                       ),
@@ -304,20 +306,41 @@ class SouhaitsState extends State<Souhaits>
                       )
                       .toList();
 
-              return Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 300,
-                    childAspectRatio: 0.75,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
+              return Stack(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: GridView.builder(
+                      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: 300,
+                        childAspectRatio: 0.75,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                      ),
+                      itemCount: produitsFiltres.length,
+                      itemBuilder: (context, index) {
+                        return _produit(produitsFiltres[index]);
+                      },
+                    ),
                   ),
-                  itemCount: produitsFiltres.length,
-                  itemBuilder: (context, index) {
-                    return _produit(produitsFiltres[index]);
-                  },
-                ),
+                  Positioned(
+                    right: 16,
+                    bottom: 16,
+                    child: FloatingActionButton.extended(
+                      heroTag: "souhaits_refresh",
+                      onPressed: _actualiser,
+                      backgroundColor: Styles.rouge,
+                      foregroundColor: Colors.white,
+                      label: Row(
+                        children: [
+                          Icon(Icons.refresh),
+                          const SizedBox(width: 5),
+                          Text('Mettre à jour'),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               );
             },
           );

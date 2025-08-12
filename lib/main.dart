@@ -73,7 +73,19 @@ class MainApp extends StatelessWidget {
           final List<Produit> produits = args?['produits'] ?? [];
           return Voirplus(title: title, produits: produits);
         },
-        '/utilisateur/produit/details': (context) => Details(produit: ModalRoute.of(context)!.settings.arguments as Produit,)
+        '/utilisateur/produit/details': (context) {
+          final args1 = ModalRoute.of(context)!.settings.arguments;
+          if (args1 is Produit) {
+            return Details(produit: args1);
+          } else {
+            // Dans le cas ou on n'a pas de produit
+            return const Scaffold(
+              body: Center(
+                child: Text('Erreur de chargement des données'),
+              ),
+            );
+          }
+        }
       },
     );
   }
