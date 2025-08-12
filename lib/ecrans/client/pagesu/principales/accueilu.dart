@@ -168,6 +168,7 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
       appBar: AppBar(
         foregroundColor: Styles.blanc,
         backgroundColor: Styles.rouge,
+        
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
         ),

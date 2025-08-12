@@ -38,7 +38,6 @@ class VoirFacture extends StatelessWidget {
             ),
           ],
         ),
-
         backgroundColor: Styles.rouge,
         foregroundColor: Styles.blanc,
         centerTitle: true,
@@ -51,13 +50,17 @@ class VoirFacture extends StatelessWidget {
             tooltip: 'Imprimer',
             icon: const Icon(Icons.print),
             onPressed: () async {
-              final bytes = await FacturePdfService.generateFacturePdf(facture);
+              final bytes = await FacturePdfService.generateFacturePdf(
+                facture,
+              );
               if (kIsWeb) {
+                // For web: use layoutPdf for printing or saving
                 await Printing.layoutPdf(
                   onLayout: (format) async => bytes,
                   name: 'Facture_${facture.idFacture}.pdf',
                 );
               } else {
+                // For mobile/desktop: use native sharing
                 await Printing.sharePdf(
                   bytes: bytes,
                   filename: 'Facture_${facture.idFacture}.pdf',
@@ -69,13 +72,17 @@ class VoirFacture extends StatelessWidget {
             tooltip: 'Télécharger',
             icon: const Icon(Icons.download),
             onPressed: () async {
-              final bytes = await FacturePdfService.generateFacturePdf(facture);
+              final bytes = await FacturePdfService.generateFacturePdf(
+                facture,
+              );
               if (kIsWeb) {
+                // For web: use layoutPdf for saving
                 await Printing.layoutPdf(
                   onLayout: (format) async => bytes,
                   name: 'Facture_${facture.idFacture}.pdf',
                 );
               } else {
+                // For mobile/desktop: use sharePdf for downloading
                 await Printing.sharePdf(
                   bytes: bytes,
                   filename: 'Facture_${facture.idFacture}.pdf',

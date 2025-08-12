@@ -435,18 +435,13 @@ class _FacturesState extends State<Factures> {
                           tooltip: 'Imprimer',
                           icon: const Icon(Icons.print),
                           onPressed: () async {
-                            final bytes =
-                                await FacturePdfService.generateFacturePdf(
-                                  facture,
-                                );
+                            final bytes = await FacturePdfService.generateFacturePdf(facture);
                             if (kIsWeb) {
-                              // Pour le web : déclenche le téléchargement
                               await Printing.layoutPdf(
                                 onLayout: (format) async => bytes,
                                 name: 'Facture_${facture.idFacture}.pdf',
                               );
                             } else {
-                              // Pour mobile/desktop : partage natif
                               await Printing.sharePdf(
                                 bytes: bytes,
                                 filename: 'Facture_${facture.idFacture}.pdf',
@@ -458,10 +453,7 @@ class _FacturesState extends State<Factures> {
                           tooltip: 'Télécharger',
                           icon: const Icon(Icons.download),
                           onPressed: () async {
-                            final bytes =
-                                await FacturePdfService.generateFacturePdf(
-                                  facture,
-                                );
+                            final bytes = await FacturePdfService.generateFacturePdf(facture);
                             if (kIsWeb) {
                               await Printing.layoutPdf(
                                 onLayout: (format) async => bytes,
@@ -475,16 +467,16 @@ class _FacturesState extends State<Factures> {
                             }
                           },
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '${facture.prixFacture} CFA',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.green.shade600,
-                          ),
-                        ),
                       ],
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${facture.prixFacture} CFA',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.green.shade600,
+                      ),
                     ),
                   ],
                 ),
