@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:RAS/ecrans/client/pagesu/principales/accueilu.dart';
 
 class EcranDemarrage extends StatefulWidget {
   const EcranDemarrage({super.key});
@@ -14,28 +13,48 @@ class _EcranDemarrageState extends State<EcranDemarrage> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(Duration(seconds: 3), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const Accueilu()),
-      );
+    // Naviguer après un délai de 3 secondes
+    Future.delayed(const Duration(seconds: 3), () {
+      _navigateBasedOnRole();
     });
-    _getInitialRoute();
   }
 
-  Future<String> _getInitialRoute() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      final userDoc =
-          await FirebaseFirestore.instance
-              .collection('Utilisateurs')
-              .doc(user.uid)
-              .get();
-      final role = userDoc.data()?['role'];
-      if (role == 'admin') return '/admin/accueil';
-      if (role == 'user') return '/accueil';
+  Future<void> _navigateBasedOnRole() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (!mounted) return; // Vérifie si le widget est toujours monté
+
+      if (user != null) {
+        final userDoc = await FirebaseFirestore.instance
+            .collection('Utilisateurs')
+            .doc(user.uid)
+            .get();
+
+        final role = userDoc.data()?['roleUtilisateur'] as String?;
+        
+        if (!mounted) return; // Vérifie à nouveau avant la navigation
+
+        if (role == 'admin') {
+          Navigator.pushReplacementNamed(context, '/admin/ajouterequip');
+        } else if (role == 'user') {
+          Navigator.pushReplacementNamed(context, '/accueil');
+        } else {
+          // Cas où le rôle n'est pas défini ou invalide
+          Navigator.pushReplacementNamed(context, '/accueil');
+        }
+      } else {
+        // Aucun utilisateur connecté
+        if (!mounted) return;
+        Navigator.pushReplacementNamed(context, '/accueil');
+      }
+    } catch (e) {
+      // Gestion des erreurs
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, '/accueil');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors de la vérification du rôle: $e')),
+      );
     }
-    return '/accueil';
   }
 
   @override
@@ -44,16 +63,23 @@ class _EcranDemarrageState extends State<EcranDemarrage> {
       backgroundColor: const Color.fromARGB(255, 163, 14, 3),
       body: Center(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const SizedBox(height: 300),
             SizedBox(
               width: 180,
               height: 100,
               child: Image.asset('assets/images/kanjad.png'),
             ),
-            Text('Un instant...', style: TextStyle(color: Colors.white)),
+            const SizedBox(height: 20),
+            const Text(
+              'Un instant...',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+              ),
+            ),
             const SizedBox(height: 10),
-            CircularProgressIndicator(color: Colors.white),
+            const CircularProgressIndicator(color: Colors.white),
           ],
         ),
       ),

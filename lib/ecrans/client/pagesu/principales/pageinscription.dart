@@ -48,6 +48,7 @@ class _PageInscriptionState extends State<PageInscription> {
           );
 
       final user = userCredential.user;
+      final role = 'user';
       if (user != null) {
         // Créer l'objet Utilisateur pour Firestore
         final nouvelUtilisateur = Utilisateur(
@@ -57,7 +58,7 @@ class _PageInscriptionState extends State<PageInscription> {
           emailUtilisateur: _emailController.text.trim(),
           numeroUtilisateur: _numeroController.text.trim(),
           villeUtilisateur: _villeController.text.trim(),
-          roleUtilisateur: 'user',
+          roleUtilisateur: role,
         );
 
         // Ajouter l'utilisateur à la collection Firestore
@@ -76,7 +77,7 @@ class _PageInscriptionState extends State<PageInscription> {
               ),
             ),
           );
-          Navigator.pop(context); // Retour à la page de connexion
+          Navigator.pushNamed(context, '/connexion');
         }
       }
     } on FirebaseAuthException catch (e) {
@@ -157,7 +158,7 @@ class _PageInscriptionState extends State<PageInscription> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Le premier pas vers',
+                          'Le premier pas vers \nun achat réussi !',
                           style: TextStyle(
                             fontSize: 24,
                             color: Styles.blanc,
@@ -166,19 +167,7 @@ class _PageInscriptionState extends State<PageInscription> {
                         ),
                       ],
                     ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Text(
-                          'un achat réussi !',
-                          style: TextStyle(
-                            fontSize: 24,
-                            color: Styles.blanc,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
+
                     const SizedBox(height: 10),
                     Container(
                       padding: EdgeInsets.all(8),

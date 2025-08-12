@@ -23,7 +23,7 @@ class _DetailsState extends State<Details> {
   int _currentPage = 0;
   List<String> _images = [];
   late Produit produit;
-  bool _clic = false;
+  final bool _clic = false;
 
   @override
   void initState() {
