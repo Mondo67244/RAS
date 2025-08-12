@@ -28,14 +28,14 @@ class _EcranDemarrageState extends State<EcranDemarrage> {
     if (user != null) {
       final userDoc =
           await FirebaseFirestore.instance
-              .collection('Utilisateur')
+              .collection('Utilisateurs')
               .doc(user.uid)
               .get();
       final role = userDoc.data()?['role'];
-      if (role == 'admin') return '/admin';
-      if (role == 'utilisateur') return '/user';
+      if (role == 'admin') return '/admin/accueil';
+      if (role == 'user') return '/accueil';
     }
-    return '/user';
+    return '/accueil';
   }
 
   @override

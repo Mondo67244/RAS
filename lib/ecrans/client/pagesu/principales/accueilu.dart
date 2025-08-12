@@ -106,10 +106,13 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
         _loadUserData();
       }
     });
-    
+
     // Listen to notification service changes
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final notificationService = Provider.of<NotificationService>(context, listen: false);
+      final notificationService = Provider.of<NotificationService>(
+        context,
+        listen: false,
+      );
       notificationService.refreshAllCounts();
     });
   }
@@ -252,7 +255,9 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                                 child: Row(
                                   children: [
                                     BadgeWidget(
-                                      child: Icon(FluentIcons.shopping_bag_tag_24_filled),
+                                      child: Icon(
+                                        FluentIcons.shopping_bag_tag_24_filled,
+                                      ),
                                       count: notificationService.cartCount,
                                     ),
                                     SizedBox(width: 3),
@@ -366,7 +371,11 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                       CircleAvatar(
                         radius: 30,
                         backgroundColor: Colors.white,
-                        child: Icon(Icons.person, size: 30, color: Styles.rouge),
+                        child: Icon(
+                          Icons.person,
+                          size: 30,
+                          color: Styles.rouge,
+                        ),
                       ),
                       const SizedBox(height: 10),
                       Text(
@@ -384,7 +393,10 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                         _currentUser != null
                             ? _currentUser!.email ?? 'Connecté'
                             : 'Non connecté',
-                        style: const TextStyle(color: Colors.white70, fontSize: 14),
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
                       ),
                     ],
                   ),
@@ -394,7 +406,6 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                     leading: BadgeWidget(
                       count: notificationService.pendingOrdersCount,
                       child: const Icon(FluentIcons.receipt_bag_24_regular),
-
                     ),
                     title: const Text('Voir les commandes'),
                     onTap: () {
@@ -462,7 +473,9 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                   ),
                 ] else ...[
                   ListTile(
-                    leading: const Icon(FluentIcons.arrow_enter_left_24_regular),
+                    leading: const Icon(
+                      FluentIcons.arrow_enter_left_24_regular,
+                    ),
                     title: const Text('Connexion'),
                     onTap: () {
                       Navigator.pop(context);
@@ -488,7 +501,7 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                 ],
               ],
             );
-          }
+          },
         ),
       ),
 
@@ -525,7 +538,12 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                         currentIndex: _selectedIndex,
                         onTap: _onTapNav,
                         type: BottomNavigationBarType.fixed,
-                        selectedItemColor: const Color.fromARGB(255, 163, 14, 3),
+                        selectedItemColor: const Color.fromARGB(
+                          255,
+                          163,
+                          14,
+                          3,
+                        ),
                         unselectedItemColor: Colors.grey[600],
                         showUnselectedLabels: true,
                         selectedIconTheme: const IconThemeData(size: 23),
@@ -548,8 +566,9 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                           BottomNavigationBarItem(
                             icon: BadgeWidget(
                               count: notificationService.cartCount,
-                              child: const Icon(FluentIcons.shopping_bag_tag_24_filled),
-
+                              child: const Icon(
+                                FluentIcons.shopping_bag_tag_24_filled,
+                              ),
                             ),
                             label: 'Mon panier',
                           ),
@@ -557,13 +576,12 @@ class _AccueiluState extends State<Accueilu> with TickerProviderStateMixin {
                             icon: BadgeWidget(
                               count: notificationService.wishlistCount,
                               child: Icon(FluentIcons.class_20_filled),
-
                             ),
                             label: 'Mes souhaits',
                           ),
                         ],
                       );
-                    }
+                    },
                   ),
                 ),
               ),

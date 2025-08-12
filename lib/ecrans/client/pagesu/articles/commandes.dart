@@ -35,7 +35,10 @@ class _CommandesState extends State<Commandes> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     // Refresh notification service when orders page is accessed
-    final notificationService = Provider.of<NotificationService>(context, listen: false);
+    final notificationService = Provider.of<NotificationService>(
+      context,
+      listen: false,
+    );
     notificationService.refreshPendingOrdersCount();
   }
 
@@ -70,7 +73,7 @@ class _CommandesState extends State<Commandes> {
                         emailUtilisateur: '',
                         numeroUtilisateur: '',
                         villeUtilisateur: '',
-                        roleUtilisateur: ''
+                        roleUtilisateur: '',
                       ),
                       produits: [],
                       methodePaiment: '',
@@ -609,9 +612,9 @@ class _CommandesState extends State<Commandes> {
                                 ),
                               ),
                             ),
-                            ...commandesDuJour
-                                .map((commande) => _carteCommande(commande))
-                                ,
+                            ...commandesDuJour.map(
+                              (commande) => _carteCommande(commande),
+                            ),
                           ],
                         );
                       },

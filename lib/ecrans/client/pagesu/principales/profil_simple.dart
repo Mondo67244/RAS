@@ -15,11 +15,11 @@ class _ProfilePageState extends State<ProfilePage> {
   final _formKey = GlobalKey<FormState>();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  
+
   late Utilisateur _utilisateur;
   bool _isEditing = false;
   bool _isLoading = true;
-  
+
   final TextEditingController _nomController = TextEditingController();
   final TextEditingController _prenomController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -36,10 +36,8 @@ class _ProfilePageState extends State<ProfilePage> {
     try {
       final user = _auth.currentUser;
       if (user != null) {
-        final userDoc = await _firestore
-            .collection('Utilisateurs')
-            .doc(user.uid)
-            .get();
+        final userDoc =
+            await _firestore.collection('Utilisateurs').doc(user.uid).get();
 
         if (userDoc.exists) {
           setState(() {
@@ -159,118 +157,117 @@ class _ProfilePageState extends State<ProfilePage> {
         ],
       ),
 
-      
-      
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Center(
-                      child: CircleAvatar(
-                        radius: 50,
-                        backgroundColor: Styles.rouge,
-                        child: Icon(
-                          Icons.person,
-                          size: 50,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 30),
-                    _buildProfileField(
-                      label: 'Nom',
-                      controller: _nomController,
-                      enabled: _isEditing,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Veuillez entrer votre nom';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    _buildProfileField(
-                      label: 'Prénom',
-                      controller: _prenomController,
-                      enabled: _isEditing,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Veuillez entrer votre prénom';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    _buildProfileField(
-                      label: 'Email',
-                      controller: _emailController,
-                      enabled: _isEditing,
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Veuillez entrer votre email';
-                        }
-                        if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                          return 'Veuillez entrer un email valide';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    _buildProfileField(
-                      label: 'Numéro de téléphone',
-                      controller: _numeroController,
-                      enabled: _isEditing,
-                      keyboardType: TextInputType.phone,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Veuillez entrer votre numéro de téléphone';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    _buildProfileField(
-                      label: 'Ville',
-                      controller: _villeController,
-                      enabled: _isEditing,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Veuillez entrer votre ville';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 30),
-                    if (_isEditing)
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Center(
-                        child: ElevatedButton(
-                          onPressed: _updateProfile,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Styles.rouge,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 30,
-                              vertical: 15,
-                            ),
-                          ),
-                          child: const Text(
-                            'Enregistrer',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                            ),
+                        child: CircleAvatar(
+                          radius: 50,
+                          backgroundColor: Styles.rouge,
+                          child: Icon(
+                            Icons.person,
+                            size: 50,
+                            color: Colors.white,
                           ),
                         ),
                       ),
-                  ],
+                      const SizedBox(height: 30),
+                      _buildProfileField(
+                        label: 'Nom',
+                        controller: _nomController,
+                        enabled: _isEditing,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Veuillez entrer votre nom';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      _buildProfileField(
+                        label: 'Prénom',
+                        controller: _prenomController,
+                        enabled: _isEditing,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Veuillez entrer votre prénom';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      _buildProfileField(
+                        label: 'Email',
+                        controller: _emailController,
+                        enabled: _isEditing,
+                        keyboardType: TextInputType.emailAddress,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Veuillez entrer votre email';
+                          }
+                          if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                            return 'Veuillez entrer un email valide';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      _buildProfileField(
+                        label: 'Numéro de téléphone',
+                        controller: _numeroController,
+                        enabled: _isEditing,
+                        keyboardType: TextInputType.phone,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Veuillez entrer votre numéro de téléphone';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      _buildProfileField(
+                        label: 'Ville',
+                        controller: _villeController,
+                        enabled: _isEditing,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Veuillez entrer votre ville';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 30),
+                      if (_isEditing)
+                        Center(
+                          child: ElevatedButton(
+                            onPressed: _updateProfile,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Styles.rouge,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 30,
+                                vertical: 15,
+                              ),
+                            ),
+                            child: const Text(
+                              'Enregistrer',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
-            ),
     );
   }
 
@@ -286,10 +283,7 @@ class _ProfilePageState extends State<ProfilePage> {
       children: [
         Text(
           label,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
         const SizedBox(height: 8),
         TextFormField(
@@ -297,9 +291,7 @@ class _ProfilePageState extends State<ProfilePage> {
           enabled: enabled,
           keyboardType: keyboardType,
           decoration: InputDecoration(
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 16,

@@ -68,9 +68,12 @@ class PanierState extends State<Panier>
       await _initPanierLocal();
       if (mounted) {
         // Refresh notification service
-        final notificationService = Provider.of<NotificationService>(context, listen: false);
+        final notificationService = Provider.of<NotificationService>(
+          context,
+          listen: false,
+        );
         notificationService.refreshCartCount();
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: Styles.bleu,
@@ -118,10 +121,13 @@ class PanierState extends State<Panier>
         _isLoading = false;
       });
       await _loadSavedMethods();
-      
+
       // Refresh notification service
       if (mounted) {
-        final notificationService = Provider.of<NotificationService>(context, listen: false);
+        final notificationService = Provider.of<NotificationService>(
+          context,
+          listen: false,
+        );
         notificationService.refreshCartCount();
       }
     } catch (e) {
@@ -136,9 +142,12 @@ class PanierState extends State<Panier>
         _idsPanier.remove(idProduit);
         _productQuantities.remove(idProduit);
       });
-      
+
       // Refresh notification service
-      final notificationService = Provider.of<NotificationService>(context, listen: false);
+      final notificationService = Provider.of<NotificationService>(
+        context,
+        listen: false,
+      );
       notificationService.refreshCartCount();
     } catch (e) {
       _handleError('Erreur lors du retrait du produit: $e');
@@ -152,11 +161,14 @@ class PanierState extends State<Panier>
         _idsPanier.clear();
         _productQuantities.clear();
       });
-      
+
       // Refresh notification service
-      final notificationService = Provider.of<NotificationService>(context, listen: false);
+      final notificationService = Provider.of<NotificationService>(
+        context,
+        listen: false,
+      );
       notificationService.refreshCartCount();
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -207,9 +219,12 @@ class PanierState extends State<Panier>
       setState(() {
         _productQuantities[idProduit] = nouvelleQuantite;
       });
-      
+
       // Refresh notification service
-      final notificationService = Provider.of<NotificationService>(context, listen: false);
+      final notificationService = Provider.of<NotificationService>(
+        context,
+        listen: false,
+      );
       notificationService.refreshCartCount();
     } catch (e) {
       _handleError('Erreur lors de la mise à jour de la quantité: $e');
@@ -337,10 +352,10 @@ class PanierState extends State<Panier>
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                          'Votre panier est vide.\nLes produits ajoutés s\'afficherons ici',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 16),
-                        ),
+                            'Votre panier est vide.\nLes produits ajoutés s\'afficherons ici',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 16),
+                          ),
                         ],
                       ),
                     );
@@ -612,7 +627,8 @@ class PanierState extends State<Panier>
     }
 
     // Vérifier le numéro de paiement pour les paiements mobiles
-    if (_methodePaiementChoisie == 'MTN' || _methodePaiementChoisie == 'ORANGE') {
+    if (_methodePaiementChoisie == 'MTN' ||
+        _methodePaiementChoisie == 'ORANGE') {
       final numero = _numeroPaiementController.text.trim();
       if (numero.isEmpty || !_isValidPhoneNumber(numero)) {
         return false;
@@ -880,7 +896,7 @@ class PanierState extends State<Panier>
     );
   }
 
-// Le widget pour choisir entre MTN ORANGE ou RIEN des deux
+  // Le widget pour choisir entre MTN ORANGE ou RIEN des deux
   Widget _choixpaiement() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -894,9 +910,13 @@ class PanierState extends State<Panier>
         _boutonRadio('Monnaie Physique', 'CASH'),
         const SizedBox(height: 8),
         TextFormField(
-          enabled: (_methodePaiementChoisie  == 'MTN' || _methodePaiementChoisie == 'ORANGE') ? true : false,
+          enabled:
+              (_methodePaiementChoisie == 'MTN' ||
+                      _methodePaiementChoisie == 'ORANGE')
+                  ? true
+                  : false,
           controller: _numeroPaiementController,
-          focusNode: _numeroPaiementFocusNode, 
+          focusNode: _numeroPaiementFocusNode,
           decoration: InputDecoration(
             labelText: 'Entrer le numéro de paiement',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),

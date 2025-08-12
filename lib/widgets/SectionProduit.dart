@@ -75,7 +75,7 @@ class ProductSection extends StatelessWidget {
                 onPressed: () {
                   Navigator.pushNamed(
                     context,
-                    '/all_products',
+                    '/utilisateur/produit/voirplus',
                     arguments: {'title': title, 'produits': produits},
                   );
                 },

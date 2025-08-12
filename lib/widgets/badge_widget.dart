@@ -32,10 +32,7 @@ class BadgeWidget extends StatelessWidget {
               color: badgeColor ?? Colors.red,
               borderRadius: BorderRadius.circular(6),
             ),
-            constraints: const BoxConstraints(
-              minWidth: 12,
-              minHeight: 12,
-            ),
+            constraints: const BoxConstraints(minWidth: 12, minHeight: 12),
             child: Text(
               count > 99 ? '99+' : count.toString(),
               style: TextStyle(

@@ -1,7 +1,6 @@
 import 'dart:convert';
-import 'dart:typed_data';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:RAS/basicdata/produit.dart';
 import 'package:RAS/basicdata/style.dart';
@@ -18,7 +17,8 @@ class Souhaits extends StatefulWidget {
   State<Souhaits> createState() => SouhaitsState();
 }
 
-class SouhaitsState extends State<Souhaits> with AutomaticKeepAliveClientMixin<Souhaits> {
+class SouhaitsState extends State<Souhaits>
+    with AutomaticKeepAliveClientMixin<Souhaits> {
   final FirestoreService _firestoreService = FirestoreService();
   late Stream<List<Produit>> _wishlistStream;
   final SouhaitsLocal _souhaitsLocal = SouhaitsLocal();
@@ -54,12 +54,15 @@ class SouhaitsState extends State<Souhaits> with AutomaticKeepAliveClientMixin<S
     setState(() {
       _isLoading = false;
     });
-    
+
     // Refresh notification service
     if (mounted) {
-      final notificationService = Provider.of<NotificationService>(context, listen: false);
+      final notificationService = Provider.of<NotificationService>(
+        context,
+        listen: false,
+      );
       notificationService.refreshWishlistCount();
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Liste de souhaits mise à jour !'),
@@ -76,10 +79,13 @@ class SouhaitsState extends State<Souhaits> with AutomaticKeepAliveClientMixin<S
       _idsSouhaits = ids;
       _isLoading = false;
     });
-    
+
     // Refresh notification service
     if (mounted) {
-      final notificationService = Provider.of<NotificationService>(context, listen: false);
+      final notificationService = Provider.of<NotificationService>(
+        context,
+        listen: false,
+      );
       notificationService.refreshWishlistCount();
     }
   }
@@ -92,19 +98,95 @@ class SouhaitsState extends State<Souhaits> with AutomaticKeepAliveClientMixin<S
     });
   }
 
-  Future<void> _toggleJeVeut(Produit produit) async {
-    await _souhaitsLocal.retirerDesSouhaits(produit.idProduit);
+  void _toggleJeVeut(Produit produit) async {
+    final bool isCurrentlyWished = _idsSouhaits.contains(produit.idProduit);
+    
+    // Update UI immediately for better user experience
+    setState(() {
+      if (isCurrentlyWished) {
+        _idsSouhaits.remove(produit.idProduit);
+      } else {
+        _idsSouhaits.add(produit.idProduit);
+      }
+    });
+    
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        // Connected state - update database
+        if (isCurrentlyWished) {
+          await _firestoreService.retirerDesSouhaitsFirestore(user.uid, produit.idProduit);
+        } else {
+          await _firestoreService.ajouterAuxSouhaitsFirestore(user.uid, produit.idProduit);
+        }
+      }
+      
+      // Always update local storage
+      if (isCurrentlyWished) {
+        await _souhaitsLocal.retirerDesSouhaits(produit.idProduit);
+      } else {
+        await _souhaitsLocal.ajouterAuxSouhaits(produit.idProduit);
+      }
+      
+      _messageReponse(
+        isCurrentlyWished
+            ? '${produit.nomProduit} retiré de vos souhaits'
+            : '${produit.nomProduit} ajouté à vos souhaits',
+        isSuccess: !isCurrentlyWished,
+      );
+      
+      // Refresh notification service
+      final notificationService = Provider.of<NotificationService>(context, listen: false);
+      notificationService.refreshWishlistCount();
+    } catch (e) {
+      // Revert UI changes if operation fails
+      setState(() {
+        if (isCurrentlyWished) {
+          _idsSouhaits.add(produit.idProduit);
+        } else {
+          _idsSouhaits.remove(produit.idProduit);
+        }
+      });
+      _messageReponse('Erreur lors de la modification des souhaits', isSuccess: false, icon: Icons.error);
+    }
+  }
+
+  void _deleteProduct(Produit produit) async {
+    final bool wasInWishlist = _idsSouhaits.contains(produit.idProduit);
+    
+    // Update UI immediately
     setState(() {
       _idsSouhaits.remove(produit.idProduit);
     });
-    _messageReponse(
-      '${produit.nomProduit} retiré de vos souhaits',
-      isSuccess: false,
-    );
     
-    // Refresh notification service
-    final notificationService = Provider.of<NotificationService>(context, listen: false);
-    notificationService.refreshWishlistCount();
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        // Connected state - remove from database
+        await _firestoreService.retirerDesSouhaitsFirestore(user.uid, produit.idProduit);
+      }
+      
+      // Always remove from local storage
+      await _souhaitsLocal.retirerDesSouhaits(produit.idProduit);
+      
+      _messageReponse(
+        '${produit.nomProduit} supprimé de vos souhaits',
+        isSuccess: true,
+        icon: FluentIcons.delete_24_regular,
+      );
+      
+      // Refresh notification service
+      final notificationService = Provider.of<NotificationService>(context, listen: false);
+      notificationService.refreshWishlistCount();
+    } catch (e) {
+      // Revert UI changes if operation fails
+      setState(() {
+        if (wasInWishlist && !_idsSouhaits.contains(produit.idProduit)) {
+          _idsSouhaits.add(produit.idProduit);
+        }
+      });
+      _messageReponse('Erreur lors de la suppression du produit', isSuccess: false, icon: Icons.error);
+    }
   }
 
   Future<void> _togglePanier(Produit produit) async {
@@ -124,9 +206,12 @@ class SouhaitsState extends State<Souhaits> with AutomaticKeepAliveClientMixin<S
       );
     }
     _initPanierLocal();
-    
+
     // Refresh notification service
-    final notificationService = Provider.of<NotificationService>(context, listen: false);
+    final notificationService = Provider.of<NotificationService>(
+      context,
+      listen: false,
+    );
     notificationService.refreshCartCount();
   }
 
@@ -167,17 +252,13 @@ class SouhaitsState extends State<Souhaits> with AutomaticKeepAliveClientMixin<S
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(
-              child: Text('Erreur: ${snapshot.error}'),
-            );
+            return Center(child: Text('Erreur: ${snapshot.error}'));
           }
           return StreamBuilder<List<Produit>>(
             stream: _wishlistStream,
             builder: (context, snapshot) {
               if (snapshot.hasError) {
-                return Center(
-                  child: Text('Erreur: ${snapshot.error}'),
-                );
+                return Center(child: Text('Erreur: ${snapshot.error}'));
               }
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
@@ -187,8 +268,11 @@ class SouhaitsState extends State<Souhaits> with AutomaticKeepAliveClientMixin<S
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(FluentIcons.emoji_sad_24_regular,
-                          size: 64, color: Colors.grey.shade400),
+                      Icon(
+                        FluentIcons.emoji_sad_24_regular,
+                        size: 64,
+                        color: Colors.grey.shade400,
+                      ),
                       const SizedBox(height: 16),
                       Text(
                         'Votre liste de souhaits est vide',
@@ -213,9 +297,12 @@ class SouhaitsState extends State<Souhaits> with AutomaticKeepAliveClientMixin<S
               }
 
               final produits = snapshot.data!;
-              final produitsFiltres = produits
-                  .where((produit) => _idsSouhaits.contains(produit.idProduit))
-                  .toList();
+              final produitsFiltres =
+                  produits
+                      .where(
+                        (produit) => _idsSouhaits.contains(produit.idProduit),
+                      )
+                      .toList();
 
               return Padding(
                 padding: const EdgeInsets.all(8.0),
@@ -265,50 +352,78 @@ class SouhaitsState extends State<Souhaits> with AutomaticKeepAliveClientMixin<S
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(12),
                     ),
-                    image: produit.img1.isNotEmpty
-                        ? DecorationImage(
-                            image: produit.img1.startsWith('http')
-                                ? NetworkImage(produit.img1)
-                                : MemoryImage(
-                                        base64Decode(produit.img1.split(',').last))
-                                    as ImageProvider,
-                            fit: BoxFit.cover,
-                          )
-                        : null,
+                    image:
+                        produit.img1.isNotEmpty
+                            ? DecorationImage(
+                              image:
+                                  produit.img1.startsWith('http')
+                                      ? NetworkImage(produit.img1)
+                                      : MemoryImage(
+                                            base64Decode(
+                                              produit.img1.split(',').last,
+                                            ),
+                                          )
+                                          as ImageProvider,
+                              fit: BoxFit.cover,
+                            )
+                            : null,
                     color: Styles.blanc,
                   ),
-                  child: produit.img1.isEmpty
-                      ? const Center(
-                          child: Icon(
-                            Icons.image_not_supported,
-                            size: 40,
-                            color: Colors.grey,
-                          ),
-                        )
-                      : null,
+                  child:
+                      produit.img1.isEmpty
+                          ? const Center(
+                            child: Icon(
+                              Icons.image_not_supported,
+                              size: 40,
+                              color: Colors.grey,
+                            ),
+                          )
+                          : null,
                 ),
                 Positioned(
                   top: 8,
                   right: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: Colors.white70,
-                      shape: BoxShape.circle,
-                    ),
-                    child: IconButton(
-                      padding: EdgeInsets.zero,
-                      iconSize: 20,
-                      icon: Icon(
-                        _idsSouhaits.contains(produit.idProduit)
-                            ? FluentIcons.heart_24_filled
-                            : FluentIcons.heart_24_regular,
-                        color: _idsSouhaits.contains(produit.idProduit)
-                            ? Styles.rouge
-                            : Colors.grey,
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Colors.white70,
+                          shape: BoxShape.circle,
+                        ),
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          iconSize: 20,
+                          icon: Icon(
+                            _idsSouhaits.contains(produit.idProduit)
+                                ? FluentIcons.heart_24_filled
+                                : FluentIcons.heart_24_regular,
+                            color:
+                                _idsSouhaits.contains(produit.idProduit)
+                                    ? Styles.rouge
+                                    : Colors.grey,
+                          ),
+                          onPressed: () => _toggleJeVeut(produit),
+                        ),
                       ),
-                      onPressed: () => _toggleJeVeut(produit),
-                    ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          iconSize: 20,
+                          icon: const Icon(
+                            FluentIcons.delete_24_regular,
+                            color: Colors.white,
+                          ),
+                          onPressed: () => _deleteProduct(produit),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -343,9 +458,10 @@ class SouhaitsState extends State<Souhaits> with AutomaticKeepAliveClientMixin<S
                     Expanded(
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: _idsPanier.contains(produit.idProduit)
-                              ? Styles.bleu
-                              : Styles.rouge,
+                          backgroundColor:
+                              _idsPanier.contains(produit.idProduit)
+                                  ? Styles.bleu
+                                  : Styles.rouge,
                           foregroundColor: Styles.blanc,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),

@@ -64,7 +64,7 @@ class _FacturesState extends State<Factures> {
                               emailUtilisateur: data['emailUtilisateur'] ?? '',
                               numeroUtilisateur:
                                   data['numeroUtilisateur'] ?? '',
-                              villeUtilisateur: data['villeUtilisateur'] ?? '', 
+                              villeUtilisateur: data['villeUtilisateur'] ?? '',
                               roleUtilisateur: 'user',
                             ),
                     produits: [], // Initialisation avec une liste vide
@@ -437,8 +437,8 @@ class _FacturesState extends State<Factures> {
                           onPressed: () async {
                             final bytes =
                                 await FacturePdfService.generateFacturePdf(
-                              facture,
-                            );
+                                  facture,
+                                );
                             if (kIsWeb) {
                               // Pour le web : déclenche le téléchargement
                               await Printing.layoutPdf(
@@ -460,8 +460,8 @@ class _FacturesState extends State<Factures> {
                           onPressed: () async {
                             final bytes =
                                 await FacturePdfService.generateFacturePdf(
-                              facture,
-                            );
+                                  facture,
+                                );
                             if (kIsWeb) {
                               await Printing.layoutPdf(
                                 onLayout: (format) async => bytes,

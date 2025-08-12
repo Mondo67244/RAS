@@ -38,7 +38,7 @@ class VoirFacture extends StatelessWidget {
             ),
           ],
         ),
-        
+
         backgroundColor: Styles.rouge,
         foregroundColor: Styles.blanc,
         centerTitle: true,
@@ -51,9 +51,7 @@ class VoirFacture extends StatelessWidget {
             tooltip: 'Imprimer',
             icon: const Icon(Icons.print),
             onPressed: () async {
-              final bytes = await FacturePdfService.generateFacturePdf(
-                facture,
-              );
+              final bytes = await FacturePdfService.generateFacturePdf(facture);
               if (kIsWeb) {
                 await Printing.layoutPdf(
                   onLayout: (format) async => bytes,
@@ -71,9 +69,7 @@ class VoirFacture extends StatelessWidget {
             tooltip: 'Télécharger',
             icon: const Icon(Icons.download),
             onPressed: () async {
-              final bytes = await FacturePdfService.generateFacturePdf(
-                facture,
-              );
+              final bytes = await FacturePdfService.generateFacturePdf(facture);
               if (kIsWeb) {
                 await Printing.layoutPdf(
                   onLayout: (format) async => bytes,

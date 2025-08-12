@@ -11,16 +11,14 @@ import 'dart:math';
 class paiement extends StatefulWidget {
   final Commande commande;
 
-  const paiement({
-    super.key,
-    required this.commande,
-  });
+  const paiement({super.key, required this.commande});
 
   @override
   State<paiement> createState() => _paiementState();
 }
 
-class _paiementState extends State<paiement> with SingleTickerProviderStateMixin {
+class _paiementState extends State<paiement>
+    with SingleTickerProviderStateMixin {
   String? _selectedPaymentMethod;
   final TextEditingController _phoneController = TextEditingController();
   bool _isProcessing = false;
@@ -114,7 +112,8 @@ class _paiementState extends State<paiement> with SingleTickerProviderStateMixin
       }
 
       final facture = Facture(
-        idFacture: 'FACT-${widget.commande.idCommande.toUpperCase()}-${Random().nextInt(1000)}',
+        idFacture:
+            'FACT-${widget.commande.idCommande.toUpperCase()}-${Random().nextInt(1000)}',
         // Using current date and time for the invoice (not the command date)
         dateFacture: DateTime.now().toIso8601String(),
         utilisateur: widget.commande.utilisateur,
@@ -137,19 +136,24 @@ class _paiementState extends State<paiement> with SingleTickerProviderStateMixin
           content: const Text('Veuillez sélectionner une méthode de paiement'),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
       return;
     }
 
-    if (_selectedPaymentMethod != 'CASH' && _phoneController.text.trim().isEmpty) {
+    if (_selectedPaymentMethod != 'CASH' &&
+        _phoneController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Veuillez entrer votre numéro de téléphone'),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
       return;
@@ -173,10 +177,14 @@ class _paiementState extends State<paiement> with SingleTickerProviderStateMixin
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Paiement de ${widget.commande.prixCommande} CFA effectué avec succès !'),
+          content: Text(
+            'Paiement de ${widget.commande.prixCommande} CFA effectué avec succès !',
+          ),
           backgroundColor: Colors.green.shade600,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           duration: const Duration(seconds: 3),
         ),
       );
@@ -323,7 +331,10 @@ class _paiementState extends State<paiement> with SingleTickerProviderStateMixin
     final isWideScreen = MediaQuery.of(context).size.width > 600;
     return Center(
       child: Container(
-        constraints: isWideScreen ? const BoxConstraints(maxWidth: 600) : const BoxConstraints(maxWidth: 400),
+        constraints:
+            isWideScreen
+                ? const BoxConstraints(maxWidth: 600)
+                : const BoxConstraints(maxWidth: 400),
         child: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -430,7 +441,8 @@ class _paiementState extends State<paiement> with SingleTickerProviderStateMixin
                   ),
                 ),
                 const SizedBox(height: 24),
-                if (_selectedPaymentMethod != null && _selectedPaymentMethod != 'CASH')
+                if (_selectedPaymentMethod != null &&
+                    _selectedPaymentMethod != 'CASH')
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -464,15 +476,22 @@ class _paiementState extends State<paiement> with SingleTickerProviderStateMixin
                             hintStyle: TextStyle(color: Colors.grey.shade400),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.grey.shade300),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade300,
+                              ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.grey.shade300),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade300,
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Styles.bleu, width: 2),
+                              borderSide: BorderSide(
+                                color: Styles.bleu,
+                                width: 2,
+                              ),
                             ),
                             prefixIcon: Icon(
                               FluentIcons.phone_24_filled,
@@ -496,22 +515,25 @@ class _paiementState extends State<paiement> with SingleTickerProviderStateMixin
                     elevation: 0,
                     shadowColor: Colors.transparent,
                   ),
-                  child: _isProcessing
-                      ? const SizedBox(
-                          height: 24,
-                          width: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  child:
+                      _isProcessing
+                          ? const SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          )
+                          : const Text(
+                            'Payer maintenant',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        )
-                      : const Text(
-                          'Payer maintenant',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
                 ),
               ],
             ),
@@ -521,7 +543,12 @@ class _paiementState extends State<paiement> with SingleTickerProviderStateMixin
     );
   }
 
-  Widget _optionPaiement(String title, IconData icon, Color color, String value) {
+  Widget _optionPaiement(
+    String title,
+    IconData icon,
+    Color color,
+    String value,
+  ) {
     final isSelected = _selectedPaymentMethod == value;
 
     return Material(
@@ -559,11 +586,7 @@ class _paiementState extends State<paiement> with SingleTickerProviderStateMixin
                   color: color,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(
-                  icon,
-                  color: Colors.white,
-                  size: 20,
-                ),
+                child: Icon(icon, color: Colors.white, size: 20),
               ),
               const SizedBox(width: 12),
               Expanded(

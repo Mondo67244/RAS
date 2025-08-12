@@ -70,9 +70,9 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
     'Nokia',
     'Panasonic',
     'ZTE',
-    'NetGear'
+    'NetGear',
   ];
-  
+
   String? _selectedCategory;
   String? _selectedSousCat;
   String? _selectedType;
@@ -80,20 +80,35 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
 
   // Structure des types par catégorie
   final Map<String, List<String>> categoryTypes = {
-    'Informatique': ['Bureautique', 'Réseau',],
+    'Informatique': ['Bureautique', 'Réseau'],
     'Électro Ménager': ['Divers'],
     'Électronique': ['Appareils Mobiles', 'Accessoires'],
   };
 
   // Structure des types par catégorie
   final Map<String, List<String>> typeAppareil = {
-    'Bureautique': ['Imprimante', 'Souris', 'Clavier', 'Ecran', 'Ordinateur','Scanner','Haut parleur'],
-    'Réseau': ['Routeurs', 'Switch', 'Modem', 'Serveur','Téléphones IP'],
+    'Bureautique': [
+      'Imprimante',
+      'Souris',
+      'Clavier',
+      'Ecran',
+      'Ordinateur',
+      'Scanner',
+      'Haut parleur',
+    ],
+    'Réseau': ['Routeurs', 'Switch', 'Modem', 'Serveur', 'Téléphones IP'],
     'Appareils Mobiles': ['Téléphone', 'Tablette', 'Accessoire mobile'],
-    'Divers': ['Téléviseur', 'Machine à laver', 'Cafetière','Fers à repasser'],
-    'Accessoires': ['Montres connectées','Casques','Chaussures',
-    'Barette mémoire','Adaptateur','Cables Usb',
-        'Clé USB','Chargeur'],
+    'Divers': ['Téléviseur', 'Machine à laver', 'Cafetière', 'Fers à repasser'],
+    'Accessoires': [
+      'Montres connectées',
+      'Casques',
+      'Chaussures',
+      'Barette mémoire',
+      'Adaptateur',
+      'Cables Usb',
+      'Clé USB',
+      'Chargeur',
+    ],
   };
 
   bool _isLoading = false;
@@ -193,8 +208,8 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
         jeVeut: false,
         auPanier: false,
         enStock: true,
-        createdAt: Timestamp.now(), 
-        methodeLivraison: '', 
+        createdAt: Timestamp.now(),
+        methodeLivraison: '',
       );
 
       await FirestoreService().addProduit(produit);
@@ -328,7 +343,6 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
   Widget _zonesTextes() {
     return Column(
       children: [
-
         //Nom du produit
         TextFormField(
           maxLength: 23,
@@ -357,21 +371,23 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
           },
         ),
         const SizedBox(height: 16),
-        
+
         //Marque
         DropdownButton2<String>(
           value: _selectedBrand,
           hint: Text('Marque'),
-          items: _brands.map((String brand) {
-            return DropdownMenuItem<String>(
-              value: brand,
-              child: Text(brand),
-            );
-          }).toList(),
-          onChanged: (newValue) => setState(() {
-            _selectedBrand = newValue;
-            _formKey.currentState?.validate();
-          }),
+          items:
+              _brands.map((String brand) {
+                return DropdownMenuItem<String>(
+                  value: brand,
+                  child: Text(brand),
+                );
+              }).toList(),
+          onChanged:
+              (newValue) => setState(() {
+                _selectedBrand = newValue;
+                _formKey.currentState?.validate();
+              }),
           buttonStyleData: ButtonStyleData(
             decoration: BoxDecoration(
               border: Border.all(color: Colors.grey[400]!),
@@ -379,17 +395,14 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
             ),
             padding: EdgeInsets.symmetric(horizontal: 16),
             height: 56,
-            width: 500
+            width: 500,
           ),
           dropdownStyleData: DropdownStyleData(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-            ),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
           ),
-          
         ),
         const SizedBox(height: 16),
-        
+
         //Modele
         TextFormField(
           maxLength: 13,
@@ -402,7 +415,7 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
                       : null,
         ),
         const SizedBox(height: 16),
-      
+
         //Prix
         TextFormField(
           controller: _prixController,
@@ -423,19 +436,18 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
         ),
         const SizedBox(height: 16),
 
-        
-
         //List des catégories
         DropdownButton2<String>(
           value: _selectedCategory,
           hint: Text('Catégorie'),
-        
-          items: _categories.map((String category) {
-            return DropdownMenuItem<String>(
-              value: category,
-              child: Text(category),
-            );
-          }).toList(),
+
+          items:
+              _categories.map((String category) {
+                return DropdownMenuItem<String>(
+                  value: category,
+                  child: Text(category),
+                );
+              }).toList(),
           onChanged: (newValue) {
             setState(() {
               _selectedCategory = newValue;
@@ -450,14 +462,11 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
             ),
             padding: EdgeInsets.symmetric(horizontal: 16),
             height: 56,
-            width: 500
+            width: 500,
           ),
           dropdownStyleData: DropdownStyleData(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-            ),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
           ),
-          
         ),
         if (_selectedCategory != null) ...[
           const SizedBox(height: 16),
@@ -466,17 +475,19 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
           DropdownButton2<String>(
             value: _selectedSousCat,
             hint: Text('Sous-catégorie'),
-            items: categoryTypes[_selectedCategory!]!.map((String sous) {
-              return DropdownMenuItem<String>(
-                value: sous,
-                child: Text(sous),
-              );
-            }).toList(),
-            onChanged: (newValue) => setState(() { 
-              _selectedSousCat = newValue;
-              _selectedType = null;
-              _formKey.currentState?.validate();
-            }),
+            items:
+                categoryTypes[_selectedCategory!]!.map((String sous) {
+                  return DropdownMenuItem<String>(
+                    value: sous,
+                    child: Text(sous),
+                  );
+                }).toList(),
+            onChanged:
+                (newValue) => setState(() {
+                  _selectedSousCat = newValue;
+                  _selectedType = null;
+                  _formKey.currentState?.validate();
+                }),
             buttonStyleData: ButtonStyleData(
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey[400]!),
@@ -491,7 +502,6 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            
           ),
           if (_selectedSousCat != null) ...[
             const SizedBox(height: 16),
@@ -500,19 +510,20 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
             Container(
               constraints: BoxConstraints(maxWidth: 500),
               child: DropdownButton2<String>(
-                
                 value: _selectedType,
                 hint: Text('Type d\'appareil'),
-                items: typeAppareil[_selectedSousCat!]!.map((String type) {
-                  return DropdownMenuItem<String>(
-                    value: type,
-                    child: Text(type),
-                  );
-                }).toList(),
-                onChanged: (newValue) => setState(() {
-                  _selectedType = newValue;
-                  _formKey.currentState?.validate();
-                }),
+                items:
+                    typeAppareil[_selectedSousCat!]!.map((String type) {
+                      return DropdownMenuItem<String>(
+                        value: type,
+                        child: Text(type),
+                      );
+                    }).toList(),
+                onChanged:
+                    (newValue) => setState(() {
+                      _selectedType = newValue;
+                      _formKey.currentState?.validate();
+                    }),
                 buttonStyleData: ButtonStyleData(
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.grey[400]!),
@@ -520,19 +531,18 @@ class _AjouterEquipPageState extends State<AjouterEquipPage> {
                   ),
                   padding: EdgeInsets.symmetric(horizontal: 16),
                   height: 56,
-                  width: 500
+                  width: 500,
                 ),
                 dropdownStyleData: DropdownStyleData(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                
               ),
             ),
-          ]
+          ],
         ],
-        
+
         const SizedBox(height: 16),
         //Titre statut
         Row(

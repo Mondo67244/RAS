@@ -1,3 +1,4 @@
+import 'package:RAS/ecrans/client/pagesu/articles/voirplus.dart';
 import 'package:RAS/services/synchronisation/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -50,24 +51,30 @@ class MainApp extends StatelessWidget {
         fontFamily: GoogleFonts.poppins().fontFamily,
       ),
       initialRoute: '/',
-      routes: {  
-        '/' :(context) => const EcranDemarrage(),
-         '/accueil':(context) => const Accueilu(),
-         '/connexion':(context) => const Pageconnexion(),
-         '/inscription':(context) => const PageInscription(),
-         '/admin/accueil':(context) => const Accueila(),
-         '/admin/ajouterequip':(context) => const AjouterEquipPage(),
-         '/utilisateur/commandes':(context) => const Commandes(),
-         '/utilisateur/factures':(context) => const Factures(),
-         '/utilisateur/chat':(context) => const ChatPage(),
-         '/utilisateur/profile':(context) => const ProfilePage(),
-         '/utilisateur/parametres':(context) => const ParametresPage(),
-         '/utilisateur/parametres/profil':(context) => const ParametresProfilPage(),
-         '/utilisateur/parametres/discussions':(context) => const ParametresDiscussionsPage(),
-         '/utilisateur/parametres/stats':(context) => const ParametresStatsPage(),
-         '/utilisateur/recherche':(context) => const Resultats(),
-         '/utilisateur/produit/details':(context) => Details(produit: ModalRoute.of(context)!.settings.arguments as Produit,)
+      routes: {
+        '/': (context) => const EcranDemarrage(),
+        '/accueil': (context) => const Accueilu(),
+        '/connexion': (context) => const Pageconnexion(),
+        '/inscription': (context) => const PageInscription(),
+        '/admin/accueil': (context) => const Accueila(),
+        '/admin/ajouterequip': (context) => const AjouterEquipPage(),
+        '/utilisateur/commandes': (context) => const Commandes(),
+        '/utilisateur/factures': (context) => const Factures(),
+        '/utilisateur/chat': (context) => const ChatPage(),
+        '/utilisateur/profile': (context) => const ProfilePage(),
+        '/utilisateur/parametres': (context) => const ParametresPage(),
+        '/utilisateur/parametres/profil': (context) => const ParametresProfilPage(),
+        '/utilisateur/parametres/discussions': (context) => const ParametresDiscussionsPage(),
+        '/utilisateur/parametres/stats': (context) => const ParametresStatsPage(),
+        '/utilisateur/recherche': (context) => const Resultats(),
+        '/utilisateur/produit/voirplus': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
+          final String title = args?['title'] ?? '';
+          final List<Produit> produits = args?['produits'] ?? [];
+          return Voirplus(title: title, produits: produits);
         },
-        );
-      }
-    }
+        '/utilisateur/produit/details': (context) => Details(produit: ModalRoute.of(context)!.settings.arguments as Produit,)
+      },
+    );
+  }
+}

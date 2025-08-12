@@ -16,7 +16,7 @@ class ParametresDiscussionsPage extends StatelessWidget {
           title: const Text(
             'Mes discussions',
             style: TextStyle(
-              fontSize: 20, 
+              fontSize: 20,
               fontWeight: FontWeight.w600,
               color: Colors.white,
             ),
@@ -28,11 +28,13 @@ class ParametresDiscussionsPage extends StatelessWidget {
             borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
           ),
         ),
-        body: const Center(child: Text(
-                          'Veuillez vous connecter pour voir\n vos discussions.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 16),
-                        ),),
+        body: const Center(
+          child: Text(
+            'Veuillez vous connecter pour voir\n vos discussions.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 16),
+          ),
+        ),
       );
     }
 
@@ -48,7 +50,7 @@ class ParametresDiscussionsPage extends StatelessWidget {
         title: const Text(
           'Mes discussions',
           style: TextStyle(
-            fontSize: 20, 
+            fontSize: 20,
             fontWeight: FontWeight.w600,
             color: Colors.white,
           ),
@@ -84,10 +86,7 @@ class ParametresDiscussionsPage extends StatelessWidget {
                 return const Center(
                   child: Text(
                     'Aucune discussion.',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey,
-                    ),
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                 );
               }
@@ -134,7 +133,10 @@ class ParametresDiscussionsPage extends StatelessWidget {
                               },
                             );
                           },
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
                         ),
                       );
                     }).toList(),

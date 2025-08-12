@@ -15,7 +15,8 @@ class _PageconnexionState extends State<Pageconnexion> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
-  bool _obscurePassword = true; // Variable pour gérer l'affichage du mot de passe
+  bool _obscurePassword =
+      true; // Variable pour gérer l'affichage du mot de passe
 
   @override
   void dispose() {
@@ -42,7 +43,11 @@ class _PageconnexionState extends State<Pageconnexion> {
 
       if (mounted) {
         // Rediriger vers la page d'accueil ou la page précédente
-        Navigator.pushNamedAndRemoveUntil(context, '/accueil', (route) => false);
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          '/accueil',
+          (route) => false,
+        );
       }
     } on FirebaseAuthException catch (e) {
       String message = 'Email ou mot de passe incorrect.';
@@ -109,7 +114,9 @@ class _PageconnexionState extends State<Pageconnexion> {
                               if (value == null || value.isEmpty) {
                                 return 'Veuillez entrer votre email';
                               }
-                              if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                              if (!RegExp(
+                                r'^[^@]+@[^@]+\.[^@]+',
+                              ).hasMatch(value)) {
                                 return 'Veuillez entrer un email valide';
                               }
                               return null;
@@ -156,18 +163,20 @@ class _PageconnexionState extends State<Pageconnexion> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            child: _isLoading
-                                ? const CircularProgressIndicator(
-                                    valueColor:
-                                        AlwaysStoppedAnimation<Color>(Colors.white),
-                                  )
-                                : const Text(
-                                    'Se connecter',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
+                            child:
+                                _isLoading
+                                    ? const CircularProgressIndicator(
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
+                                    )
+                                    : const Text(
+                                      'Se connecter',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
-                                  ),
                           ),
                         ],
                       ),

@@ -232,7 +232,7 @@ class RecentsState extends State<Recents>
         produits.where((p) => p.sousCategorie == 'Réseau').toList();
     final produitsMobiles =
         produits.where((p) => p.sousCategorie == 'Appareils Mobiles').toList();
-    
+
     final produitsPopulaires =
         produits.where((p) => (int.tryParse(p.vues) ?? 0) > 15).toList();
     final produitsAccessoires =

@@ -22,7 +22,9 @@ class ParametresPage extends StatelessWidget {
             content: const Text('Données locales effacées'),
             backgroundColor: Colors.green.shade600,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             duration: const Duration(seconds: 2),
           ),
         );
@@ -34,7 +36,9 @@ class ParametresPage extends StatelessWidget {
             content: Text('Erreur: $e'),
             backgroundColor: Colors.red.shade600,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             duration: const Duration(seconds: 3),
           ),
         );
@@ -54,7 +58,9 @@ class ParametresPage extends StatelessWidget {
             content: const Text('Cache vidé'),
             backgroundColor: Colors.green.shade600,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             duration: const Duration(seconds: 2),
           ),
         );
@@ -66,7 +72,9 @@ class ParametresPage extends StatelessWidget {
             content: Text('Erreur: $e'),
             backgroundColor: Colors.red.shade600,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             duration: const Duration(seconds: 3),
           ),
         );
@@ -79,35 +87,46 @@ class ParametresPage extends StatelessWidget {
     if (user == null) return;
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (c) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        backgroundColor: Colors.white,
-        title: Text(
-          'Supprimer le compte',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: Colors.grey.shade900),
-        ),
-        content: Text(
-          'Cette action supprimera votre compte et vos données associées (panier, souhaits). Continuer ?',
-          style: TextStyle(fontSize: 16, color: Colors.grey.shade800),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(c, false),
-            style: TextButton.styleFrom(foregroundColor: Colors.grey.shade600),
-            child: const Text('Annuler'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(c, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade600,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              elevation: 0,
+      builder:
+          (c) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-            child: const Text('Supprimer'),
+            backgroundColor: Colors.white,
+            title: Text(
+              'Supprimer le compte',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade900,
+              ),
+            ),
+            content: Text(
+              'Cette action supprimera votre compte et vos données associées (panier, souhaits). Continuer ?',
+              style: TextStyle(fontSize: 16, color: Colors.grey.shade800),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(c, false),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.grey.shade600,
+                ),
+                child: const Text('Annuler'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(c, true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red.shade600,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                ),
+                child: const Text('Supprimer'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
     if (confirm != true) return;
 
@@ -115,7 +134,12 @@ class ParametresPage extends StatelessWidget {
       final uid = user.uid;
       final firestore = FirebaseFirestore.instance;
       for (final sub in ['Panier', 'Souhaits']) {
-        final snap = await firestore.collection('Utilisateurs').doc(uid).collection(sub).get();
+        final snap =
+            await firestore
+                .collection('Utilisateurs')
+                .doc(uid)
+                .collection(sub)
+                .get();
         final batch = firestore.batch();
         for (final d in snap.docs) {
           batch.delete(d.reference);
@@ -125,7 +149,9 @@ class ParametresPage extends StatelessWidget {
       await firestore.collection('Utilisateurs').doc(uid).delete();
       await user.delete();
       if (context.mounted) {
-        Navigator.of(context).pushNamedAndRemoveUntil('/connexion', (route) => false);
+        Navigator.of(
+          context,
+        ).pushNamedAndRemoveUntil('/connexion', (route) => false);
       }
     } catch (e) {
       if (context.mounted) {
@@ -134,7 +160,9 @@ class ParametresPage extends StatelessWidget {
             content: Text('Échec de suppression (reconnexion requise?): $e'),
             backgroundColor: Colors.red.shade600,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             duration: const Duration(seconds: 3),
           ),
         );
@@ -188,21 +216,33 @@ class ParametresPage extends StatelessWidget {
                   icon: Icons.person_outline,
                   title: 'Compléter le profil',
                   subtitle: 'Renseignez vos informations manquantes',
-                  onTap: () => Navigator.pushNamed(context, '/utilisateur/parametres/profil'),
+                  onTap:
+                      () => Navigator.pushNamed(
+                        context,
+                        '/utilisateur/parametres/profil',
+                      ),
                 ),
               _buildListTile(
                 context: context,
                 icon: Icons.chat_bubble_outline,
                 title: 'Mes discussions',
                 subtitle: 'Voir les articles discutés',
-                onTap: () => Navigator.pushNamed(context, '/utilisateur/parametres/discussions'),
+                onTap:
+                    () => Navigator.pushNamed(
+                      context,
+                      '/utilisateur/parametres/discussions',
+                    ),
               ),
               _buildListTile(
                 context: context,
                 icon: Icons.bar_chart_outlined,
                 title: 'Statistiques',
                 subtitle: 'Dépenses, historique, répartition',
-                onTap: () => Navigator.pushNamed(context, '/utilisateur/parametres/stats'),
+                onTap:
+                    () => Navigator.pushNamed(
+                      context,
+                      '/utilisateur/parametres/stats',
+                    ),
               ),
               const Divider(height: 32, color: Colors.grey),
               _buildListTile(
@@ -251,11 +291,7 @@ class ParametresPage extends StatelessWidget {
         side: BorderSide(color: Colors.grey.shade200),
       ),
       child: ListTile(
-        leading: Icon(
-          icon,
-          color: iconColor ?? Colors.grey.shade600,
-          size: 24,
-        ),
+        leading: Icon(icon, color: iconColor ?? Colors.grey.shade600, size: 24),
         title: Text(
           title,
           style: TextStyle(
@@ -264,15 +300,13 @@ class ParametresPage extends StatelessWidget {
             color: titleColor ?? Colors.grey.shade900,
           ),
         ),
-        subtitle: subtitle != null
-            ? Text(
-                subtitle,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey.shade600,
-                ),
-              )
-            : null,
+        subtitle:
+            subtitle != null
+                ? Text(
+                  subtitle,
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                )
+                : null,
         trailing: Icon(
           Icons.chevron_right,
           color: Colors.grey.shade500,

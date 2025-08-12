@@ -52,7 +52,6 @@ class ProductCard extends StatelessWidget {
                   top: Radius.circular(8),
                 ),
                 child: SizedBox(
-                  
                   height: isWideScreen ? 235 : 200,
                   width: double.infinity,
                   child: Stack(
@@ -79,8 +78,7 @@ class ProductCard extends StatelessWidget {
                           left: 5,
                           child: Chip(
                             backgroundColor: Styles.rouge,
-                            label: 
-                            Row(
+                            label: Row(
                               children: [
                                 Text(
                                   'En promotion',
